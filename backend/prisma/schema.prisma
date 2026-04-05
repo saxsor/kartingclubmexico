@@ -1,0 +1,247 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ORGANIZER
+}
+
+enum Category {
+  SHIFTER
+  DOS_TIEMPOS
+  FORMULA_MUNDIAL
+  NUEVE_HP
+  ROOKIES
+  MINIS
+}
+
+enum EventStatus {
+  DRAFT
+  OPEN
+  IN_PROGRESS
+  FINISHED
+}
+
+enum InscriptionStatus {
+  PENDING_PAYMENT
+  PAID
+}
+
+enum PaymentType {
+  SERVICE_FEE
+  FOOD_FEE
+  OTHER
+}
+
+enum RaceStatus {
+  PENDING
+  IN_PROGRESS
+  FINISHED
+}
+
+enum ResultStatus {
+  FINISHED
+  DNS
+  DNF
+  DSQ
+}
+
+enum PenaltyType {
+  POSITIONS
+  POINTS
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(ORGANIZER)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Pilot {
+  id           String   @id @default(uuid())
+  name         String
+  alias        String?
+  kartNumber   Int?
+  phone        String?
+  email        String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  inscriptions Inscription[]
+  standings    ChampionshipStanding[]
+}
+
+model Event {
+  id                 String      @id @default(uuid())
+  name               String
+  slug               String      @unique
+  date               DateTime
+  description        String?
+  status             EventStatus @default(DRAFT)
+  year               Int
+  serviceFee         Decimal     @db.Decimal(10, 2) @default(0)
+  foodFee            Decimal     @db.Decimal(10, 2) @default(0)
+  blockCheckInOnDebt Boolean     @default(false)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  eventCategories EventCategory[]
+  inscriptions    Inscription[]
+  races           Race[]
+}
+
+model EventCategory {
+  id       String   @id @default(uuid())
+  eventId  String
+  category Category
+  active   Boolean  @default(true)
+
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  startGrids StartGrid[]
+
+  @@unique([eventId, category])
+}
+
+model Inscription {
+  id         String            @id @default(uuid())
+  eventId    String
+  pilotId    String
+  category   Category
+  kartNumber Int?
+  status     InscriptionStatus @default(PENDING_PAYMENT)
+  notes      String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  event         Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  pilot         Pilot               @relation(fields: [pilotId], references: [id])
+  payments      Payment[]
+  checkIn       CheckIn?
+  raceResults   RaceResult[]
+  gridPositions StartGridPosition[]
+
+  @@unique([eventId, pilotId, category])
+}
+
+model Payment {
+  id            String      @id @default(uuid())
+  inscriptionId String
+  type          PaymentType
+  amount        Decimal     @db.Decimal(10, 2)
+  paidAt        DateTime    @default(now())
+  notes         String?
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+
+  inscription Inscription @relation(fields: [inscriptionId], references: [id], onDelete: Cascade)
+}
+
+model CheckIn {
+  id            String   @id @default(uuid())
+  inscriptionId String   @unique
+  kartNumber    Int
+  confirmedAt   DateTime @default(now())
+  confirmedBy   String?
+
+  inscription Inscription @relation(fields: [inscriptionId], references: [id], onDelete: Cascade)
+}
+
+model StartGrid {
+  id              String   @id @default(uuid())
+  eventCategoryId String   @unique
+  drawnAt         DateTime @default(now())
+  drawnBy         String?
+
+  eventCategory EventCategory       @relation(fields: [eventCategoryId], references: [id], onDelete: Cascade)
+  positions     StartGridPosition[]
+}
+
+model StartGridPosition {
+  id            String @id @default(uuid())
+  startGridId   String
+  inscriptionId String
+  position      Int
+
+  startGrid   StartGrid   @relation(fields: [startGridId], references: [id], onDelete: Cascade)
+  inscription Inscription @relation(fields: [inscriptionId], references: [id])
+
+  @@unique([startGridId, position])
+  @@unique([startGridId, inscriptionId])
+}
+
+model Race {
+  id         String     @id @default(uuid())
+  eventId    String
+  category   Category
+  number     Int
+  laps       Int        @default(15)
+  status     RaceStatus @default(PENDING)
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  event   Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  results RaceResult[]
+
+  @@unique([eventId, category, number])
+}
+
+model RaceResult {
+  id            String       @id @default(uuid())
+  raceId        String
+  inscriptionId String
+  position      Int?
+  lapsCompleted Int          @default(0)
+  status        ResultStatus @default(FINISHED)
+  basePoints    Int          @default(0)
+  penaltyPoints Int          @default(0)
+  finalPoints   Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  race        Race        @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  inscription Inscription @relation(fields: [inscriptionId], references: [id])
+  penalties   Penalty[]
+
+  @@unique([raceId, inscriptionId])
+}
+
+model Penalty {
+  id           String      @id @default(uuid())
+  raceResultId String
+  type         PenaltyType
+  amount       Int
+  reason       String
+  createdAt    DateTime    @default(now())
+
+  raceResult RaceResult @relation(fields: [raceResultId], references: [id], onDelete: Cascade)
+}
+
+model ChampionshipStanding {
+  id          String   @id @default(uuid())
+  year        Int
+  pilotId     String
+  category    Category
+  totalPoints Int      @default(0)
+  position    Int?
+  eventsCount Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  pilot Pilot @relation(fields: [pilotId], references: [id])
+
+  @@unique([year, pilotId, category])
+  @@index([year, category])
+}

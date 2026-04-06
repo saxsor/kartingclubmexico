@@ -11,6 +11,16 @@ const ALL_CATEGORIES: Category[] = [
 
 type Step = 'form' | 'payment' | 'done';
 
+const STEP_LABELS: Record<Step, string> = {
+  form: 'Tus datos',
+  payment: 'Pago',
+  done: 'Confirmación',
+};
+const STEPS: Step[] = ['form', 'payment', 'done'];
+
+const inputClass = 'w-full border border-white/10 bg-[#1f1f27] px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none';
+const labelClass = 'block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5';
+
 export function EventRegister() {
   const { slug } = useParams<{ slug: string }>();
   const [event, setEvent] = useState<KartEvent | null>(null);
@@ -24,13 +34,8 @@ export function EventRegister() {
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
-    name: '',
-    alias: '',
-    email: '',
-    phone: '',
-    kartNumber: '',
-    category: '' as Category | '',
-    notes: '',
+    name: '', alias: '', email: '', phone: '', kartNumber: '',
+    category: '' as Category | '', notes: '',
   });
 
   useEffect(() => {
@@ -79,143 +84,127 @@ export function EventRegister() {
     }
   };
 
-  if (loadingEvent) {
-    return <div className="text-center py-20 text-white/40">Cargando...</div>;
-  }
+  if (loadingEvent) return (
+    <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Cargando...</div>
+  );
 
-  if (!event) {
-    return <div className="text-center py-20 text-white/40">Evento no encontrado</div>;
-  }
+  if (!event) return (
+    <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Evento no encontrado</div>
+  );
 
   if (event.status !== 'OPEN') {
     return (
       <div className="max-w-lg mx-auto">
-        <div className="mb-6">
-          <Link to={`/eventos/${slug}`} className="text-sm text-white/50 hover:text-white flex items-center gap-1.5">
-            <ArrowLeft className="h-4 w-4" />
-            Volver al evento
-          </Link>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center">
-          <p className="text-white/60">Este evento no está abierto para inscripciones.</p>
+        <Link to={`/eventos/${slug}`} className="text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white flex items-center gap-1.5 mb-6">
+          <ArrowLeft className="h-3.5 w-3.5" /> Volver al evento
+        </Link>
+        <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-8 text-center">
+          <p className="text-white/50 text-sm uppercase tracking-wide">Este evento no está abierto para inscripciones.</p>
         </div>
       </div>
     );
   }
 
+  const currentStepIdx = STEPS.indexOf(step);
+
   return (
     <div className="max-w-lg mx-auto">
-      <div className="mb-6">
-        <Link to={`/eventos/${slug}`} className="text-sm text-white/50 hover:text-white flex items-center gap-1.5">
-          <ArrowLeft className="h-4 w-4" />
-          {event.name}
-        </Link>
-      </div>
+      {/* Back link */}
+      <Link to={`/eventos/${slug}`} className="text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white flex items-center gap-1.5 mb-6">
+        <ArrowLeft className="h-3.5 w-3.5" /> {event.name}
+      </Link>
 
-      <h1 className="text-2xl font-black text-white mb-6">Inscripción — {event.name}</h1>
+      {/* Page header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-1 h-5 bg-[#e10600]" />
+          <span className="text-xs font-bold uppercase tracking-widest text-white/50">{event.name}</span>
+        </div>
+        <h1
+          className="text-3xl font-black text-white uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+        >
+          Inscripción
+        </h1>
+      </div>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-8">
-        {(['form', 'payment', 'done'] as Step[]).map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                step === s
-                  ? 'bg-racing-red text-white'
-                  : i < ['form', 'payment', 'done'].indexOf(step)
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white/10 text-white/40'
-              }`}
-            >
-              {i < ['form', 'payment', 'done'].indexOf(step) ? <CheckCircle className="h-4 w-4" /> : i + 1}
+      <div className="flex items-center mb-8">
+        {STEPS.map((s, i) => (
+          <div key={s} className="flex items-center">
+            <div className="flex items-center gap-2">
+              <div className={`h-7 w-7 flex items-center justify-center text-xs font-black ${
+                step === s ? 'bg-[#e10600] text-white' :
+                i < currentStepIdx ? 'bg-green-500 text-white' :
+                'bg-[#2a2a35] text-white/30'
+              }`} style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                {i < currentStepIdx ? <CheckCircle className="h-4 w-4" /> : i + 1}
+              </div>
+              <span className={`text-[10px] font-bold uppercase tracking-widest hidden sm:block ${
+                step === s ? 'text-white' : i < currentStepIdx ? 'text-green-500' : 'text-white/30'
+              }`}>
+                {STEP_LABELS[s]}
+              </span>
             </div>
-            {i < 2 && <div className={`h-px w-8 ${i < ['form', 'payment', 'done'].indexOf(step) ? 'bg-green-500' : 'bg-white/10'}`} />}
+            {i < 2 && (
+              <div className={`h-px w-8 mx-3 ${i < currentStepIdx ? 'bg-green-500' : 'bg-[#38383f]'}`} />
+            )}
           </div>
         ))}
-        <span className="ml-2 text-sm text-white/50">
-          {step === 'form' ? 'Tus datos' : step === 'payment' ? 'Pago' : 'Confirmación'}
-        </span>
       </div>
 
-      {/* Step 1: Personal info form */}
+      {/* Step 1: Form */}
       {step === 'form' && (
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+            <div className="border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Nombre completo *</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              placeholder="Juan Pérez"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
-            />
+            <label className={labelClass}>Nombre completo *</label>
+            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required placeholder="Juan Pérez" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Alias / Apodo</label>
-            <input
-              type="text"
-              value={form.alias}
-              onChange={(e) => setForm({ ...form, alias: e.target.value })}
-              placeholder="El Rayo"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
-            />
+            <label className={labelClass}>Alias / Apodo</label>
+            <input type="text" value={form.alias} onChange={(e) => setForm({ ...form, alias: e.target.value })}
+              placeholder="El Rayo" className={inputClass} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-1.5">Correo electrónico</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="juan@ejemplo.com"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
-              />
+              <label className={labelClass}>Correo electrónico</label>
+              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="juan@ejemplo.com" className={inputClass} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-1.5">Teléfono</label>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="5512345678"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
-              />
+              <label className={labelClass}>Teléfono</label>
+              <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="5512345678" className={inputClass} />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Número de kart (opcional)</label>
-            <input
-              type="number"
-              value={form.kartNumber}
-              onChange={(e) => setForm({ ...form, kartNumber: e.target.value })}
-              placeholder="42"
-              min="1"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
-            />
+            <label className={labelClass}>Número de kart (opcional)</label>
+            <input type="number" value={form.kartNumber} onChange={(e) => setForm({ ...form, kartNumber: e.target.value })}
+              placeholder="42" min="1" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">Categoría *</label>
-            <div className="grid grid-cols-2 gap-2">
+            <label className={labelClass}>Categoría *</label>
+            <div className="grid grid-cols-2 gap-px bg-[#38383f]">
               {ALL_CATEGORIES.filter((c) => activeCategories.includes(c)).map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setForm({ ...form, category: cat })}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
                     form.category === cat
-                      ? 'border-racing-red bg-racing-red/20 text-white'
-                      : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                      ? 'bg-[#e10600] text-white'
+                      : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]'
                   }`}
                 >
                   {CATEGORY_LABELS[cat]}
@@ -223,107 +212,110 @@ export function EventRegister() {
               ))}
             </div>
             {activeCategories.length === 0 && (
-              <p className="text-sm text-white/40 mt-2">No hay categorías disponibles.</p>
+              <p className="text-xs text-white/40 mt-2 uppercase tracking-wide">No hay categorías disponibles.</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Notas (opcional)</label>
-            <textarea
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              rows={2}
-              placeholder="Cualquier información adicional..."
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none resize-none"
-            />
+            <label className={labelClass}>Notas (opcional)</label>
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              rows={2} placeholder="Cualquier información adicional..."
+              className={`${inputClass} resize-none`} />
           </div>
 
           <button
             type="submit"
             disabled={submitting || !form.category}
-            className="w-full rounded-lg bg-racing-red py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+            className="w-full bg-[#e10600] hover:bg-[#b30500] py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50"
           >
             {submitting ? 'Registrando...' : 'Inscribirme'}
           </button>
         </form>
       )}
 
-      {/* Step 2: Payment info + receipt upload */}
+      {/* Step 2: Payment */}
       {step === 'payment' && registerResult && (
         <div className="space-y-4">
-          <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-400">
-            Inscripción registrada exitosamente. Ahora realiza el pago y sube tu comprobante.
+          <div className="border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-400">
+            Inscripción registrada. Realiza el pago y sube tu comprobante.
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-3">
-            <h2 className="font-semibold text-white">Monto a pagar</h2>
+          {/* Amount */}
+          <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-5 space-y-3">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-1 h-4 bg-[#e10600]" />
+              <span className="text-xs font-bold uppercase tracking-widest text-white/50">Monto a pagar</span>
+            </div>
             <div className="flex justify-between text-sm">
-              <span className="text-white/60">Cuota de servicio:</span>
-              <span className="font-semibold text-white">{formatCurrency(Number(registerResult.serviceFee))}</span>
+              <span className="text-white/50">Cuota de servicio</span>
+              <span className="font-bold text-white">{formatCurrency(Number(registerResult.serviceFee))}</span>
             </div>
             {Number(registerResult.foodFee) > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Cuota de comida:</span>
-                <span className="font-semibold text-white">{formatCurrency(Number(registerResult.foodFee))}</span>
+                <span className="text-white/50">Cuota de comida</span>
+                <span className="font-bold text-white">{formatCurrency(Number(registerResult.foodFee))}</span>
               </div>
             )}
-            <div className="border-t border-white/10 pt-2 flex justify-between text-sm font-bold">
-              <span className="text-white">Total:</span>
-              <span className="text-racing-red">
+            <div className="border-t border-[#38383f] pt-3 flex justify-between">
+              <span className="text-sm font-bold text-white uppercase tracking-wide">Total</span>
+              <span className="text-xl font-black text-[#e10600]"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 {formatCurrency(Number(registerResult.serviceFee) + Number(registerResult.foodFee))}
               </span>
             </div>
           </div>
 
+          {/* Transfer info */}
           {registerResult.transferInfo ? (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-              <h2 className="font-semibold text-white mb-2">Datos de transferencia</h2>
-              <pre className="text-sm text-white/70 whitespace-pre-wrap font-sans">
+            <div className="border border-[#38383f] bg-[#1f1f27] p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-1 h-4 bg-[#e10600]" />
+                <span className="text-xs font-bold uppercase tracking-widest text-white/50">Datos de transferencia</span>
+              </div>
+              <pre className="text-sm text-white/70 whitespace-pre-wrap font-sans leading-relaxed">
                 {registerResult.transferInfo}
               </pre>
             </div>
           ) : (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-5 text-sm text-white/50">
+            <div className="border border-[#38383f] bg-[#1f1f27] p-5 text-sm text-white/40 uppercase tracking-wide">
               El organizador te proporcionará los datos de pago.
             </div>
           )}
 
-          <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-3">
-            <h2 className="font-semibold text-white">Subir comprobante de pago</h2>
-            <p className="text-sm text-white/50">Formatos aceptados: JPG, PNG, PDF, WebP. Máx. 10MB.</p>
+          {/* Receipt upload */}
+          <div className="border border-[#38383f] bg-[#1f1f27] p-5 space-y-3">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-1 h-4 bg-[#e10600]" />
+              <span className="text-xs font-bold uppercase tracking-widest text-white/50">Comprobante de pago</span>
+            </div>
+            <p className="text-xs text-white/40 uppercase tracking-wide">JPG, PNG, PDF, WebP · máx. 10 MB</p>
 
             <label className="flex items-center gap-3 cursor-pointer">
-              <div className="flex-1 rounded-lg border border-dashed border-white/20 px-4 py-3 text-sm text-white/50 hover:border-white/40 transition-colors">
+              <div className="flex-1 border border-dashed border-white/20 px-4 py-3 text-sm text-white/40 hover:border-[#e10600]/50 hover:text-white/60 transition-colors truncate">
                 {receiptFile ? receiptFile.name : 'Seleccionar archivo...'}
               </div>
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.pdf,.webp"
-                className="hidden"
-                onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
-              />
-              <div className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20 transition-colors">
-                <Upload className="h-4 w-4" />
+              <input type="file" accept=".jpg,.jpeg,.png,.pdf,.webp" className="hidden"
+                onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)} />
+              <div className="border border-white/10 bg-[#2a2a35] hover:bg-[#38383f] px-3 py-3 transition-colors">
+                <Upload className="h-4 w-4 text-white/60" />
               </div>
             </label>
 
             {error && (
-              <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
-                {error}
-              </div>
+              <div className="border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
             )}
 
             <button
               onClick={handleUploadReceipt}
               disabled={!receiptFile || uploadingReceipt}
-              className="w-full rounded-lg bg-racing-red py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+              className="w-full bg-[#e10600] hover:bg-[#b30500] py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50"
             >
               {uploadingReceipt ? 'Subiendo...' : 'Enviar comprobante'}
             </button>
 
             <button
               onClick={() => setStep('done')}
-              className="w-full rounded-lg border border-white/10 py-2.5 text-sm text-white/50 hover:bg-white/5 transition-colors"
+              className="w-full border border-[#38383f] py-3 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-[#1f1f27] transition-colors"
             >
               Enviar después
             </button>
@@ -331,32 +323,33 @@ export function EventRegister() {
         </div>
       )}
 
-      {/* Step 3: Confirmation */}
+      {/* Step 3: Done */}
       {step === 'done' && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center space-y-4">
-          <CheckCircle className="h-16 w-16 text-green-400 mx-auto" />
-          <h2 className="text-xl font-black text-white">
+        <div className="border-t-[3px] border-green-500 bg-[#1f1f27] p-8 text-center space-y-4">
+          <CheckCircle className="h-14 w-14 text-green-400 mx-auto" />
+          <h2
+            className="text-2xl font-black text-white uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+          >
             {receiptUploaded ? '¡Comprobante enviado!' : '¡Inscripción registrada!'}
           </h2>
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-white/50 max-w-xs mx-auto">
             {receiptUploaded
-              ? 'Tu comprobante ha sido enviado. El organizador lo revisará y confirmará tu pago a la brevedad.'
+              ? 'Tu comprobante fue enviado. El organizador lo revisará y confirmará tu pago.'
               : 'Tu inscripción fue registrada. Recuerda realizar el pago y enviar tu comprobante para confirmar tu lugar.'}
           </p>
           {registerResult && !receiptUploaded && (
             <button
               onClick={() => setStep('payment')}
-              className="rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+              className="bg-[#e10600] hover:bg-[#b30500] px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-white transition-colors"
             >
               Subir comprobante
             </button>
           )}
           <div>
-            <Link
-              to={`/eventos/${slug}`}
-              className="text-sm text-white/50 hover:text-white underline underline-offset-2"
-            >
-              Volver al evento
+            <Link to={`/eventos/${slug}`}
+              className="text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+              ← Volver al evento
             </Link>
           </div>
         </div>

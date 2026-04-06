@@ -10,6 +10,9 @@ const app = express();
 
 app.use(helmet({ contentSecurityPolicy: false }));
 
+// Serve uploaded receipts as static files
+app.use('/uploads', express.static('/app/uploads'));
+
 app.use(cors({
   origin: config.CORS_ORIGIN,
   credentials: true,

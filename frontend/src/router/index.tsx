@@ -4,6 +4,7 @@ import { AdminLayout } from '../components/layout/AdminLayout';
 import { Home } from '../pages/public/Home';
 import { Events } from '../pages/public/Events';
 import { EventDetail } from '../pages/public/EventDetail';
+import { EventRegister } from '../pages/public/EventRegister';
 import { EventGrid } from '../pages/public/EventGrid';
 import { EventResults } from '../pages/public/EventResults';
 import { Championship } from '../pages/public/Championship';
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'eventos', element: <Events /> },
       { path: 'eventos/:slug', element: <EventDetail /> },
+      { path: 'eventos/:slug/inscribirse', element: <EventRegister /> },
       { path: 'eventos/:slug/parrilla', element: <EventGrid /> },
       { path: 'eventos/:slug/resultados', element: <EventResults /> },
       { path: 'campeonato', element: <Championship /> },

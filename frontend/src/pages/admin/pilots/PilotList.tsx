@@ -1,16 +1,30 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Hash } from 'lucide-react';
+import { Plus, Search, Hash, Trash2 } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../../api/pilots.api';
 
 export function PilotList() {
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     pilotsApi.list().then(setPilots).finally(() => setLoading(false));
   }, []);
+
+  const handleDelete = async (pilot: Pilot) => {
+    if (!confirm(`¿Eliminar al piloto "${pilot.name}"? Se eliminará su historial de participaciones.`)) return;
+    setDeleting(pilot.id);
+    try {
+      await pilotsApi.delete(pilot.id);
+      setPilots((prev) => prev.filter((p) => p.id !== pilot.id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al eliminar');
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   const filtered = pilots.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -77,9 +91,18 @@ export function PilotList() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link to={`/app/pilotos/${pilot.id}`} className="text-xs text-racing-red hover:underline">
-                      Editar
-                    </Link>
+                    <div className="flex items-center justify-end gap-3">
+                      <Link to={`/app/pilotos/${pilot.id}`} className="text-xs text-racing-red hover:underline">
+                        Editar
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(pilot)}
+                        disabled={deleting === pilot.id}
+                        className="text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-40"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

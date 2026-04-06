@@ -33,6 +33,8 @@ services:
       - internal
     ports:
       - "4000:4000"
+    volumes:
+      - uploads_data:/app/uploads
 
   frontend:
     build:
@@ -63,6 +65,7 @@ volumes:
   postgres_data:
   nginx_certs:
   nginx_certs_www:
+  uploads_data:
 
 networks:
   internal:

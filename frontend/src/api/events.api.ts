@@ -21,6 +21,7 @@ export interface KartEvent {
   serviceFee: string;
   foodFee: string;
   blockCheckInOnDebt: boolean;
+  transferInfo: string | null;
   eventCategories: EventCategory[];
   createdAt: string;
   updatedAt: string;

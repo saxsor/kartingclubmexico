@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { DollarSign, Plus } from 'lucide-react';
+import { DollarSign, Plus, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { paymentsApi, CashBoxData } from '../../../api/payments.api';
 import { inscriptionsApi, Inscription } from '../../../api/inscriptions.api';
 import { formatCurrency } from '../../../lib/utils';
@@ -11,20 +11,46 @@ export function CashBox() {
   const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
   const [showForm, setShowForm] = useState<string | null>(null); // inscriptionId
   const [form, setForm] = useState({ type: 'SERVICE_FEE', amount: '', notes: '' });
+  const [processingReceipt, setProcessingReceipt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     if (!slug) return;
-    const [cb, insc] = await Promise.all([
-      paymentsApi.getCashBox(slug),
-      inscriptionsApi.list(slug),
-    ]);
-    setCashbox(cb);
-    setInscriptions(insc);
-    setLoading(false);
+    try {
+      const [cb, insc] = await Promise.all([
+        paymentsApi.getCashBox(slug),
+        inscriptionsApi.list(slug),
+      ]);
+      setCashbox(cb);
+      setInscriptions(insc);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [slug]);
+
+  const handleApproveReceipt = async (id: string) => {
+    if (!slug) return;
+    setProcessingReceipt(id);
+    try {
+      await inscriptionsApi.approveReceipt(slug, id);
+      load();
+    } finally {
+      setProcessingReceipt(null);
+    }
+  };
+
+  const handleRejectReceipt = async (id: string) => {
+    if (!slug) return;
+    setProcessingReceipt(id);
+    try {
+      await inscriptionsApi.rejectReceipt(slug, id);
+      load();
+    } finally {
+      setProcessingReceipt(null);
+    }
+  };
 
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +87,56 @@ export function CashBox() {
         </div>
       )}
 
+      {/* Pending receipts section */}
+      {inscriptions.filter((i) => i.status === 'RECEIPT_SUBMITTED').length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-yellow-400 mb-3 flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Recibos pendientes ({inscriptions.filter((i) => i.status === 'RECEIPT_SUBMITTED').length})
+          </h2>
+          <div className="space-y-2">
+            {inscriptions.filter((i) => i.status === 'RECEIPT_SUBMITTED').map((insc) => (
+              <div key={insc.id} className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <p className="font-medium text-white">{insc.pilot.name}</p>
+                    <p className="text-xs text-white/50">{insc.category}</p>
+                    {insc.receiptPath && (
+                      <a
+                        href={insc.receiptPath}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-yellow-400 hover:text-yellow-300 underline underline-offset-2 mt-1 inline-block"
+                      >
+                        Ver comprobante
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleApproveReceipt(insc.id)}
+                      disabled={processingReceipt === insc.id}
+                      className="flex items-center gap-1.5 rounded-lg bg-green-500/20 border border-green-500/30 px-3 py-1.5 text-xs text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-60"
+                    >
+                      <CheckCircle className="h-3.5 w-3.5" />
+                      Aprobar
+                    </button>
+                    <button
+                      onClick={() => handleRejectReceipt(insc.id)}
+                      disabled={processingReceipt === insc.id}
+                      className="flex items-center gap-1.5 rounded-lg bg-red-500/20 border border-red-500/30 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-60"
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                      Rechazar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60 mb-3">
           Registrar pago
@@ -73,8 +149,14 @@ export function CashBox() {
                   <p className="font-medium text-white">{insc.pilot.name}</p>
                   <p className="text-xs text-white/50">
                     {insc.category} |{' '}
-                    <span className={insc.status === 'PAID' ? 'text-green-400' : 'text-orange-400'}>
-                      {insc.status === 'PAID' ? 'Pagado' : 'Pendiente'}
+                    <span className={
+                      insc.status === 'PAID' ? 'text-green-400' :
+                      insc.status === 'RECEIPT_SUBMITTED' ? 'text-yellow-400' :
+                      'text-orange-400'
+                    }>
+                      {insc.status === 'PAID' ? 'Pagado' :
+                       insc.status === 'RECEIPT_SUBMITTED' ? 'Recibo enviado' :
+                       'Pendiente'}
                     </span>{' '}|{' '}
                     Total: {formatCurrency(insc.payments.reduce((s, p) => s + Number(p.amount), 0))}
                   </p>

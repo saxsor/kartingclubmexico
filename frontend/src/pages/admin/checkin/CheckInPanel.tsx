@@ -16,9 +16,12 @@ export function CheckInPanel() {
 
   const load = async () => {
     if (!slug) return;
-    const data = await checkinApi.list(slug);
-    setInscriptions(data);
-    setLoading(false);
+    try {
+      const data = await checkinApi.list(slug);
+      setInscriptions(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [slug]);

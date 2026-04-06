@@ -12,9 +12,8 @@ const paymentSchema = z.object({
   notes: z.string().optional(),
 });
 
-router.use(authenticate, requireRole('ADMIN', 'ORGANIZER'));
-router.get('/cashbox', getCashBox);
-router.post('/inscriptions/:id/payments', validate(paymentSchema), addPayment);
+router.get('/cashbox', authenticate, requireRole('ADMIN', 'ORGANIZER'), getCashBox);
+router.post('/inscriptions/:id/payments', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(paymentSchema), addPayment);
 router.delete('/payments/:paymentId', authenticate, requireRole('ADMIN'), deletePayment);
 
 export default router;

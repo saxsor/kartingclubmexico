@@ -34,6 +34,11 @@ export async function updatePilot(req: Request, res: Response): Promise<void> {
 }
 
 export async function deletePilot(req: Request, res: Response): Promise<void> {
+  const count = await prisma.inscription.count({ where: { pilotId: req.params.id } });
+  if (count > 0) {
+    res.status(409).json({ error: `No se puede eliminar: el piloto tiene ${count} inscripción(es) en eventos. Elimina primero sus inscripciones.` });
+    return;
+  }
   await prisma.pilot.delete({ where: { id: req.params.id } });
   res.status(204).send();
 }

@@ -17,10 +17,13 @@ export function RacePanel() {
 
   const load = async () => {
     if (!slug) return;
-    const [e, r] = await Promise.all([eventsApi.get(slug), racesApi.list(slug)]);
-    setEvent(e);
-    setRaces(r);
-    setLoading(false);
+    try {
+      const [e, r] = await Promise.all([eventsApi.get(slug), racesApi.list(slug)]);
+      setEvent(e);
+      setRaces(r);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [slug]);

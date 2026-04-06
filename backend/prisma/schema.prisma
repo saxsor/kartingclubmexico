@@ -30,6 +30,7 @@ enum EventStatus {
 
 enum InscriptionStatus {
   PENDING_PAYMENT
+  RECEIPT_SUBMITTED
   PAID
 }
 
@@ -94,6 +95,7 @@ model Event {
   serviceFee         Decimal     @db.Decimal(10, 2) @default(0)
   foodFee            Decimal     @db.Decimal(10, 2) @default(0)
   blockCheckInOnDebt Boolean     @default(false)
+  transferInfo       String?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
@@ -120,9 +122,11 @@ model Inscription {
   pilotId    String
   category   Category
   kartNumber Int?
-  status     InscriptionStatus @default(PENDING_PAYMENT)
-  notes      String?
-  createdAt  DateTime          @default(now())
+  status         InscriptionStatus @default(PENDING_PAYMENT)
+  notes          String?
+  receiptPath    String?
+  selfRegistered Boolean           @default(false)
+  createdAt      DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
 
   event         Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)

@@ -15,10 +15,13 @@ export function GridDraw() {
 
   const load = async () => {
     if (!slug) return;
-    const [e, g] = await Promise.all([eventsApi.get(slug), gridApi.getAll(slug)]);
-    setEvent(e);
-    setGrids(g);
-    setLoading(false);
+    try {
+      const [e, g] = await Promise.all([eventsApi.get(slug), gridApi.getAll(slug)]);
+      setEvent(e);
+      setGrids(g);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [slug]);

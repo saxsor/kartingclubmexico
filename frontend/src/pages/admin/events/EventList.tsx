@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../../api/events.api';
 import { formatDate } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
@@ -9,10 +9,24 @@ import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 export function EventList() {
   const [events, setEvents] = useState<KartEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     eventsApi.list().then(setEvents).finally(() => setLoading(false));
   }, []);
+
+  const handleDelete = async (event: KartEvent) => {
+    if (!confirm(`¿Eliminar el evento "${event.name}"? Esta acción eliminará también todas sus inscripciones, carreras y resultados. No se puede deshacer.`)) return;
+    setDeleting(event.slug);
+    try {
+      await eventsApi.delete(event.slug);
+      setEvents((prev) => prev.filter((e) => e.slug !== event.slug));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al eliminar');
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -62,6 +76,13 @@ export function EventList() {
                   >
                     Editar
                   </Link>
+                  <button
+                    onClick={() => handleDelete(event)}
+                    disabled={deleting === event.slug}
+                    className="rounded-lg border border-red-500/30 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             </div>

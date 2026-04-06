@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Grid, Flag, BarChart2 } from 'lucide-react';
+import { Calendar, Grid, Flag, BarChart2, ClipboardList } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
 import { formatDate } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -20,8 +20,9 @@ export function EventDetail() {
   if (!event) return <div className="text-center py-20 text-white/40">Evento no encontrado</div>;
 
   const actions = [
-    { label: 'Parrilla de salida', to: `/eventos/${slug}/parrilla`, icon: Grid, show: event.status !== 'DRAFT' },
-    { label: 'Resultados', to: `/eventos/${slug}/resultados`, icon: BarChart2, show: event.status === 'FINISHED' || event.status === 'IN_PROGRESS' },
+    { label: 'Inscribirme', to: `/eventos/${slug}/inscribirse`, icon: ClipboardList, show: event.status === 'OPEN', highlight: true },
+    { label: 'Parrilla de salida', to: `/eventos/${slug}/parrilla`, icon: Grid, show: event.status !== 'DRAFT', highlight: false },
+    { label: 'Resultados', to: `/eventos/${slug}/resultados`, icon: BarChart2, show: event.status === 'FINISHED' || event.status === 'IN_PROGRESS', highlight: false },
   ].filter((a) => a.show);
 
   return (
@@ -56,7 +57,11 @@ export function EventDetail() {
             <Link
               key={action.to}
               to={action.to}
-              className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-5 hover:bg-white/10 transition-colors group"
+              className={`flex items-center gap-4 rounded-xl border p-5 transition-colors group ${
+                action.highlight
+                  ? 'border-racing-red/50 bg-racing-red/10 hover:bg-racing-red/20'
+                  : 'border-white/10 bg-white/5 hover:bg-white/10'
+              }`}
             >
               <div className="h-10 w-10 rounded-lg bg-racing-red/20 flex items-center justify-center group-hover:bg-racing-red/30 transition-colors">
                 <action.icon className="h-5 w-5 text-racing-red" />

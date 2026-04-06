@@ -17,6 +17,7 @@ export function EventForm() {
     serviceFee: '0',
     foodFee: '0',
     blockCheckInOnDebt: false,
+    transferInfo: '',
     categories: [] as Category[],
   });
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,7 @@ export function EventForm() {
           serviceFee: event.serviceFee,
           foodFee: event.foodFee,
           blockCheckInOnDebt: event.blockCheckInOnDebt,
+          transferInfo: event.transferInfo ?? '',
           categories: event.eventCategories.filter((c) => c.active).map((c) => c.category),
         });
       });
@@ -59,6 +61,7 @@ export function EventForm() {
         serviceFee: parseFloat(form.serviceFee),
         foodFee: parseFloat(form.foodFee),
         blockCheckInOnDebt: form.blockCheckInOnDebt,
+        transferInfo: form.transferInfo || undefined,
         categories: form.categories,
       };
 
@@ -126,6 +129,22 @@ export function EventForm() {
             rows={3}
             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none resize-none"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-white/70 mb-1.5">
+            Datos de transferencia (para auto-inscripción)
+          </label>
+          <textarea
+            value={form.transferInfo}
+            onChange={(e) => setForm({ ...form, transferInfo: e.target.value })}
+            rows={4}
+            placeholder={'Banco: BBVA\nCuenta: 1234567890\nCLABE: 012345678901234567\nTitular: Edel Racing'}
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none resize-none"
+          />
+          <p className="mt-1 text-xs text-white/40">
+            Se mostrará al piloto después de inscribirse.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

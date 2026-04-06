@@ -21,15 +21,18 @@ export function InscriptionManager() {
 
   const load = async () => {
     if (!slug) return;
-    const [e, insc, p] = await Promise.all([
-      eventsApi.get(slug),
-      inscriptionsApi.list(slug),
-      pilotsApi.list(),
-    ]);
-    setEvent(e);
-    setInscriptions(insc);
-    setPilots(p.filter((p) => p.active));
-    setLoading(false);
+    try {
+      const [e, insc, p] = await Promise.all([
+        eventsApi.get(slug),
+        inscriptionsApi.list(slug),
+        pilotsApi.list(),
+      ]);
+      setEvent(e);
+      setInscriptions(insc);
+      setPilots(p.filter((p) => p.active));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [slug]);

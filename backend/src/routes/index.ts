@@ -11,6 +11,7 @@ import gridRoutes from './grid.routes.js';
 import racesRoutes from './races.routes.js';
 import { eventRouter as resultsEventRouter, raceRouter as resultsRaceRouter } from './results.routes.js';
 import championshipRoutes from './championship.routes.js';
+import selfRegisterRoutes from './self-register.routes.js';
 import { sseManager } from '../lib/sse.js';
 
 const router = Router();
@@ -21,7 +22,8 @@ router.use('/pilots', pilotsRoutes);
 router.use('/events', eventsRoutes);
 
 // Event-nested routes
-router.use('/events/:slug', inscriptionsRoutes);
+router.use('/events/:slug', selfRegisterRoutes);
+router.use('/events/:slug/inscriptions', inscriptionsRoutes);
 router.use('/events/:slug', paymentsRoutes);
 router.use('/events/:slug', checkInRoutes);
 router.use('/events/:slug', gridRoutes);

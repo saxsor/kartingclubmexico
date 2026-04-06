@@ -19,6 +19,7 @@ const createSchema = z.object({
   serviceFee: z.number().optional(),
   foodFee: z.number().optional(),
   blockCheckInOnDebt: z.boolean().optional(),
+  transferInfo: z.string().optional(),
   categories: z.array(categoryEnum).optional(),
 });
 

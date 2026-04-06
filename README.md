@@ -1,6 +1,6 @@
 # Edel Racing — Karting Club México
 
-Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, control de pagos, check-in y campeonato acumulado.
+Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in y campeonato acumulado.
 
 ## Stack
 
@@ -8,7 +8,6 @@ Sistema completo de gestión de carreras de karting con resultados en tiempo rea
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS
 - **Auth**: JWT con roles ADMIN / ORGANIZER
 - **Realtime**: Server-Sent Events (SSE)
-- **PWA**: vite-plugin-pwa con service worker y soporte offline
 - **Deploy**: Docker + docker-compose + Nginx
 
 ---
@@ -40,10 +39,10 @@ cp .env.example .env
 nano .env
 ```
 
-Edita al menos:
+Variables obligatorias:
 - `JWT_SECRET` — genera uno seguro: `openssl rand -base64 32`
 - `CORS_ORIGIN` — tu dominio: `https://tudominio.com`
-- `DATABASE_URL` — si usas PostgreSQL externo, cambia la URL
+- `DATABASE_URL` — se configura automáticamente con Docker Compose
 
 ### 3. Construir y levantar servicios
 
@@ -51,25 +50,19 @@ Edita al menos:
 docker compose up -d --build
 ```
 
-### 4. Ejecutar migraciones de base de datos
+### 4. Inicializar la base de datos
 
 ```bash
-docker compose exec backend npx prisma migrate deploy
+docker compose exec backend npx prisma db push
 ```
 
 ### 5. Cargar datos de prueba (seed)
 
 ```bash
-cd seed
-npm install
-DATABASE_URL=postgresql://postgres:password@localhost:5432/edel_racing tsx seed.ts
-```
-
-O desde Docker:
-
-```bash
-docker compose run --rm -e DATABASE_URL=postgresql://postgres:password@postgres:5432/edel_racing \
-  -v $(pwd)/seed:/seed node:20-alpine sh -c "cd /seed && npm ci && tsx seed.ts"
+docker compose run --rm \
+  -e DATABASE_URL=postgresql://postgres:password@postgres:5432/edel_racing \
+  -v $(pwd)/seed:/seed \
+  node:20-alpine sh -c "cd /seed && npm ci && npx tsx seed.ts"
 ```
 
 ---
@@ -80,11 +73,10 @@ docker compose run --rm -e DATABASE_URL=postgresql://postgres:password@postgres:
 # Instalar Certbot
 apt install -y certbot python3-certbot-nginx
 
-# Obtener certificado (el servidor nginx debe estar corriendo en puerto 80)
+# Obtener certificado (nginx debe estar corriendo en puerto 80)
 certbot --nginx -d tudominio.com -d www.tudominio.com
 
 # Descomentar el bloque HTTPS en nginx.conf y reemplazar tudominio.com
-# Recargar nginx
 docker compose exec nginx nginx -s reload
 ```
 
@@ -94,12 +86,13 @@ docker compose exec nginx nginx -s reload
 
 | URL | Descripción |
 |-----|-------------|
-| `https://tudominio.com/` | Sitio público |
-| `https://tudominio.com/eventos` | Lista de eventos públicos |
-| `https://tudominio.com/campeonato` | Tabla de campeonato |
-| `https://tudominio.com/login` | Login admin |
-| `https://tudominio.com/app/dashboard` | Panel de administración |
-| `https://tudominio.com/api/` | API REST |
+| `/` | Sitio público — eventos, parrillas, resultados |
+| `/eventos/:slug/inscribirse` | Formulario de auto-inscripción para pilotos |
+| `/campeonato` | Tabla de campeonato acumulado |
+| `/login` | Login administradores |
+| `/app/dashboard` | Panel de administración |
+| `/api/` | API REST |
+| `/uploads/receipts/` | Comprobantes de pago subidos |
 
 ---
 
@@ -110,7 +103,50 @@ docker compose exec nginx nginx -s reload
 | admin@edelracing.mx | password123 | ADMIN |
 | organizador@edelracing.mx | password123 | ORGANIZER |
 
-**Importante**: Cambia estas contraseñas en producción desde el panel de usuarios.
+> **Importante**: Cambia estas contraseñas en producción desde el panel de usuarios (`/app/usuarios`).
+
+---
+
+## Flujo de operación de un evento
+
+### Desde el panel de administración
+
+1. **Crear evento** — nombre, fecha, categorías activas, cuota de servicio, cuota de alimentos y datos de transferencia bancaria para pagos
+2. **Abrir inscripciones** — cambiar status a `OPEN` para activar el formulario público
+3. **Inscribir pilotos** — manualmente desde *Gestionar → Inscripciones*, o esperar auto-inscripciones del público
+4. **Caja** — revisar y aprobar comprobantes de pago enviados por los pilotos; también registrar pagos manuales
+5. **Check-in** — confirmar llegada y asignar número de kart
+6. **Sorteo de parrilla** — aleatorio entre pilotos con check-in completado
+7. **Carreras** — crear 3 carreras por categoría, capturar posiciones con drag-and-drop
+8. **Clasificación** — ver tabla de puntos y exportar resultados (PDF/CSV)
+9. **Finalizar** — cambiar status a `FINISHED`
+
+### Flujo de auto-inscripción (pilotos sin login)
+
+1. El piloto entra al evento público → botón **"Inscribirme"** (visible solo si el evento está `OPEN`)
+2. Llena el formulario: nombre, alias, email, teléfono, número de kart preferido, categoría
+3. El sistema crea o actualiza su perfil de piloto (identificado por email) y genera la inscripción
+4. Se muestran los **datos bancarios** para hacer la transferencia y el monto a pagar
+5. El piloto **sube su comprobante** de pago (JPG, PNG o PDF, máx. 10 MB) → inscripción queda en estado *Recibo enviado*
+6. El admin/organizador ve los comprobantes pendientes en **Caja** y los **Aprueba** o **Rechaza**
+7. Al aprobar, la inscripción pasa a *Pagada* y se registra el pago automáticamente
+
+---
+
+## Roles y permisos
+
+| Acción | ADMIN | ORGANIZER |
+|--------|-------|-----------|
+| Crear / editar / eliminar eventos | ✓ | — |
+| Crear / editar / eliminar pilotos | ✓ | — |
+| Gestionar usuarios | ✓ | — |
+| Inscribir pilotos | ✓ | ✓ |
+| Aprobar / rechazar comprobantes | ✓ | ✓ |
+| Registrar pagos manuales | ✓ | ✓ |
+| Check-in | ✓ | ✓ |
+| Sorteo de parrilla | ✓ | ✓ |
+| Capturar resultados de carreras | ✓ | ✓ |
+| Ver panel público | todos | todos |
 
 ---
 
@@ -134,35 +170,13 @@ La clasificación del evento suma las 3 carreras por piloto por categoría. Dese
 
 ---
 
-## Flujo de operación de un evento
+## Estados de una inscripción
 
-1. **Crear evento** (Admin) — nombre, fecha, categorías, cuotas
-2. **Abrir inscripciones** — cambiar status a `OPEN`
-3. **Inscribir pilotos** — por categoría
-4. **Caja** — registrar pagos de inscripción
-5. **Check-in** — confirmar llegada y asignar kart
-6. **Sorteo de parrilla** — aleatorio entre pilotos con check-in
-7. **Carreras** — crear 3 carreras por categoría, capturar resultados con drag-and-drop
-8. **Clasificación** — ver y exportar resultados (PDF/CSV)
-9. **Finalizar** — cambiar status a `FINISHED`
-
----
-
-## Comandos útiles
-
-```bash
-# Ver logs
-docker compose logs -f backend
-
-# Conectar a Prisma Studio
-docker compose exec backend npx prisma studio
-
-# Reiniciar sólo backend
-docker compose restart backend
-
-# Backup de base de datos
-docker compose exec postgres pg_dump -U postgres edel_racing > backup.sql
-```
+| Estado | Descripción |
+|--------|-------------|
+| `PENDING_PAYMENT` | Inscrita, pendiente de pago |
+| `RECEIPT_SUBMITTED` | Piloto subió comprobante, pendiente de aprobación |
+| `PAID` | Pago confirmado |
 
 ---
 
@@ -170,10 +184,90 @@ docker compose exec postgres pg_dump -U postgres edel_racing > backup.sql
 
 ```
 edel-racing/
-├── backend/         Node.js + Express + Prisma
-├── frontend/        React + Vite + Tailwind
-├── seed/            Script de datos de prueba
-├── nginx.conf       Configuración Nginx
+├── backend/
+│   ├── prisma/
+│   │   └── schema.prisma          Modelos de base de datos
+│   └── src/
+│       ├── controllers/
+│       │   ├── events.controller.ts
+│       │   ├── inscriptions.controller.ts
+│       │   ├── pilots.controller.ts
+│       │   ├── self-register.controller.ts   ← Auto-inscripción pública
+│       │   └── ...
+│       ├── lib/
+│       │   ├── upload.ts                     ← Multer para comprobantes
+│       │   └── ...
+│       └── routes/
+│           ├── self-register.routes.ts       ← Rutas públicas de inscripción
+│           └── ...
+├── frontend/
+│   └── src/
+│       ├── api/
+│       ├── pages/
+│       │   ├── admin/
+│       │   │   ├── events/        Gestión de eventos (crear, editar, eliminar)
+│       │   │   ├── pilots/        Gestión de pilotos (crear, editar, eliminar)
+│       │   │   ├── payments/      Caja + aprobación de comprobantes
+│       │   │   ├── checkin/
+│       │   │   ├── grid/
+│       │   │   ├── races/
+│       │   │   └── classification/
+│       │   └── public/
+│       │       ├── EventRegister.tsx         ← Formulario auto-inscripción
+│       │       └── ...
+│       └── router/
+├── seed/                          Datos de prueba
+├── nginx.conf                     Proxy para /api/ y /uploads/
 ├── docker-compose.yml
 └── .env.example
+```
+
+---
+
+## Comandos útiles
+
+```bash
+# Ver logs en tiempo real
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# Reiniciar un servicio
+docker compose restart backend
+
+# Recargar nginx (sin downtime)
+docker compose exec nginx nginx -s reload
+
+# Backup de base de datos
+docker compose exec postgres pg_dump -U postgres edel_racing > backup_$(date +%Y%m%d).sql
+
+# Restaurar backup
+cat backup.sql | docker compose exec -T postgres psql -U postgres edel_racing
+
+# Acceder a Prisma Studio (explorador visual de BD)
+docker compose exec backend npx prisma studio --port 5555
+# Exponer el puerto: docker compose exec -p 5555:5555 backend npx prisma studio
+
+# Aplicar cambios de schema sin migraciones
+docker compose exec backend npx prisma db push
+```
+
+---
+
+## Variables de entorno (`.env`)
+
+```env
+# Base de datos (se configura automáticamente con Docker Compose)
+DATABASE_URL=postgresql://postgres:password@postgres:5432/edel_racing
+
+# JWT — genera con: openssl rand -base64 32
+JWT_SECRET=cambia_esto_en_produccion
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+
+# Servidor
+PORT=4000
+NODE_ENV=production
+
+# CORS — tu dominio en producción
+CORS_ORIGIN=https://tudominio.com
 ```

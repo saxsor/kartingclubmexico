@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Trophy, ChevronRight, Flag } from 'lucide-react';
+import { Calendar, ChevronRight, Flag } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';

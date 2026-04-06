@@ -76,7 +76,6 @@ export function EventGrid() {
               <div className="border border-[#38383f] divide-y divide-[#38383f]/50">
                 {grid.positions.map((pos) => {
                   const pilot = pos.inscription.pilot;
-                  const isTop3 = pos.position <= 3;
                   return (
                     <div
                       key={pos.id}

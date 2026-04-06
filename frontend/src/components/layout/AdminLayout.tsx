@@ -41,24 +41,12 @@ export function AdminLayout() {
         )}
       >
         {/* Sidebar header / logo */}
-        <div className="flex h-16 items-center gap-3 px-5 border-b border-[#38383f]">
-          <div className="flex items-center justify-center h-7 w-7 bg-[#e10600] flex-shrink-0">
-            <Trophy className="h-4 w-4 text-white" />
-          </div>
-          <div className="flex flex-col leading-none">
-            <span
-              className="text-sm font-black text-white uppercase tracking-wider"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-            >
-              KARTING CLUB
-            </span>
-            <span
-              className="text-[10px] font-bold text-[#e10600] uppercase tracking-widest"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
-            >
-              MÉXICO
-            </span>
-          </div>
+        <div className="flex h-16 items-center px-5 border-b border-[#38383f]">
+          <img
+            src="/karting_club_logo.png"
+            alt="Karting Club México"
+            className="h-8 w-auto object-contain"
+          />
           <button
             className="ml-auto lg:hidden text-white/40 hover:text-white"
             onClick={() => setSidebarOpen(false)}
@@ -125,17 +113,11 @@ export function AdminLayout() {
           >
             <Menu className="h-6 w-6" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center h-6 w-6 bg-[#e10600]">
-              <Trophy className="h-3.5 w-3.5 text-white" />
-            </div>
-            <span
-              className="font-black text-sm uppercase tracking-wider"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-            >
-              Karting Club <span className="text-[#e10600]">México</span>
-            </span>
-          </div>
+          <img
+            src="/karting_club_logo.png"
+            alt="Karting Club México"
+            className="h-7 w-auto object-contain"
+          />
         </header>
 
         <main className="flex-1 overflow-y-auto bg-[#15151e] p-6">

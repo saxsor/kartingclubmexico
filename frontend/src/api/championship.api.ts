@@ -10,7 +10,7 @@ export interface Standing {
   position: number | null;
   eventsCount: number;
   gap: number;
-  pilot: { id: string; name: string; alias: string | null; kartNumber: number | null };
+  pilot: { id: string; name: string; alias: string | null; kartNumber: number | null; photoUrl: string | null };
 }
 
 export interface ChampionshipData {

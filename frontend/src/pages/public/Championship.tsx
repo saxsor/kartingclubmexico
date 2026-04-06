@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, User } from 'lucide-react';
 import { championshipApi, ChampionshipData, Standing } from '../../api/championship.api';
 import { CATEGORY_LABELS, getPositionClass, cn } from '../../lib/utils';
 import { Category } from '../../api/events.api';
@@ -26,26 +26,34 @@ export function Championship() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-          <Trophy className="h-5 w-5 text-yellow-500" />
+      {/* Page header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-1 h-6 bg-[#e10600]" />
+          <span className="text-xs font-bold uppercase tracking-widest text-white/50">
+            <Trophy className="inline h-3 w-3 mr-1.5 text-yellow-400" />
+            Clasificación general
+          </span>
         </div>
-        <div>
-          <h1 className="text-3xl font-black text-white">Campeonato {data.year}</h1>
-          <p className="text-white/50 text-sm">Tabla de posiciones acumulada</p>
-        </div>
+        <h1
+          className="text-4xl font-black text-white uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+        >
+          Campeonato {data.year}
+        </h1>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Category tabs */}
+      <div className="flex flex-wrap gap-px mb-6 bg-[#38383f]">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCat(cat)}
             className={cn(
-              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+              'px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors',
               selectedCat === cat
-                ? 'bg-racing-red text-white'
-                : 'bg-white/10 text-white/60 hover:bg-white/20',
+                ? 'bg-[#e10600] text-white'
+                : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
             )}
           >
             {CATEGORY_LABELS[cat] ?? cat}
@@ -54,41 +62,60 @@ export function Championship() {
       </div>
 
       {currentStandings.length === 0 ? (
-        <div className="text-center py-16 text-white/40">No hay datos para esta categoría</div>
+        <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">No hay datos para esta categoría</div>
       ) : (
-        <div className="rounded-xl border border-white/10 overflow-hidden">
+        <div className="border border-[#38383f] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/5">
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Pos</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Piloto</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Eventos</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Puntos</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Gap</th>
+                <tr className="border-b border-[#38383f] bg-[#1f1f27]">
+                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40 w-12">Pos</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Piloto</th>
+                  <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Eventos</th>
+                  <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Puntos</th>
+                  <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Gap</th>
                 </tr>
               </thead>
               <tbody>
                 {currentStandings.map((s, idx) => (
                   <tr key={s.id} className={cn(
-                    'border-b border-white/5 transition-colors hover:bg-white/5',
-                    idx === 0 && 'bg-yellow-500/5',
+                    'border-b border-[#38383f]/60 transition-colors hover:bg-[#2a2a35]',
+                    idx === 0 && 'bg-yellow-500/5 border-l-[3px] border-l-yellow-500',
+                    idx === 1 && 'border-l-[3px] border-l-white/20',
+                    idx === 2 && 'border-l-[3px] border-l-orange-400/40',
+                    idx > 2 && 'border-l-[3px] border-l-transparent',
                   )}>
                     <td className="px-4 py-3">
-                      <span className={cn('font-bold text-lg', getPositionClass(s.position ?? 99))}>
+                      <span className={cn('font-black text-xl', getPositionClass(s.position ?? 99))}
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                         {s.position ?? idx + 1}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-white">{s.pilot.name}</p>
-                      {s.pilot.alias && <p className="text-xs text-white/50">"{s.pilot.alias}"</p>}
+                      <div className="flex items-center gap-2.5">
+                        {s.pilot.photoUrl ? (
+                          <img src={s.pilot.photoUrl} alt={s.pilot.name} className="h-7 w-7 object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="h-7 w-7 bg-[#38383f] flex items-center justify-center flex-shrink-0">
+                            <User className="h-3.5 w-3.5 text-white/30" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-bold text-white uppercase text-sm leading-tight"
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+                            {s.pilot.name}
+                          </p>
+                          {s.pilot.alias && <p className="text-[10px] text-white/40 italic">"{s.pilot.alias}"</p>}
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-center text-white/70">{s.eventsCount}</td>
-                    <td className="px-4 py-3 text-center font-bold text-white text-base">
+                    <td className="px-4 py-3 text-center text-white/50 text-xs">{s.eventsCount}</td>
+                    <td className="px-4 py-3 text-center font-black text-white text-lg"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                       {s.totalPoints}
                     </td>
-                    <td className="px-4 py-3 text-center text-white/60">
-                      {leaderPoints - s.totalPoints === 0 ? '-' : `-${leaderPoints - s.totalPoints}`}
+                    <td className="px-4 py-3 text-center text-white/40 text-xs font-bold">
+                      {leaderPoints - s.totalPoints === 0 ? '—' : `-${leaderPoints - s.totalPoints}`}
                     </td>
                   </tr>
                 ))}

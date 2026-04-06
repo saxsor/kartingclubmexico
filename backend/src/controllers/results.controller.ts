@@ -187,6 +187,7 @@ export async function getEventResultsByCategory(req: Request, res: Response): Pr
     pilotName: string;
     alias: string | null;
     kartNumber: number | null;
+    photoUrl: string | null;
     races: Record<number, number>;
     total: number;
     race3Best: number;
@@ -203,6 +204,7 @@ export async function getEventResultsByCategory(req: Request, res: Response): Pr
           pilotName: pilot.name,
           alias: pilot.alias,
           kartNumber: result.inscription.kartNumber,
+          photoUrl: pilot.photoUrl ?? null,
           races: {},
           total: 0,
           race3Best: 0,

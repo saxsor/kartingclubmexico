@@ -30,24 +30,12 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 text-white group">
-            <div className="flex items-center justify-center h-8 w-8 bg-[#e10600] flex-shrink-0">
-              <Trophy className="h-5 w-5 text-white" />
-            </div>
-            <div className="flex flex-col leading-none">
-              <span
-                className="font-barlow font-bold text-base tracking-wider text-white uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, letterSpacing: '0.06em' }}
-              >
-                KARTING CLUB
-              </span>
-              <span
-                className="text-[#e10600] text-xs font-bold tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: '0.1em' }}
-              >
-                MÉXICO
-              </span>
-            </div>
+          <Link to="/" className="flex items-center">
+            <img
+              src="/karting_club_logo.png"
+              alt="Karting Club México"
+              className="h-9 w-auto object-contain"
+            />
           </Link>
 
           {/* Desktop nav */}

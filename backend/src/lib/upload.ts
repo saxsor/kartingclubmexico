@@ -34,3 +34,9 @@ export const uploadPoster = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: imageFilter,
 });
+
+export const uploadPilotPhoto = multer({
+  storage: makeStorage('/app/uploads/pilots'),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: imageFilter,
+});

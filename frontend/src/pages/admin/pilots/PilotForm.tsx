@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Camera, Trash2, User } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../../api/pilots.api';
 
 export function PilotForm() {
@@ -10,12 +11,16 @@ export function PilotForm() {
   const [form, setForm] = useState({
     name: '', alias: '', kartNumber: '', phone: '', email: '', active: true,
   });
+  const [currentPilot, setCurrentPilot] = useState<Pilot | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEdit && id) {
       pilotsApi.get(id).then((p) => {
+        setCurrentPilot(p);
         setForm({
           name: p.name,
           alias: p.alias ?? '',
@@ -27,6 +32,32 @@ export function PilotForm() {
       });
     }
   }, [id, isEdit]);
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+    setPhotoUploading(true);
+    try {
+      const updated = await pilotsApi.uploadPhoto(id, file);
+      setCurrentPilot(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al subir foto');
+    } finally {
+      setPhotoUploading(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    if (!id || !confirm('¿Eliminar la foto del piloto?')) return;
+    setPhotoUploading(true);
+    try {
+      const updated = await pilotsApi.deletePhoto(id);
+      setCurrentPilot(updated);
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +96,72 @@ export function PilotForm() {
       <h1 className="text-2xl font-black text-white mb-6">
         {isEdit ? 'Editar piloto' : 'Nuevo piloto'}
       </h1>
+
+      {/* Photo section — only when editing */}
+      {isEdit && (
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-1 h-5 bg-racing-red" />
+            <span className="text-xs font-bold uppercase tracking-widest text-white/50">Foto de perfil</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Avatar preview */}
+            <div className="relative flex-shrink-0">
+              {currentPilot?.photoUrl ? (
+                <img
+                  key={currentPilot.photoUrl}
+                  src={`${currentPilot.photoUrl}?t=${Date.now()}`}
+                  alt="Foto"
+                  className="h-20 w-20 object-cover border border-[#38383f]"
+                />
+              ) : (
+                <div className="h-20 w-20 bg-[#2a2a35] border border-[#38383f] flex items-center justify-center">
+                  <User className="h-8 w-8 text-white/20" />
+                </div>
+              )}
+              {photoUploading && (
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                  <div className="h-5 w-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoUploading}
+                className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#2a2a35] hover:bg-[#38383f] border border-[#38383f] text-white/70 hover:text-white transition-colors disabled:opacity-40"
+              >
+                <Camera className="h-3.5 w-3.5" />
+                {currentPilot?.photoUrl ? 'Cambiar foto' : 'Subir foto'}
+              </button>
+              {currentPilot?.photoUrl && (
+                <button
+                  type="button"
+                  onClick={handleDeletePhoto}
+                  disabled={photoUploading}
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-colors disabled:opacity-40"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Eliminar
+                </button>
+              )}
+              <p className="text-[10px] text-white/30">JPG, PNG o WebP · máx. 5 MB</p>
+            </div>
+          </div>
+
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handlePhotoChange}
+          />
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (

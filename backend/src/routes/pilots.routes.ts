@@ -4,7 +4,9 @@ import { validate } from '../middleware/validate.middleware.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import {
   listPilots, createPilot, getPilot, updatePilot, deletePilot, getPilotHistory,
+  uploadPilotPhoto, deletePilotPhoto,
 } from '../controllers/pilots.controller.js';
+import { uploadPilotPhoto as multerPilotPhoto } from '../lib/upload.js';
 
 const router = Router();
 
@@ -23,5 +25,7 @@ router.get('/:id/history', getPilotHistory);
 router.post('/', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(pilotSchema), createPilot);
 router.put('/:id', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(pilotSchema.partial()), updatePilot);
 router.delete('/:id', authenticate, requireRole('ADMIN'), deletePilot);
+router.post('/:id/photo', authenticate, requireRole('ADMIN', 'ORGANIZER'), multerPilotPhoto.single('photo'), uploadPilotPhoto);
+router.delete('/:id/photo', authenticate, requireRole('ADMIN', 'ORGANIZER'), deletePilotPhoto);
 
 export default router;

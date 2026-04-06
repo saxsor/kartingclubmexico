@@ -131,28 +131,39 @@ export function EventForm() {
           </div>
 
           {currentEvent?.posterUrl ? (
-            <div className="relative group overflow-hidden" style={{ aspectRatio: '16/7' }}>
-              <img
-                src={currentEvent.posterUrl}
-                alt="Poster"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            <div>
+              {/* Preview — key forces remount when URL changes, ?t= busts browser cache */}
+              <div className="relative overflow-hidden border border-[#38383f]" style={{ aspectRatio: '16/7' }}>
+                <img
+                  key={currentEvent.posterUrl}
+                  src={`${currentEvent.posterUrl}?t=${Date.now()}`}
+                  alt="Poster"
+                  className="w-full h-full object-cover"
+                />
+                {posterUploading && (
+                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-2">
+                    <div className="h-6 w-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    <span className="text-xs text-white/60 uppercase tracking-widest">Subiendo...</span>
+                  </div>
+                )}
+              </div>
+              {/* Action bar — always visible below the image */}
+              <div className="flex gap-2 mt-2">
                 <button
                   type="button"
                   onClick={() => posterInputRef.current?.click()}
                   disabled={posterUploading}
-                  className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 px-4 py-2 text-sm font-semibold text-white transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#2a2a35] hover:bg-[#38383f] border border-[#38383f] text-white/70 hover:text-white transition-colors disabled:opacity-40"
                 >
-                  <ImagePlus className="h-4 w-4" /> Cambiar
+                  <ImagePlus className="h-3.5 w-3.5" /> Cambiar imagen
                 </button>
                 <button
                   type="button"
                   onClick={handleDeletePoster}
                   disabled={posterUploading}
-                  className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-400 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-colors disabled:opacity-40"
                 >
-                  <Trash2 className="h-4 w-4" /> Eliminar
+                  <Trash2 className="h-3.5 w-3.5" /> Eliminar
                 </button>
               </div>
             </div>
@@ -161,13 +172,20 @@ export function EventForm() {
               type="button"
               onClick={() => posterInputRef.current?.click()}
               disabled={posterUploading}
-              className="w-full flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/15 hover:border-racing-red/50 bg-white/3 hover:bg-racing-red/5 transition-colors py-12 text-white/40 hover:text-white/70"
+              className="w-full flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/15 hover:border-racing-red/50 bg-transparent hover:bg-racing-red/5 transition-colors py-12 text-white/40 hover:text-white/70 disabled:opacity-40"
             >
-              <ImagePlus className="h-8 w-8" />
-              <span className="text-sm font-medium">
-                {posterUploading ? 'Subiendo...' : 'Subir poster del evento'}
-              </span>
-              <span className="text-xs text-white/30">JPG, PNG o WebP · máx. 10 MB · recomendado 1600×700 px</span>
+              {posterUploading ? (
+                <>
+                  <div className="h-8 w-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+                  <span className="text-sm font-medium">Subiendo poster...</span>
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="h-8 w-8" />
+                  <span className="text-sm font-medium">Subir poster del evento</span>
+                  <span className="text-xs text-white/30">JPG, PNG o WebP · máx. 10 MB · recomendado 1600×700 px</span>
+                </>
+              )}
             </button>
           )}
 

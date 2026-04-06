@@ -7,6 +7,7 @@ export interface ClassificationEntry {
   pilotName: string;
   alias: string | null;
   kartNumber: number | null;
+  photoUrl: string | null;
   races: Record<number, number>;
   total: number;
   gap: number;

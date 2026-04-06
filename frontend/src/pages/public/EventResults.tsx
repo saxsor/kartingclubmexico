@@ -51,26 +51,32 @@ export function EventResults() {
         </Link>
       </div>
 
-      <div className="mb-8 flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-racing-red/20 flex items-center justify-center">
-          <BarChart2 className="h-5 w-5 text-racing-red" />
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-1 h-6 bg-[#e10600]" />
+          <span className="text-xs font-bold uppercase tracking-widest text-white/50">
+            <BarChart2 className="inline h-3 w-3 mr-1.5" />
+            {event?.name}
+          </span>
         </div>
-        <div>
-          <h1 className="text-2xl font-black text-white">Resultados</h1>
-          <p className="text-sm text-white/50">{event?.name}</p>
-        </div>
+        <h1
+          className="text-4xl font-black text-white uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+        >
+          Resultados
+        </h1>
       </div>
 
       {/* Category tabs */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-px mb-6 bg-[#38383f]">
         {activeCategories.map((c) => (
           <button
             key={c.id}
             onClick={() => setSelectedCat(c.category)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors ${
               selectedCat === c.category
-                ? 'bg-racing-red text-white'
-                : 'bg-white/10 text-white/60 hover:bg-white/20'
+                ? 'bg-[#e10600] text-white'
+                : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]'
             }`}
           >
             {CATEGORY_LABELS[c.category]}

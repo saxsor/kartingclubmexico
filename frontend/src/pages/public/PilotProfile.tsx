@@ -37,17 +37,27 @@ export function PilotProfile() {
         ← Inicio
       </Link>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 mb-6">
+      {/* Pilot header card */}
+      <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 mb-6">
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-racing-red flex items-center justify-center">
-            <User className="h-8 w-8 text-white" />
-          </div>
+          {pilot.photoUrl ? (
+            <img src={pilot.photoUrl} alt={pilot.name} className="h-16 w-16 object-cover flex-shrink-0" />
+          ) : (
+            <div className="h-16 w-16 bg-[#2a2a35] flex items-center justify-center flex-shrink-0">
+              <User className="h-8 w-8 text-white/20" />
+            </div>
+          )}
           <div>
-            <h1 className="text-2xl font-black text-white">{pilot.name}</h1>
-            {pilot.alias && <p className="text-white/50">"{pilot.alias}"</p>}
+            <h1
+              className="text-3xl font-black text-white uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+            >
+              {pilot.name}
+            </h1>
+            {pilot.alias && <p className="text-white/40 text-sm italic">"{pilot.alias}"</p>}
             {pilot.kartNumber && (
-              <p className="text-sm text-white/60 flex items-center gap-1.5 mt-1">
-                <Hash className="h-3.5 w-3.5" />
+              <p className="text-sm text-white/50 flex items-center gap-1.5 mt-1 uppercase tracking-wider">
+                <Hash className="h-3.5 w-3.5 text-[#e10600]" />
                 Kart #{pilot.kartNumber}
               </p>
             )}
@@ -57,16 +67,24 @@ export function PilotProfile() {
 
       {standings.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60 mb-3">Campeonato</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1 h-5 bg-[#e10600]" />
+            <span className="text-xs font-bold uppercase tracking-widest text-white/50">Campeonato</span>
+          </div>
+          <div className="grid gap-px sm:grid-cols-2 bg-[#38383f]">
             {standings.map((s, i) => (
-              <div key={i} className="rounded-lg border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center justify-between mb-2">
+              <div key={i} className="bg-[#1f1f27] p-4">
+                <div className="flex items-center justify-between mb-3">
                   <CategoryBadge category={s.category} />
-                  <span className="text-xs text-white/40">{s.year}</span>
+                  <span className="text-xs text-white/30 font-bold">{s.year}</span>
                 </div>
-                <p className="text-2xl font-black text-white">{s.totalPoints} pts</p>
-                <p className="text-sm text-white/60">Posición #{s.position ?? '-'}</p>
+                <p
+                  className="text-3xl font-black text-white"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+                >
+                  {s.totalPoints} <span className="text-lg text-white/40">pts</span>
+                </p>
+                <p className="text-xs text-white/50 uppercase tracking-wide mt-1">P{s.position ?? '—'}</p>
               </div>
             ))}
           </div>
@@ -75,16 +93,23 @@ export function PilotProfile() {
 
       {inscriptions.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60 mb-3">Historial de eventos</h2>
-          <div className="space-y-3">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1 h-5 bg-[#e10600]" />
+            <span className="text-xs font-bold uppercase tracking-widest text-white/50">Historial de eventos</span>
+          </div>
+          <div className="flex flex-col gap-px bg-[#38383f]">
             {inscriptions.map((insc) => (
-              <div key={insc.id} className="rounded-lg border border-white/10 bg-white/5 p-4">
-                <div className="flex items-start justify-between">
+              <div key={insc.id} className="bg-[#1f1f27] p-4">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <Link to={`/eventos/${insc.event.slug}`} className="font-semibold text-white hover:text-racing-red transition-colors">
+                    <Link
+                      to={`/eventos/${insc.event.slug}`}
+                      className="font-black text-white hover:text-[#e10600] transition-colors uppercase text-sm"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
+                    >
                       {insc.event.name}
                     </Link>
-                    <p className="text-xs text-white/50 flex items-center gap-1 mt-0.5">
+                    <p className="text-xs text-white/40 flex items-center gap-1 mt-0.5 uppercase tracking-wide">
                       <Calendar className="h-3 w-3" />
                       {formatDate(insc.event.date)}
                     </p>
@@ -92,12 +117,15 @@ export function PilotProfile() {
                   <CategoryBadge category={insc.category} />
                 </div>
                 {insc.raceResults.length > 0 && (
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 flex gap-3">
                     {insc.raceResults.map((r, ri) => (
-                      <div key={ri} className="text-center">
-                        <div className="text-xs text-white/40">C{r.race.number}</div>
-                        <div className="font-bold text-white">{r.finalPoints}pts</div>
-                        {r.position && <div className="text-xs text-white/60">P{r.position}</div>}
+                      <div key={ri} className="bg-[#2a2a35] px-3 py-1.5 text-center">
+                        <div className="text-[10px] text-white/30 uppercase tracking-wider">C{r.race.number}</div>
+                        <div className="font-black text-white text-base"
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                          {r.finalPoints}
+                        </div>
+                        {r.position && <div className="text-[10px] text-white/50">P{r.position}</div>}
                       </div>
                     ))}
                   </div>

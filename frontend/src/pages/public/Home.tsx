@@ -30,26 +30,14 @@ export function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#15151e] to-transparent pointer-events-none" />
 
         <div className="relative max-w-4xl mx-auto text-center">
-          {/* Trophy icon */}
+          {/* Logo */}
           <div className="flex justify-center mb-8">
-            <div className="h-16 w-16 bg-[#e10600] flex items-center justify-center shadow-lg shadow-red-600/30">
-              <Trophy className="h-9 w-9 text-white" />
-            </div>
+            <img
+              src="/karting_club_logo.png"
+              alt="Karting Club México"
+              className="h-24 md:h-32 w-auto object-contain drop-shadow-lg"
+            />
           </div>
-
-          {/* Main heading — F1 style */}
-          <h1
-            className="text-6xl md:text-8xl font-black text-white uppercase tracking-tight leading-none mb-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-          >
-            KARTING CLUB
-          </h1>
-          <h2
-            className="text-5xl md:text-7xl font-black uppercase tracking-tight leading-none mb-6"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, color: '#e10600' }}
-          >
-            MÉXICO
-          </h2>
 
           <p className="text-base text-white/50 max-w-lg mx-auto tracking-wide mb-10">
             Resultados en tiempo real &nbsp;·&nbsp; Campeonato &nbsp;·&nbsp; Parrillas

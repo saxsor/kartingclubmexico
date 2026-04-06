@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
 
 export async function listPilots(req: Request, res: Response): Promise<void> {
@@ -41,6 +42,40 @@ export async function deletePilot(req: Request, res: Response): Promise<void> {
   }
   await prisma.pilot.delete({ where: { id: req.params.id } });
   res.status(204).send();
+}
+
+export async function uploadPilotPhoto(req: Request, res: Response): Promise<void> {
+  const pilot = await prisma.pilot.findUnique({ where: { id: req.params.id } });
+  if (!pilot) { res.status(404).json({ error: 'Piloto no encontrado' }); return; }
+  if (!req.file) { res.status(400).json({ error: 'No se recibió ningún archivo' }); return; }
+
+  if (pilot.photoUrl) {
+    const oldPath = `/app${pilot.photoUrl}`;
+    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+  }
+
+  const photoUrl = `/uploads/pilots/${req.file.filename}`;
+  const updated = await prisma.pilot.update({
+    where: { id: req.params.id },
+    data: { photoUrl },
+  });
+  res.json(updated);
+}
+
+export async function deletePilotPhoto(req: Request, res: Response): Promise<void> {
+  const pilot = await prisma.pilot.findUnique({ where: { id: req.params.id } });
+  if (!pilot) { res.status(404).json({ error: 'Piloto no encontrado' }); return; }
+
+  if (pilot.photoUrl) {
+    const filePath = `/app${pilot.photoUrl}`;
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+
+  const updated = await prisma.pilot.update({
+    where: { id: req.params.id },
+    data: { photoUrl: null },
+  });
+  res.json(updated);
 }
 
 export async function getPilotHistory(req: Request, res: Response): Promise<void> {

@@ -1,25 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Trash2, User } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../../api/pilots.api';
 import { toast } from '../../../store/toast.store';
+import { PaginationMeta } from '../../../api/pagination';
+import { PaginationControls } from '../../../components/shared/PaginationControls';
+import { queryKeys } from '../../../lib/react-query';
 
 export function PilotList() {
-  const [pilots, setPilots] = useState<Pilot[]>([]);
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+  const listParams = { page, pageSize: 10, search };
+  const pilotsQuery = useQuery({
+    queryKey: queryKeys.pilots.list(listParams),
+    queryFn: () => pilotsApi.list(listParams),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => pilotsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pilots.all });
+    },
+  });
 
-  useEffect(() => {
-    pilotsApi.list().then(setPilots).finally(() => setLoading(false));
-  }, []);
+  const pilots = pilotsQuery.data?.items ?? [];
+  const pagination = pilotsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
+  const loading = pilotsQuery.isLoading;
 
   const handleDelete = async (pilot: Pilot) => {
     if (!confirm(`¿Eliminar al piloto "${pilot.name}"?`)) return;
     setDeleting(pilot.id);
     try {
-      await pilotsApi.delete(pilot.id);
-      setPilots((prev) => prev.filter((p) => p.id !== pilot.id));
+      await deleteMutation.mutateAsync(pilot.id);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al eliminar');
     } finally {
@@ -27,18 +41,12 @@ export function PilotList() {
     }
   };
 
-  const filtered = pilots.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.alias?.toLowerCase().includes(search.toLowerCase()) ||
-    p.kartNumber?.toString().includes(search),
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-white">Pilotos</h1>
-          <p className="text-white/50 text-sm mt-1">{pilots.length} pilotos registrados</p>
+          <p className="text-white/50 text-sm mt-1">{pagination.total} pilotos registrados</p>
         </div>
         <Link
           to="/app/pilotos/nuevo"
@@ -54,7 +62,10 @@ export function PilotList() {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           placeholder="Buscar por nombre, alias o número..."
           className="w-full border border-white/10 bg-[#1f1f27] pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
         />
@@ -75,7 +86,7 @@ export function PilotList() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((pilot) => (
+              {pilots.map((pilot) => (
                 <tr key={pilot.id} className="border-b border-[#38383f]/50 hover:bg-[#2a2a35] transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -125,13 +136,21 @@ export function PilotList() {
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && (
+          {pilots.length === 0 && (
             <div className="text-center py-8 text-white/40 text-sm uppercase tracking-widest">
               No se encontraron pilotos
             </div>
           )}
         </div>
       )}
+
+      <PaginationControls
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        itemLabel="pilotos"
+        onPageChange={setPage}
+      />
     </div>
   );
 }

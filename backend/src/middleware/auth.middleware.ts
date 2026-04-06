@@ -8,6 +8,7 @@ export interface JwtPayload {
   email: string;
   name: string;
   role: Role;
+  tokenType?: 'access' | 'refresh';
 }
 
 declare global {
@@ -28,6 +29,11 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
   const token = authHeader.substring(7);
   try {
     const payload = jwt.verify(token, config.JWT_SECRET) as JwtPayload;
+    if (payload.tokenType !== 'access') {
+      res.status(401).json({ error: 'Token inválido o expirado' });
+      return;
+    }
+
     req.user = payload;
     next();
   } catch {

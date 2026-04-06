@@ -1,21 +1,34 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 
 export async function getCashBox(req: Request, res: Response): Promise<void> {
   const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
   if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
 
-  const payments = await prisma.payment.findMany({
-    where: { inscription: { eventId: event.id } },
-    include: {
-      inscription: {
-        include: { pilot: { select: { name: true, alias: true } } },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  const { page, pageSize, skip } = getPaginationParams(req);
+  const paymentsWhere = { inscription: { eventId: event.id } };
 
-  const totals = payments.reduce(
+  const [payments, total, allPayments] = await prisma.$transaction([
+    prisma.payment.findMany({
+      where: paymentsWhere,
+      include: {
+        inscription: {
+          include: { pilot: { select: { name: true, alias: true } } },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: pageSize,
+    }),
+    prisma.payment.count({ where: paymentsWhere }),
+    prisma.payment.findMany({
+      where: paymentsWhere,
+      select: { amount: true, type: true },
+    }),
+  ]);
+
+  const totals = allPayments.reduce(
     (acc, p) => {
       const amount = Number(p.amount);
       acc.total += amount;
@@ -27,36 +40,42 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
     { total: 0, serviceFee: 0, foodFee: 0, other: 0 },
   );
 
-  res.json({ payments, totals });
+  res.json({
+    payments,
+    totals,
+    pagination: getPaginationMeta(page, pageSize, total),
+  });
 }
 
 export async function addPayment(req: Request, res: Response): Promise<void> {
   const { type, amount, notes } = req.body;
   const createdBy = req.user?.name ?? 'Sistema';
 
-  const inscription = await prisma.inscription.findUnique({
-    where: { id: req.params.id },
-    include: { payments: true },
-  });
-  if (!inscription) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
+  const payment = await prisma.$transaction(async (tx) => {
+    const inscription = await tx.inscription.findUnique({
+      where: { id: req.params.id },
+      include: { payments: true, event: true },
+    });
+    if (!inscription) return null;
 
-  const payment = await prisma.payment.create({
-    data: { inscriptionId: req.params.id, type, amount, notes, createdBy },
-  });
+    const payment = await tx.payment.create({
+      data: { inscriptionId: req.params.id, type, amount, notes, createdBy },
+    });
 
-  // Check if inscription should be marked as PAID
-  const allPayments = [...inscription.payments, payment];
-  const event = await prisma.event.findUnique({ where: { id: inscription.eventId } });
-  if (event) {
-    const totalPaid = allPayments.reduce((s, p) => s + Number(p.amount), 0);
-    const required = Number(event.serviceFee) + Number(event.foodFee);
+    const totalPaid = [...inscription.payments, payment].reduce((s, p) => s + Number(p.amount), 0);
+    const required = Number(inscription.event.serviceFee) + Number(inscription.event.foodFee);
+
     if (totalPaid >= required) {
-      await prisma.inscription.update({
+      await tx.inscription.update({
         where: { id: inscription.id },
         data: { status: 'PAID' },
       });
     }
-  }
+
+    return payment;
+  });
+
+  if (!payment) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
 
   res.status(201).json(payment);
 }

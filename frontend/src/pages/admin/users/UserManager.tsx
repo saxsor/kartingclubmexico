@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { api } from '../../../api/client';
+import { PaginationMeta } from '../../../api/pagination';
+import { PaginationControls } from '../../../components/shared/PaginationControls';
+import { queryKeys } from '../../../lib/react-query';
 
 interface User {
   id: string;
@@ -12,42 +16,58 @@ interface User {
 }
 
 export function UserManager() {
-  const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ email: '', password: '', name: '', role: 'ORGANIZER' as User['role'] });
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+  const usersQuery = useQuery({
+    queryKey: queryKeys.users.list({ page, pageSize: 10 }),
+    queryFn: () => api.get<{ items: User[]; pagination: PaginationMeta }>(`/users?page=${page}&pageSize=10`),
+  });
+  const createMutation = useMutation({
+    mutationFn: (payload: typeof form) => api.post<User>('/users', payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+    },
+  });
+  const toggleActiveMutation = useMutation({
+    mutationFn: ({ userId, active }: { userId: string; active: boolean }) =>
+      api.patch(`/users/${userId}/active`, { active }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => api.delete(`/users/${userId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+    },
+  });
 
-  const load = async () => {
-    const data = await api.get<User[]>('/users');
-    setUsers(data);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, []);
+  const users = usersQuery.data?.items ?? [];
+  const pagination = usersQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
+  const loading = usersQuery.isLoading;
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      await api.post<User>('/users', form);
+      await createMutation.mutateAsync(form);
       setShowForm(false);
       setForm({ email: '', password: '', name: '', role: 'ORGANIZER' });
-      load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear usuario');
     }
   };
 
   const handleToggleActive = async (user: User) => {
-    await api.patch(`/users/${user.id}/active`, { active: !user.active });
-    load();
+    await toggleActiveMutation.mutateAsync({ userId: user.id, active: !user.active });
   };
 
   const handleDelete = async (user: User) => {
     if (!confirm(`¿Eliminar usuario ${user.name}?`)) return;
-    await api.delete(`/users/${user.id}`);
-    load();
+    await deleteMutation.mutateAsync(user.id);
   };
 
   return (
@@ -160,6 +180,14 @@ export function UserManager() {
           </table>
         </div>
       )}
+
+      <PaginationControls
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        itemLabel="usuarios"
+        onPageChange={setPage}
+      />
     </div>
   );
 }

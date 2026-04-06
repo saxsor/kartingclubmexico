@@ -1,9 +1,11 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ImagePlus, Trash2 } from 'lucide-react';
-import { eventsApi, Category, KartEvent } from '../../../api/events.api';
+import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { toast } from '../../../store/toast.store';
+import { queryKeys } from '../../../lib/react-query';
 
 const ALL_CATEGORIES: Category[] = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
 
@@ -24,27 +26,48 @@ export function EventForm() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [currentEvent, setCurrentEvent] = useState<KartEvent | null>(null);
   const [posterUploading, setPosterUploading] = useState(false);
   const posterInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const eventQuery = useQuery({
+    queryKey: isEdit && slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'new'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: isEdit && !!slug,
+  });
+  const createMutation = useMutation({
+    mutationFn: (data: unknown) => eventsApi.create(data),
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+      navigate(`/app/eventos/${created.slug}`);
+    },
+  });
+  const updateMutation = useMutation({
+    mutationFn: (data: unknown) => eventsApi.update(slug!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+      if (slug) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(slug) });
+      }
+      navigate(`/app/eventos/${slug}`);
+    },
+  });
 
   useEffect(() => {
-    if (isEdit && slug) {
-      eventsApi.get(slug).then((event) => {
-        setCurrentEvent(event);
-        setForm({
-          name: event.name,
-          date: event.date.substring(0, 10),
-          description: event.description ?? '',
-          serviceFee: event.serviceFee,
-          foodFee: event.foodFee,
-          blockCheckInOnDebt: event.blockCheckInOnDebt,
-          transferInfo: event.transferInfo ?? '',
-          categories: event.eventCategories.filter((c) => c.active).map((c) => c.category),
-        });
-      });
-    }
-  }, [slug, isEdit]);
+    const event = eventQuery.data;
+    if (!event) return;
+    setForm({
+      name: event.name,
+      date: event.date.substring(0, 10),
+      description: event.description ?? '',
+      serviceFee: event.serviceFee,
+      foodFee: event.foodFee,
+      blockCheckInOnDebt: event.blockCheckInOnDebt,
+      transferInfo: event.transferInfo ?? '',
+      categories: event.eventCategories.filter((c) => c.active).map((c) => c.category),
+    });
+  }, [eventQuery.data]);
+
+  const currentEvent = eventQuery.data ?? null;
 
   const handlePosterChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,7 +75,8 @@ export function EventForm() {
     setPosterUploading(true);
     try {
       const updated = await eventsApi.uploadPoster(slug, file);
-      setCurrentEvent(updated);
+      queryClient.setQueryData(queryKeys.events.detail(slug), updated);
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al subir poster');
     } finally {
@@ -66,7 +90,8 @@ export function EventForm() {
     setPosterUploading(true);
     try {
       const updated = await eventsApi.deletePoster(slug);
-      setCurrentEvent(updated);
+      queryClient.setQueryData(queryKeys.events.detail(slug), updated);
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
     } finally {
       setPosterUploading(false);
     }
@@ -98,11 +123,9 @@ export function EventForm() {
       };
 
       if (isEdit && slug) {
-        await eventsApi.update(slug, data);
-        navigate(`/app/eventos/${slug}`);
+        await updateMutation.mutateAsync(data);
       } else {
-        const created = await eventsApi.create(data);
-        navigate(`/app/eventos/${created.slug}`);
+        await createMutation.mutateAsync(data);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar');

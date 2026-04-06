@@ -1,12 +1,38 @@
 import { Request, Response } from 'express';
 import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
+import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 
 export async function listPilots(req: Request, res: Response): Promise<void> {
-  const pilots = await prisma.pilot.findMany({
-    orderBy: { name: 'asc' },
+  const { page, pageSize, skip } = getPaginationParams(req);
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  const parsedKartNumber = search && /^\d+$/.test(search) ? Number(search) : undefined;
+
+  const where = search
+    ? {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { alias: { contains: search, mode: 'insensitive' as const } },
+          { email: { contains: search, mode: 'insensitive' as const } },
+          ...(parsedKartNumber !== undefined ? [{ kartNumber: parsedKartNumber }] : []),
+        ],
+      }
+    : undefined;
+
+  const [pilots, total] = await prisma.$transaction([
+    prisma.pilot.findMany({
+      where,
+      orderBy: { name: 'asc' },
+      skip,
+      take: pageSize,
+    }),
+    prisma.pilot.count({ where }),
+  ]);
+
+  res.json({
+    items: pilots,
+    pagination: getPaginationMeta(page, pageSize, total),
   });
-  res.json(pilots);
 }
 
 export async function createPilot(req: Request, res: Response): Promise<void> {

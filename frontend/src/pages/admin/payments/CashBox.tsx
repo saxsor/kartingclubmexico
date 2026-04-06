@@ -1,41 +1,65 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { DollarSign, Plus, CheckCircle, XCircle, FileText } from 'lucide-react';
-import { paymentsApi, CashBoxData } from '../../../api/payments.api';
-import { inscriptionsApi, Inscription } from '../../../api/inscriptions.api';
+import { Plus, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { paymentsApi } from '../../../api/payments.api';
+import { inscriptionsApi } from '../../../api/inscriptions.api';
 import { formatCurrency } from '../../../lib/utils';
+import { PaginationMeta } from '../../../api/pagination';
+import { PaginationControls } from '../../../components/shared/PaginationControls';
+import { queryKeys } from '../../../lib/react-query';
 
 export function CashBox() {
   const { slug } = useParams<{ slug: string }>();
-  const [cashbox, setCashbox] = useState<CashBoxData | null>(null);
-  const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
   const [showForm, setShowForm] = useState<string | null>(null); // inscriptionId
   const [form, setForm] = useState({ type: 'SERVICE_FEE', amount: '', notes: '' });
   const [processingReceipt, setProcessingReceipt] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [inscriptionsPage, setInscriptionsPage] = useState(1);
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const queryClient = useQueryClient();
+  const cashboxQuery = useQuery({
+    queryKey: slug ? queryKeys.payments.cashbox(slug, { page: paymentsPage, pageSize: 10 }) : ['payments', 'cashbox', 'missing'],
+    queryFn: () => paymentsApi.getCashBox(slug!, { page: paymentsPage, pageSize: 10 }),
+    enabled: !!slug,
+  });
+  const inscriptionsQuery = useQuery({
+    queryKey: slug ? queryKeys.inscriptions.list(slug, { page: inscriptionsPage, pageSize: 10 }) : ['inscriptions', 'list', 'missing'],
+    queryFn: () => inscriptionsApi.list(slug!, { page: inscriptionsPage, pageSize: 10 }),
+    enabled: !!slug,
+  });
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => inscriptionsApi.approveReceipt(slug!, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+  });
+  const rejectMutation = useMutation({
+    mutationFn: (id: string) => inscriptionsApi.rejectReceipt(slug!, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+  });
+  const addPaymentMutation = useMutation({
+    mutationFn: ({ inscriptionId, data }: { inscriptionId: string; data: { type: string; amount: number; notes?: string } }) =>
+      paymentsApi.addPayment(slug!, inscriptionId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+  });
 
-  const load = async () => {
-    if (!slug) return;
-    try {
-      const [cb, insc] = await Promise.all([
-        paymentsApi.getCashBox(slug),
-        inscriptionsApi.list(slug),
-      ]);
-      setCashbox(cb);
-      setInscriptions(insc);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [slug]);
+  const cashbox = cashboxQuery.data ?? null;
+  const inscriptions = inscriptionsQuery.data?.items ?? [];
+  const inscriptionsPagination = inscriptionsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
+  const loading = cashboxQuery.isLoading || inscriptionsQuery.isLoading;
 
   const handleApproveReceipt = async (id: string) => {
     if (!slug) return;
     setProcessingReceipt(id);
     try {
-      await inscriptionsApi.approveReceipt(slug, id);
-      load();
+      await approveMutation.mutateAsync(id);
     } finally {
       setProcessingReceipt(null);
     }
@@ -45,8 +69,7 @@ export function CashBox() {
     if (!slug) return;
     setProcessingReceipt(id);
     try {
-      await inscriptionsApi.rejectReceipt(slug, id);
-      load();
+      await rejectMutation.mutateAsync(id);
     } finally {
       setProcessingReceipt(null);
     }
@@ -55,14 +78,13 @@ export function CashBox() {
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!slug || !showForm) return;
-    await paymentsApi.addPayment(slug, showForm, {
+    await addPaymentMutation.mutateAsync({ inscriptionId: showForm, data: {
       type: form.type,
       amount: parseFloat(form.amount),
       notes: form.notes || undefined,
-    });
+    } });
     setShowForm(null);
     setForm({ type: 'SERVICE_FEE', amount: '', notes: '' });
-    load();
   };
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
@@ -208,6 +230,14 @@ export function CashBox() {
         </div>
       </div>
 
+      <PaginationControls
+        page={inscriptionsPagination.page}
+        totalPages={inscriptionsPagination.totalPages}
+        total={inscriptionsPagination.total}
+        itemLabel="inscripciones"
+        onPageChange={setInscriptionsPage}
+      />
+
       {cashbox && cashbox.payments.length > 0 && (
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60 mb-3">Historial de pagos</h2>
@@ -238,6 +268,15 @@ export function CashBox() {
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="mt-4">
+            <PaginationControls
+              page={cashbox.pagination.page}
+              totalPages={cashbox.pagination.totalPages}
+              total={cashbox.pagination.total}
+              itemLabel="pagos"
+              onPageChange={setPaymentsPage}
+            />
           </div>
         </div>
       )}

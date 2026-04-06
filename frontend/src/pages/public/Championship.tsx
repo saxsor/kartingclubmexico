@@ -1,21 +1,26 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Trophy, User } from 'lucide-react';
-import { championshipApi, ChampionshipData, Standing } from '../../api/championship.api';
+import { championshipApi, Standing } from '../../api/championship.api';
 import { CATEGORY_LABELS, getPositionClass, cn } from '../../lib/utils';
-import { Category } from '../../api/events.api';
+import { queryKeys } from '../../lib/react-query';
 
 export function Championship() {
-  const [data, setData] = useState<ChampionshipData | null>(null);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const championshipQuery = useQuery({
+    queryKey: queryKeys.championship.current(),
+    queryFn: () => championshipApi.get(),
+  });
 
   useEffect(() => {
-    championshipApi.get().then((d) => {
-      setData(d);
-      const firstCat = Object.keys(d.standings)[0];
-      if (firstCat) setSelectedCat(firstCat);
-    }).finally(() => setLoading(false));
-  }, []);
+    const data = championshipQuery.data;
+    if (!data || selectedCat) return;
+    const firstCat = Object.keys(data.standings)[0];
+    if (firstCat) setSelectedCat(firstCat);
+  }, [championshipQuery.data, selectedCat]);
+
+  const data = championshipQuery.data ?? null;
+  const loading = championshipQuery.isLoading;
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
   if (!data) return <div className="text-center py-20 text-white/40">Sin datos de campeonato</div>;

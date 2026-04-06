@@ -1,8 +1,10 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Camera, Trash2, User } from 'lucide-react';
-import { pilotsApi, Pilot } from '../../../api/pilots.api';
+import { pilotsApi } from '../../../api/pilots.api';
 import { toast } from '../../../store/toast.store';
+import { queryKeys } from '../../../lib/react-query';
 
 export function PilotForm() {
   const { id } = useParams<{ id: string }>();
@@ -12,27 +14,48 @@ export function PilotForm() {
   const [form, setForm] = useState({
     name: '', alias: '', kartNumber: '', phone: '', email: '', active: true,
   });
-  const [currentPilot, setCurrentPilot] = useState<Pilot | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const pilotQuery = useQuery({
+    queryKey: isEdit && id ? queryKeys.pilots.detail(id) : ['pilots', 'detail', 'new'],
+    queryFn: () => pilotsApi.get(id!),
+    enabled: isEdit && !!id,
+  });
+  const createMutation = useMutation({
+    mutationFn: (data: Partial<Record<string, unknown>>) => pilotsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pilots.all });
+      navigate('/app/pilotos');
+    },
+  });
+  const updateMutation = useMutation({
+    mutationFn: (data: Partial<Record<string, unknown>>) => pilotsApi.update(id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pilots.all });
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.pilots.detail(id) });
+      }
+      navigate('/app/pilotos');
+    },
+  });
 
   useEffect(() => {
-    if (isEdit && id) {
-      pilotsApi.get(id).then((p) => {
-        setCurrentPilot(p);
-        setForm({
-          name: p.name,
-          alias: p.alias ?? '',
-          kartNumber: p.kartNumber?.toString() ?? '',
-          phone: p.phone ?? '',
-          email: p.email ?? '',
-          active: p.active,
-        });
-      });
-    }
-  }, [id, isEdit]);
+    const pilot = pilotQuery.data;
+    if (!pilot) return;
+    setForm({
+      name: pilot.name,
+      alias: pilot.alias ?? '',
+      kartNumber: pilot.kartNumber?.toString() ?? '',
+      phone: pilot.phone ?? '',
+      email: pilot.email ?? '',
+      active: pilot.active,
+    });
+  }, [pilotQuery.data]);
+
+  const currentPilot = pilotQuery.data ?? null;
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -40,7 +63,8 @@ export function PilotForm() {
     setPhotoUploading(true);
     try {
       const updated = await pilotsApi.uploadPhoto(id, file);
-      setCurrentPilot(updated);
+      queryClient.setQueryData(queryKeys.pilots.detail(id), updated);
+      queryClient.invalidateQueries({ queryKey: queryKeys.pilots.all });
       toast.success('Foto actualizada');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al subir foto');
@@ -55,7 +79,8 @@ export function PilotForm() {
     setPhotoUploading(true);
     try {
       const updated = await pilotsApi.deletePhoto(id);
-      setCurrentPilot(updated);
+      queryClient.setQueryData(queryKeys.pilots.detail(id), updated);
+      queryClient.invalidateQueries({ queryKey: queryKeys.pilots.all });
     } finally {
       setPhotoUploading(false);
     }
@@ -75,11 +100,10 @@ export function PilotForm() {
         active: form.active,
       };
       if (isEdit && id) {
-        await pilotsApi.update(id, data);
+        await updateMutation.mutateAsync(data);
       } else {
-        await pilotsApi.create(data);
+        await createMutation.mutateAsync(data);
       }
-      navigate('/app/pilotos');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar');
     } finally {

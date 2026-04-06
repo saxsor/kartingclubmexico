@@ -1,21 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Calendar, Users, Trophy, Flag } from 'lucide-react';
-import { eventsApi, KartEvent } from '../../api/events.api';
-import { pilotsApi, Pilot } from '../../api/pilots.api';
+import { eventsApi } from '../../api/events.api';
+import { pilotsApi } from '../../api/pilots.api';
 import { formatDate } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
+import { queryKeys } from '../../lib/react-query';
 
 export function Dashboard() {
-  const [events, setEvents] = useState<KartEvent[]>([]);
-  const [pilots, setPilots] = useState<Pilot[]>([]);
-  const [loading, setLoading] = useState(true);
+  const eventsQuery = useQuery({
+    queryKey: queryKeys.events.list({ page: 1, pageSize: 100 }),
+    queryFn: () => eventsApi.list({ page: 1, pageSize: 100 }),
+  });
+  const pilotsQuery = useQuery({
+    queryKey: queryKeys.pilots.list({ page: 1, pageSize: 100 }),
+    queryFn: () => pilotsApi.list({ page: 1, pageSize: 100 }),
+  });
 
-  useEffect(() => {
-    Promise.all([eventsApi.list(), pilotsApi.list()])
-      .then(([e, p]) => { setEvents(e); setPilots(p); })
-      .finally(() => setLoading(false));
-  }, []);
+  const events = eventsQuery.data?.items ?? [];
+  const pilots = pilotsQuery.data?.items ?? [];
+  const loading = eventsQuery.isLoading || pilotsQuery.isLoading;
 
   const activeEvent = events.find((e) => e.status === 'IN_PROGRESS');
   const openEvents = events.filter((e) => e.status === 'OPEN');

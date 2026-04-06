@@ -1,35 +1,36 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { Shuffle, User } from 'lucide-react';
-import { gridApi, StartGrid } from '../../api/grid.api';
-import { eventsApi, KartEvent } from '../../api/events.api';
+import { gridApi } from '../../api/grid.api';
+import { eventsApi } from '../../api/events.api';
 import { useSSE } from '../../hooks/useSSE';
-import { CATEGORY_LABELS } from '../../lib/utils';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
+import { queryKeys } from '../../lib/react-query';
 
 export function EventGrid() {
   const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<KartEvent | null>(null);
-  const [grids, setGrids] = useState<StartGrid[]>([]);
-  const [loading, setLoading] = useState(true);
   const { on } = useSSE(slug ?? null);
-
-  const loadGrids = useCallback(async () => {
-    if (!slug) return;
-    const data = await gridApi.getAll(slug);
-    setGrids(data);
-  }, [slug]);
-
-  useEffect(() => {
-    if (!slug) return;
-    Promise.all([eventsApi.get(slug), gridApi.getAll(slug)])
-      .then(([e, g]) => { setEvent(e); setGrids(g); })
-      .finally(() => setLoading(false));
-  }, [slug]);
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
+  const gridsQuery = useQuery({
+    queryKey: slug ? queryKeys.grids.list(slug) : ['grids', 'list', 'missing'],
+    queryFn: () => gridApi.getAll(slug!),
+    enabled: !!slug,
+  });
 
   useEffect(() => {
-    return on('grid:updated', () => loadGrids());
-  }, [on, loadGrids]);
+    return on('grid:updated', () => {
+      void gridsQuery.refetch();
+    });
+  }, [on, gridsQuery]);
+
+  const event = eventQuery.data ?? null;
+  const grids = gridsQuery.data ?? [];
+  const loading = eventQuery.isLoading || gridsQuery.isLoading;
 
   if (loading) return <div className="text-center py-20 text-white/40 text-sm uppercase tracking-widest">Cargando...</div>;
 

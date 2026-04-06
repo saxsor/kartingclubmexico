@@ -37,8 +37,12 @@ async function request<T>(
         body: JSON.stringify({ refreshToken }),
       });
       if (refreshRes.ok) {
-        const { token: newToken } = await refreshRes.json();
-        useAuthStore.getState().setToken(newToken);
+        const { token: newToken, refreshToken: newRefreshToken } = await refreshRes.json();
+        if (newRefreshToken) {
+          useAuthStore.getState().setSessionTokens(newToken, newRefreshToken);
+        } else {
+          useAuthStore.getState().setToken(newToken);
+        }
         headers['Authorization'] = `Bearer ${newToken}`;
         const retryRes = await fetch(`${BASE_URL}${path}`, {
           method,

@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from '../../../store/toast.store';
@@ -23,6 +24,7 @@ import { racesApi, Race, RaceResult, ResultStatus } from '../../../api/races.api
 import { inscriptionsApi, Inscription } from '../../../api/inscriptions.api';
 import { useOfflineSync } from '../../../hooks/useOfflineSync';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
+import { queryKeys } from '../../../lib/react-query';
 
 interface RaceEntry {
   inscriptionId: string;
@@ -113,41 +115,59 @@ export function RaceCapture() {
   const [saved, setSaved] = useState(false);
   const [penaltyModal, setPenaltyModal] = useState<string | null>(null);
   const [penaltyForm, setPenaltyForm] = useState({ type: 'POINTS', amount: '1', reason: '' });
+  const queryClient = useQueryClient();
+  const raceQuery = useQuery({
+    queryKey: slug && raceId ? queryKeys.races.detail(slug, raceId) : ['races', 'detail', 'missing'],
+    queryFn: () => racesApi.get(slug!, raceId!),
+    enabled: !!slug && !!raceId,
+  });
+  const inscriptionsQuery = useQuery({
+    queryKey: slug ? queryKeys.inscriptions.list(slug, { page: 1, pageSize: 100 }) : ['inscriptions', 'list', 'missing'],
+    queryFn: () => inscriptionsApi.list(slug!, { page: 1, pageSize: 100 }),
+    enabled: !!slug,
+  });
+  const addPenaltyMutation = useMutation({
+    mutationFn: ({ resultId, data }: { resultId: string; data: { type: string; amount: number; reason: string } }) =>
+      racesApi.addPenalty(raceId!, resultId, data),
+    onSuccess: () => {
+      if (slug && raceId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.races.detail(slug, raceId) });
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.results.byCategory(slug!, raceQuery.data?.category ?? '') });
+    },
+  });
 
   useEffect(() => {
-    if (!slug || !raceId) return;
-    Promise.all([
-      racesApi.get(slug, raceId),
-      inscriptionsApi.list(slug),
-    ]).then(([r, insc]) => {
-      setRace(r);
+    const r = raceQuery.data;
+    const insc = inscriptionsQuery.data;
+    if (!r || !insc) return;
 
-      // Build entry list from existing results or inscriptions
-      const categoryInscriptions = insc.filter((i) => i.category === r.category);
+    setRace(r);
 
-      if (r.results.length > 0) {
-        const sorted = [...r.results].sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
-        setEntries(sorted.map((res) => ({
-          inscriptionId: res.inscriptionId,
-          pilotName: res.inscription.pilot.name,
-          alias: res.inscription.pilot.alias,
-          kartNumber: res.inscription.kartNumber,
-          status: res.status,
-          lapsCompleted: res.lapsCompleted,
-        })));
-      } else {
-        setEntries(categoryInscriptions.map((i) => ({
-          inscriptionId: i.id,
-          pilotName: i.pilot.name,
-          alias: i.pilot.alias,
-          kartNumber: i.kartNumber,
-          status: 'FINISHED' as ResultStatus,
-          lapsCompleted: r.laps,
-        })));
-      }
-      setLoading(false);
-    });
-  }, [slug, raceId]);
+    const categoryInscriptions = insc.items.filter((i) => i.category === r.category);
+
+    if (r.results.length > 0) {
+      const sorted = [...r.results].sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+      setEntries(sorted.map((res) => ({
+        inscriptionId: res.inscriptionId,
+        pilotName: res.inscription.pilot.name,
+        alias: res.inscription.pilot.alias,
+        kartNumber: res.inscription.kartNumber,
+        status: res.status,
+        lapsCompleted: res.lapsCompleted,
+      })));
+    } else {
+      setEntries(categoryInscriptions.map((i) => ({
+        inscriptionId: i.id,
+        pilotName: i.pilot.name,
+        alias: i.pilot.alias,
+        kartNumber: i.kartNumber,
+        status: 'FINISHED' as ResultStatus,
+        lapsCompleted: r.laps,
+      })));
+    }
+    setLoading(false);
+  }, [raceQuery.data, inscriptionsQuery.data]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -201,17 +221,12 @@ export function RaceCapture() {
 
   const handleSavePenalty = async () => {
     if (!raceId || !penaltyModal) return;
-    await racesApi.addPenalty(raceId, penaltyModal, {
+    await addPenaltyMutation.mutateAsync({ resultId: penaltyModal, data: {
       type: penaltyForm.type,
       amount: parseInt(penaltyForm.amount),
       reason: penaltyForm.reason,
-    });
+    } });
     setPenaltyModal(null);
-    // Reload race
-    if (slug) {
-      const r = await racesApi.get(slug, raceId);
-      setRace(r);
-    }
   };
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;

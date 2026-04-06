@@ -3,13 +3,28 @@ import slugify from 'slugify';
 import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
 import { Category } from '@prisma/client';
+import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 
 export async function listEvents(req: Request, res: Response): Promise<void> {
-  const events = await prisma.event.findMany({
-    include: { eventCategories: true },
-    orderBy: { date: 'desc' },
+  const { page, pageSize, skip } = getPaginationParams(req);
+  const publicOnly = req.query.public === 'true';
+  const where = publicOnly ? { status: { not: 'DRAFT' as const } } : undefined;
+
+  const [events, total] = await prisma.$transaction([
+    prisma.event.findMany({
+      where,
+      include: { eventCategories: true },
+      orderBy: { date: 'desc' },
+      skip,
+      take: pageSize,
+    }),
+    prisma.event.count({ where }),
+  ]);
+
+  res.json({
+    items: events,
+    pagination: getPaginationMeta(page, pageSize, total),
   });
-  res.json(events);
 }
 
 export async function createEvent(req: Request, res: Response): Promise<void> {

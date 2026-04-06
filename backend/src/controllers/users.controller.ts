@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
+import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 
 const userSelect = {
   id: true,
@@ -12,9 +13,23 @@ const userSelect = {
   updatedAt: true,
 };
 
-export async function listUsers(_req: Request, res: Response): Promise<void> {
-  const users = await prisma.user.findMany({ select: userSelect, orderBy: { name: 'asc' } });
-  res.json(users);
+export async function listUsers(req: Request, res: Response): Promise<void> {
+  const { page, pageSize, skip } = getPaginationParams(req);
+
+  const [users, total] = await prisma.$transaction([
+    prisma.user.findMany({
+      select: userSelect,
+      orderBy: { name: 'asc' },
+      skip,
+      take: pageSize,
+    }),
+    prisma.user.count(),
+  ]);
+
+  res.json({
+    items: users,
+    pagination: getPaginationMeta(page, pageSize, total),
+  });
 }
 
 export async function createUser(req: Request, res: Response): Promise<void> {

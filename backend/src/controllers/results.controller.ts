@@ -22,43 +22,44 @@ export async function saveRaceResults(req: Request, res: Response): Promise<void
   });
   if (!race) { res.status(404).json({ error: 'Carrera no encontrada' }); return; }
 
-  // Upsert each result
-  for (const r of results) {
-    const basePoints = calculatePoints(r.position, r.status);
+  await prisma.$transaction(async (tx) => {
+    for (const r of results) {
+      const basePoints = calculatePoints(r.position, r.status);
 
-    const existing = await prisma.raceResult.findUnique({
-      where: { raceId_inscriptionId: { raceId: race.id, inscriptionId: r.inscriptionId } },
-      include: { penalties: true },
-    });
+      const existing = await tx.raceResult.findUnique({
+        where: { raceId_inscriptionId: { raceId: race.id, inscriptionId: r.inscriptionId } },
+        include: { penalties: true },
+      });
 
-    const penaltyPoints = existing
-      ? existing.penalties.filter((p) => p.type === 'POINTS').reduce((s, p) => s + p.amount, 0)
-      : 0;
+      const penaltyPoints = existing
+        ? existing.penalties.filter((p) => p.type === 'POINTS').reduce((s, p) => s + p.amount, 0)
+        : 0;
 
-    const finalPoints = Math.max(0, basePoints - penaltyPoints);
+      const finalPoints = Math.max(0, basePoints - penaltyPoints);
 
-    await prisma.raceResult.upsert({
-      where: { raceId_inscriptionId: { raceId: race.id, inscriptionId: r.inscriptionId } },
-      update: {
-        position: r.position,
-        lapsCompleted: r.lapsCompleted,
-        status: r.status,
-        basePoints,
-        penaltyPoints,
-        finalPoints,
-      },
-      create: {
-        raceId: race.id,
-        inscriptionId: r.inscriptionId,
-        position: r.position,
-        lapsCompleted: r.lapsCompleted,
-        status: r.status,
-        basePoints,
-        penaltyPoints,
-        finalPoints,
-      },
-    });
-  }
+      await tx.raceResult.upsert({
+        where: { raceId_inscriptionId: { raceId: race.id, inscriptionId: r.inscriptionId } },
+        update: {
+          position: r.position,
+          lapsCompleted: r.lapsCompleted,
+          status: r.status,
+          basePoints,
+          penaltyPoints,
+          finalPoints,
+        },
+        create: {
+          raceId: race.id,
+          inscriptionId: r.inscriptionId,
+          position: r.position,
+          lapsCompleted: r.lapsCompleted,
+          status: r.status,
+          basePoints,
+          penaltyPoints,
+          finalPoints,
+        },
+      });
+    }
+  });
 
   // Recalculate championship
   await recalculateChampionship(race.event.year, race.category);
@@ -85,26 +86,31 @@ export async function saveRaceResults(req: Request, res: Response): Promise<void
 export async function addPenalty(req: Request, res: Response): Promise<void> {
   const { type, amount, reason } = req.body;
 
-  const penalty = await prisma.penalty.create({
-    data: { raceResultId: req.params.resultId, type, amount, reason },
-  });
+  const { penalty, raceResult } = await prisma.$transaction(async (tx) => {
+    const penalty = await tx.penalty.create({
+      data: { raceResultId: req.params.resultId, type, amount, reason },
+    });
 
-  // Recalculate finalPoints for this result
-  const raceResult = await prisma.raceResult.findUnique({
-    where: { id: req.params.resultId },
-    include: { penalties: true, race: { include: { event: true } } },
+    const raceResult = await tx.raceResult.findUnique({
+      where: { id: req.params.resultId },
+      include: { penalties: true, race: { include: { event: true } } },
+    });
+
+    if (raceResult) {
+      const penaltyPoints = raceResult.penalties
+        .filter((p) => p.type === 'POINTS')
+        .reduce((s, p) => s + p.amount, 0);
+      const finalPoints = Math.max(0, raceResult.basePoints - penaltyPoints);
+      await tx.raceResult.update({
+        where: { id: raceResult.id },
+        data: { penaltyPoints, finalPoints },
+      });
+    }
+
+    return { penalty, raceResult };
   });
 
   if (raceResult) {
-    const penaltyPoints = raceResult.penalties
-      .filter((p) => p.type === 'POINTS')
-      .reduce((s, p) => s + p.amount, 0);
-    const finalPoints = Math.max(0, raceResult.basePoints - penaltyPoints);
-    await prisma.raceResult.update({
-      where: { id: raceResult.id },
-      data: { penaltyPoints, finalPoints },
-    });
-
     await recalculateChampionship(raceResult.race.event.year, raceResult.race.category);
   }
 
@@ -115,26 +121,29 @@ export async function deletePenalty(req: Request, res: Response): Promise<void> 
   const penalty = await prisma.penalty.findUnique({ where: { id: req.params.penaltyId } });
   if (!penalty) { res.status(404).json({ error: 'Penalización no encontrada' }); return; }
 
-  await prisma.penalty.delete({ where: { id: penalty.id } });
+  const raceResult = await prisma.$transaction(async (tx) => {
+    await tx.penalty.delete({ where: { id: penalty.id } });
 
-  // Recalculate
-  const raceResult = await prisma.raceResult.findUnique({
-    where: { id: penalty.raceResultId },
-    include: { penalties: true, race: { include: { event: true } } },
+    const raceResult = await tx.raceResult.findUnique({
+      where: { id: penalty.raceResultId },
+      include: { penalties: true, race: { include: { event: true } } },
+    });
+
+    if (raceResult) {
+      const penaltyPoints = raceResult.penalties
+        .filter((p) => p.type === 'POINTS')
+        .reduce((s, p) => s + p.amount, 0);
+      const finalPoints = Math.max(0, raceResult.basePoints - penaltyPoints);
+      await tx.raceResult.update({
+        where: { id: raceResult.id },
+        data: { penaltyPoints, finalPoints },
+      });
+    }
+
+    return raceResult;
   });
 
   if (raceResult) {
-    const remainingPenalties = await prisma.penalty.findMany({
-      where: { raceResultId: raceResult.id },
-    });
-    const penaltyPoints = remainingPenalties
-      .filter((p) => p.type === 'POINTS')
-      .reduce((s, p) => s + p.amount, 0);
-    const finalPoints = Math.max(0, raceResult.basePoints - penaltyPoints);
-    await prisma.raceResult.update({
-      where: { id: raceResult.id },
-      data: { penaltyPoints, finalPoints },
-    });
     await recalculateChampionship(raceResult.race.event.year, raceResult.race.category);
   }
 

@@ -72,32 +72,32 @@ export async function drawGrid(req: Request, res: Response): Promise<void> {
   // Shuffle
   const shuffled = [...inscriptions].sort(() => Math.random() - 0.5);
 
-  // Delete existing grid if any
-  const existing = await prisma.startGrid.findUnique({
-    where: { eventCategoryId: eventCategory.id },
-  });
-  if (existing) {
-    await prisma.startGrid.delete({ where: { id: existing.id } });
-  }
+  const grid = await prisma.$transaction(async (tx) => {
+    const existing = await tx.startGrid.findUnique({
+      where: { eventCategoryId: eventCategory.id },
+    });
+    if (existing) {
+      await tx.startGrid.delete({ where: { id: existing.id } });
+    }
 
-  // Create new grid
-  const grid = await prisma.startGrid.create({
-    data: {
-      eventCategoryId: eventCategory.id,
-      drawnBy,
-      positions: {
-        create: shuffled.map((insc, idx) => ({
-          inscriptionId: insc.id,
-          position: idx + 1,
-        })),
+    return tx.startGrid.create({
+      data: {
+        eventCategoryId: eventCategory.id,
+        drawnBy,
+        positions: {
+          create: shuffled.map((insc, idx) => ({
+            inscriptionId: insc.id,
+            position: idx + 1,
+          })),
+        },
       },
-    },
-    include: {
-      positions: {
-        include: { inscription: { include: { pilot: true } } },
-        orderBy: { position: 'asc' },
+      include: {
+        positions: {
+          include: { inscription: { include: { pilot: true } } },
+          orderBy: { position: 'asc' },
+        },
       },
-    },
+    });
   });
 
   sseManager.emit(req.params.slug, 'grid:updated', { category, gridId: grid.id });

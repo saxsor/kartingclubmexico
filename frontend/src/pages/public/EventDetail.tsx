@@ -1,20 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight } from 'lucide-react';
-import { eventsApi, KartEvent } from '../../api/events.api';
+import { eventsApi } from '../../api/events.api';
 import { formatDate } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
+import { queryKeys } from '../../lib/react-query';
 
 export function EventDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<KartEvent | null>(null);
-  const [loading, setLoading] = useState(true);
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
 
-  useEffect(() => {
-    if (!slug) return;
-    eventsApi.get(slug).then(setEvent).finally(() => setLoading(false));
-  }, [slug]);
+  const event = eventQuery.data ?? null;
+  const loading = eventQuery.isLoading;
 
   if (loading) return (
     <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Cargando...</div>

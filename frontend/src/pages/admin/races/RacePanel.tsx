@@ -1,45 +1,57 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Plus, Flag } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { racesApi, Race } from '../../../api/races.api';
-import { eventsApi, KartEvent, Category } from '../../../api/events.api';
+import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
+import { queryKeys } from '../../../lib/react-query';
 
 export function RacePanel() {
   const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<KartEvent | null>(null);
-  const [races, setRaces] = useState<Race[]>([]);
-  const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ category: '' as Category | '', number: 1, laps: 15 });
+  const queryClient = useQueryClient();
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
+  const racesQuery = useQuery({
+    queryKey: slug ? queryKeys.races.list(slug) : ['races', 'list', 'missing'],
+    queryFn: () => racesApi.list(slug!),
+    enabled: !!slug,
+  });
+  const createMutation = useMutation({
+    mutationFn: (data: { category: Category; number: number; laps?: number }) => racesApi.create(slug!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.races.all });
+    },
+  });
+  const patchStatusMutation = useMutation({
+    mutationFn: ({ raceId, status }: { raceId: string; status: 'PENDING' | 'IN_PROGRESS' | 'FINISHED' }) =>
+      racesApi.patchStatus(slug!, raceId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.races.all });
+    },
+  });
 
-  const load = async () => {
-    if (!slug) return;
-    try {
-      const [e, r] = await Promise.all([eventsApi.get(slug), racesApi.list(slug)]);
-      setEvent(e);
-      setRaces(r);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [slug]);
+  const event = eventQuery.data ?? null;
+  const races = racesQuery.data ?? [];
+  const loading = eventQuery.isLoading || racesQuery.isLoading;
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!slug || !form.category) return;
-    await racesApi.create(slug, { category: form.category, number: form.number, laps: form.laps });
+    await createMutation.mutateAsync({ category: form.category, number: form.number, laps: form.laps });
     setCreating(false);
-    load();
   };
 
   const handleStatus = async (race: Race, status: Race['status']) => {
     if (!slug) return;
-    await racesApi.patchStatus(slug, race.id, status);
-    load();
+    await patchStatusMutation.mutateAsync({ raceId: race.id, status });
   };
 
   const grouped = races.reduce((acc, r) => {

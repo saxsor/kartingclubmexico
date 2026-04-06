@@ -1,30 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CheckSquare, X, Search } from 'lucide-react';
 import { checkinApi } from '../../../api/checkin.api';
 import { Inscription } from '../../../api/inscriptions.api';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
+import { queryKeys } from '../../../lib/react-query';
 
 export function CheckInPanel() {
   const { slug } = useParams<{ slug: string }>();
-  const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
   const [search, setSearch] = useState('');
   const [kartInputs, setKartInputs] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Record<string, string>>({});
+  const queryClient = useQueryClient();
+  const checkinQuery = useQuery({
+    queryKey: slug ? queryKeys.checkin.list(slug) : ['checkin', 'list', 'missing'],
+    queryFn: () => checkinApi.list(slug!),
+    enabled: !!slug,
+  });
+  const checkInMutation = useMutation({
+    mutationFn: ({ inscriptionId, kartNumber }: { inscriptionId: string; kartNumber: number }) =>
+      checkinApi.checkIn(slug!, inscriptionId, kartNumber),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.checkin.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.grids.all });
+    },
+  });
+  const undoMutation = useMutation({
+    mutationFn: (inscriptionId: string) => checkinApi.undoCheckIn(slug!, inscriptionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.checkin.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.grids.all });
+    },
+  });
 
-  const load = async () => {
-    if (!slug) return;
-    try {
-      const data = await checkinApi.list(slug);
-      setInscriptions(data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [slug]);
+  const inscriptions = checkinQuery.data ?? [];
+  const loading = checkinQuery.isLoading;
 
   const handleCheckIn = async (insc: Inscription) => {
     if (!slug) return;
@@ -34,9 +48,8 @@ export function CheckInPanel() {
       return;
     }
     try {
-      await checkinApi.checkIn(slug, insc.id, kart);
+      await checkInMutation.mutateAsync({ inscriptionId: insc.id, kartNumber: kart });
       setError((e) => { const n = { ...e }; delete n[insc.id]; return n; });
-      load();
     } catch (err) {
       setError((e) => ({ ...e, [insc.id]: err instanceof Error ? err.message : 'Error' }));
     }
@@ -44,8 +57,7 @@ export function CheckInPanel() {
 
   const handleUndo = async (insc: Inscription) => {
     if (!slug) return;
-    await checkinApi.undoCheckIn(slug, insc.id);
-    load();
+    await undoMutation.mutateAsync(insc.id);
   };
 
   const filtered = inscriptions.filter((i) =>

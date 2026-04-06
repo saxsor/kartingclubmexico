@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { CheckCircle, Upload, ArrowLeft } from 'lucide-react';
-import { eventsApi, KartEvent, Category } from '../../api/events.api';
+import { eventsApi, Category } from '../../api/events.api';
 import { inscriptionsApi, SelfRegisterResponse } from '../../api/inscriptions.api';
 import { CATEGORY_LABELS, formatCurrency } from '../../lib/utils';
+import { queryKeys } from '../../lib/react-query';
 
 const ALL_CATEGORIES: Category[] = [
   'SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS',
@@ -23,25 +25,41 @@ const labelClass = 'block text-xs font-bold uppercase tracking-widest text-white
 
 export function EventRegister() {
   const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<KartEvent | null>(null);
-  const [loadingEvent, setLoadingEvent] = useState(true);
   const [step, setStep] = useState<Step>('form');
   const [registerResult, setRegisterResult] = useState<SelfRegisterResponse | null>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [receiptUploaded, setReceiptUploaded] = useState(false);
   const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
+  const selfRegisterMutation = useMutation({
+    mutationFn: (payload: {
+      name: string;
+      alias?: string;
+      email?: string;
+      phone?: string;
+      kartNumber?: string;
+      category: Category;
+      notes?: string;
+    }) => inscriptionsApi.selfRegister(slug!, payload),
+  });
+  const uploadReceiptMutation = useMutation({
+    mutationFn: ({ inscriptionId, file }: { inscriptionId: string; file: File }) =>
+      inscriptionsApi.uploadReceipt(slug!, inscriptionId, file),
+  });
 
   const [form, setForm] = useState({
     name: '', alias: '', email: '', phone: '', kartNumber: '',
     category: '' as Category | '', notes: '',
   });
 
-  useEffect(() => {
-    if (!slug) return;
-    eventsApi.get(slug).then(setEvent).finally(() => setLoadingEvent(false));
-  }, [slug]);
+  const event = eventQuery.data ?? null;
+  const loadingEvent = eventQuery.isLoading;
+  const uploadingReceipt = uploadReceiptMutation.isPending;
+  const submitting = selfRegisterMutation.isPending;
 
   const activeCategories = event?.eventCategories.filter((c) => c.active).map((c) => c.category) ?? [];
 
@@ -49,9 +67,8 @@ export function EventRegister() {
     e.preventDefault();
     if (!slug || !form.category) return;
     setError('');
-    setSubmitting(true);
     try {
-      const result = await inscriptionsApi.selfRegister(slug, {
+      const result = await selfRegisterMutation.mutateAsync({
         name: form.name,
         alias: form.alias || undefined,
         email: form.email || undefined,
@@ -64,23 +81,18 @@ export function EventRegister() {
       setStep('payment');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al registrarse');
-    } finally {
-      setSubmitting(false);
     }
   };
 
   const handleUploadReceipt = async () => {
     if (!slug || !registerResult || !receiptFile) return;
-    setUploadingReceipt(true);
     setError('');
     try {
-      await inscriptionsApi.uploadReceipt(slug, registerResult.inscription.id, receiptFile);
+      await uploadReceiptMutation.mutateAsync({ inscriptionId: registerResult.inscription.id, file: receiptFile });
       setReceiptUploaded(true);
       setStep('done');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al subir comprobante');
-    } finally {
-      setUploadingReceipt(false);
     }
   };
 

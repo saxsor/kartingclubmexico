@@ -38,14 +38,17 @@ export async function doCheckIn(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const checkIn = await prisma.checkIn.create({
-    data: { inscriptionId: inscription.id, kartNumber, confirmedBy },
-  });
+  const checkIn = await prisma.$transaction(async (tx) => {
+    const checkIn = await tx.checkIn.create({
+      data: { inscriptionId: inscription.id, kartNumber, confirmedBy },
+    });
 
-  // Update kart number on inscription
-  await prisma.inscription.update({
-    where: { id: inscription.id },
-    data: { kartNumber },
+    await tx.inscription.update({
+      where: { id: inscription.id },
+      data: { kartNumber },
+    });
+
+    return checkIn;
   });
 
   res.status(201).json(checkIn);

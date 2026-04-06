@@ -11,10 +11,12 @@ export function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    eventsApi.list().then((data) => {
-      setEvents(data.filter((e) => e.status !== 'DRAFT').slice(0, 6));
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    eventsApi.list({ page: 1, pageSize: 6, public: true })
+      .then((data) => {
+        setEvents(data.items);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const nextEvent = events.find((e) => e.status === 'OPEN' || e.status === 'IN_PROGRESS');

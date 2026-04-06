@@ -6,11 +6,19 @@ import { config } from '../config/index.js';
 import { JwtPayload } from '../middleware/auth.middleware.js';
 
 function signToken(payload: Omit<JwtPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN } as jwt.SignOptions);
+  return jwt.sign(
+    { ...payload, tokenType: 'access' },
+    config.JWT_SECRET,
+    { expiresIn: config.JWT_EXPIRES_IN } as jwt.SignOptions,
+  );
 }
 
 function signRefreshToken(payload: Omit<JwtPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_REFRESH_EXPIRES_IN } as jwt.SignOptions);
+  return jwt.sign(
+    { ...payload, tokenType: 'refresh' },
+    config.JWT_SECRET,
+    { expiresIn: config.JWT_REFRESH_EXPIRES_IN } as jwt.SignOptions,
+  );
 }
 
 export async function login(req: Request, res: Response): Promise<void> {
@@ -62,7 +70,12 @@ export async function refresh(req: Request, res: Response): Promise<void> {
   }
 
   try {
-    const payload = jwt.verify(refreshToken, config.JWT_SECRET) as JwtPayload;
+    const payload = jwt.verify(refreshToken, config.JWT_SECRET) as JwtPayload & { tokenType?: string };
+    if (payload.tokenType !== 'refresh') {
+      res.status(401).json({ error: 'Refresh token inválido' });
+      return;
+    }
+
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user || !user.active) {
       res.status(401).json({ error: 'Usuario no válido' });
@@ -76,7 +89,10 @@ export async function refresh(req: Request, res: Response): Promise<void> {
       role: user.role,
     };
 
-    res.json({ token: signToken(newPayload) });
+    res.json({
+      token: signToken(newPayload),
+      refreshToken: signRefreshToken(newPayload),
+    });
   } catch {
     res.status(401).json({ error: 'Refresh token inválido' });
   }

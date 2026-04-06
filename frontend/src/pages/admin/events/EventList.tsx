@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../../api/events.api';
@@ -6,22 +7,35 @@ import { toast } from '../../../store/toast.store';
 import { formatDate } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
+import { PaginationMeta } from '../../../api/pagination';
+import { PaginationControls } from '../../../components/shared/PaginationControls';
+import { queryKeys } from '../../../lib/react-query';
 
 export function EventList() {
-  const [events, setEvents] = useState<KartEvent[]>([]);
-  const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+  const listParams = { page, pageSize: 10 };
+  const eventsQuery = useQuery({
+    queryKey: queryKeys.events.list(listParams),
+    queryFn: () => eventsApi.list(listParams),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (slug: string) => eventsApi.delete(slug),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+    },
+  });
 
-  useEffect(() => {
-    eventsApi.list().then(setEvents).finally(() => setLoading(false));
-  }, []);
+  const events = eventsQuery.data?.items ?? [];
+  const pagination = eventsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
+  const loading = eventsQuery.isLoading;
 
   const handleDelete = async (event: KartEvent) => {
     if (!confirm(`¿Eliminar el evento "${event.name}"? Esta acción eliminará también todas sus inscripciones, carreras y resultados. No se puede deshacer.`)) return;
     setDeleting(event.slug);
     try {
-      await eventsApi.delete(event.slug);
-      setEvents((prev) => prev.filter((e) => e.slug !== event.slug));
+      await deleteMutation.mutateAsync(event.slug);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al eliminar');
     } finally {
@@ -34,7 +48,7 @@ export function EventList() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-white">Eventos</h1>
-          <p className="text-white/50 text-sm mt-1">{events.length} eventos</p>
+          <p className="text-white/50 text-sm mt-1">{pagination.total} eventos</p>
         </div>
         <Link
           to="/app/eventos/nuevo"
@@ -93,6 +107,14 @@ export function EventList() {
           )}
         </div>
       )}
+
+      <PaginationControls
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        itemLabel="eventos"
+        onPageChange={setPage}
+      />
     </div>
   );
 }

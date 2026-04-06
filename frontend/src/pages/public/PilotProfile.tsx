@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { User, Hash, Calendar } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../api/pilots.api';
-import { formatDate, CATEGORY_LABELS } from '../../lib/utils';
+import { formatDate } from '../../lib/utils';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
+import { queryKeys } from '../../lib/react-query';
 
 interface History {
   pilot: Pilot;
@@ -18,13 +19,14 @@ interface History {
 
 export function PilotProfile() {
   const { id } = useParams<{ id: string }>();
-  const [history, setHistory] = useState<History | null>(null);
-  const [loading, setLoading] = useState(true);
+  const historyQuery = useQuery({
+    queryKey: id ? queryKeys.pilots.history(id) : ['pilots', 'history', 'missing'],
+    queryFn: () => pilotsApi.getHistory(id!) as Promise<History>,
+    enabled: !!id,
+  });
 
-  useEffect(() => {
-    if (!id) return;
-    pilotsApi.getHistory(id).then((data) => setHistory(data as History)).finally(() => setLoading(false));
-  }, [id]);
+  const history = historyQuery.data ?? null;
+  const loading = historyQuery.isLoading;
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
   if (!history) return <div className="text-center py-20 text-white/40">Piloto no encontrado</div>;

@@ -1,5 +1,6 @@
 import { api } from './client';
 import { useAuthStore } from '../store/auth.store';
+import { buildPaginationQuery, PaginatedResponse, PaginationParams } from './pagination';
 
 export interface Pilot {
   id: string;
@@ -15,7 +16,8 @@ export interface Pilot {
 }
 
 export const pilotsApi = {
-  list: () => api.get<Pilot[]>('/pilots'),
+  list: (params?: PaginationParams) =>
+    api.get<PaginatedResponse<Pilot>>(`/pilots${buildPaginationQuery(params ?? {})}`),
   get: (id: string) => api.get<Pilot>(`/pilots/${id}`),
   getHistory: (id: string) => api.get<unknown>(`/pilots/${id}/history`),
   create: (data: Partial<Pilot>) => api.post<Pilot>('/pilots', data),

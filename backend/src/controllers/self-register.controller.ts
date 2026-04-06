@@ -16,52 +16,57 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
   });
   if (!eventCategory || !eventCategory.active) { res.status(400).json({ error: 'Categoría no disponible' }); return; }
 
-  // Find or create pilot by email
-  let pilot = email ? await prisma.pilot.findFirst({ where: { email } }) : null;
-  if (!pilot) {
-    pilot = await prisma.pilot.create({
-      data: {
-        name,
-        alias: alias || null,
-        email: email || null,
-        phone: phone || null,
-        kartNumber: kartNumber ? parseInt(kartNumber) : null,
-      },
-    });
-  } else {
-    // Update pilot info
-    pilot = await prisma.pilot.update({
-      where: { id: pilot.id },
-      data: {
-        name,
-        alias: alias || pilot.alias,
-        phone: phone || pilot.phone,
-        kartNumber: kartNumber ? parseInt(kartNumber) : pilot.kartNumber,
-      },
-    });
-  }
+  const parsedKartNumber = kartNumber ? parseInt(kartNumber) : null;
 
-  // Check duplicate inscription
-  const existing = await prisma.inscription.findUnique({
-    where: { eventId_pilotId_category: { eventId: event.id, pilotId: pilot.id, category } },
-  });
-  if (existing) { res.status(409).json({ error: 'Ya estás inscrito en esta categoría para este evento' }); return; }
+  const registration = await prisma.$transaction(async (tx) => {
+    let pilot = email ? await tx.pilot.findFirst({ where: { email } }) : null;
+    if (!pilot) {
+      pilot = await tx.pilot.create({
+        data: {
+          name,
+          alias: alias || null,
+          email: email || null,
+          phone: phone || null,
+          kartNumber: parsedKartNumber,
+        },
+      });
+    } else {
+      pilot = await tx.pilot.update({
+        where: { id: pilot.id },
+        data: {
+          name,
+          alias: alias || pilot.alias,
+          phone: phone || pilot.phone,
+          kartNumber: parsedKartNumber ?? pilot.kartNumber,
+        },
+      });
+    }
 
-  const inscription = await prisma.inscription.create({
-    data: {
-      eventId: event.id,
-      pilotId: pilot.id,
-      category,
-      kartNumber: kartNumber ? parseInt(kartNumber) : null,
-      notes: notes || null,
-      selfRegistered: true,
-      status: 'PENDING_PAYMENT',
-    },
-    include: { pilot: true },
+    const existing = await tx.inscription.findUnique({
+      where: { eventId_pilotId_category: { eventId: event.id, pilotId: pilot.id, category } },
+    });
+    if (existing) return null;
+
+    const inscription = await tx.inscription.create({
+      data: {
+        eventId: event.id,
+        pilotId: pilot.id,
+        category,
+        kartNumber: parsedKartNumber,
+        notes: notes || null,
+        selfRegistered: true,
+        status: 'PENDING_PAYMENT',
+      },
+      include: { pilot: true },
+    });
+
+    return inscription;
   });
+
+  if (!registration) { res.status(409).json({ error: 'Ya estás inscrito en esta categoría para este evento' }); return; }
 
   res.status(201).json({
-    inscription,
+    inscription: registration,
     transferInfo: event.transferInfo,
     serviceFee: event.serviceFee,
     foodFee: event.foodFee,

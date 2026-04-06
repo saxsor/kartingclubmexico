@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
+import { Category } from '@prisma/client';
 
 async function getEventOrFail(slug: string, res: Response) {
   const event = await prisma.event.findUnique({ where: { slug } });
@@ -11,16 +13,45 @@ export async function listInscriptions(req: Request, res: Response): Promise<voi
   const event = await getEventOrFail(req.params.slug, res);
   if (!event) return;
 
-  const inscriptions = await prisma.inscription.findMany({
-    where: { eventId: event.id },
-    include: {
-      pilot: true,
-      payments: true,
-      checkIn: true,
-    },
-    orderBy: { createdAt: 'asc' },
+  const { page, pageSize, skip } = getPaginationParams(req);
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  const categorySearch = search.toUpperCase();
+  const categoryMatch = (Object.values(Category) as string[]).includes(categorySearch)
+    ? categorySearch as Category
+    : null;
+
+  const where = {
+    eventId: event.id,
+    ...(search
+      ? {
+          OR: [
+            { pilot: { name: { contains: search, mode: 'insensitive' as const } } },
+            { pilot: { alias: { contains: search, mode: 'insensitive' as const } } },
+            ...(categoryMatch ? [{ category: categoryMatch }] : []),
+          ],
+        }
+      : {}),
+  };
+
+  const [inscriptions, total] = await prisma.$transaction([
+    prisma.inscription.findMany({
+      where,
+      include: {
+        pilot: true,
+        payments: true,
+        checkIn: true,
+      },
+      orderBy: { createdAt: 'asc' },
+      skip,
+      take: pageSize,
+    }),
+    prisma.inscription.count({ where }),
+  ]);
+
+  res.json({
+    items: inscriptions,
+    pagination: getPaginationMeta(page, pageSize, total),
   });
-  res.json(inscriptions);
 }
 
 export async function createInscription(req: Request, res: Response): Promise<void> {

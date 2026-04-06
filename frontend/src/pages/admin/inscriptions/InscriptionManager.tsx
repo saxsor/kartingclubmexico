@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Plus, X, Search } from 'lucide-react';
 import { inscriptionsApi, Inscription } from '../../../api/inscriptions.api';
@@ -7,42 +8,52 @@ import { eventsApi, KartEvent, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
+import { PaginationMeta } from '../../../api/pagination';
+import { PaginationControls } from '../../../components/shared/PaginationControls';
+import { queryKeys } from '../../../lib/react-query';
 
 export function InscriptionManager() {
   const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<KartEvent | null>(null);
-  const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
-  const [pilots, setPilots] = useState<Pilot[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({ pilotId: '', category: '' as Category | '', kartNumber: '', notes: '' });
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
+  const inscriptionsQuery = useQuery({
+    queryKey: slug ? queryKeys.inscriptions.list(slug, { page, pageSize: 10, search }) : ['inscriptions', 'list', 'missing'],
+    queryFn: () => inscriptionsApi.list(slug!, { page, pageSize: 10, search }),
+    enabled: !!slug,
+  });
+  const pilotsQuery = useQuery({
+    queryKey: queryKeys.pilots.list({ page: 1, pageSize: 100 }),
+    queryFn: () => pilotsApi.list({ page: 1, pageSize: 100 }),
+  });
+  const createMutation = useMutation({
+    mutationFn: (payload: { pilotId: string; category: Category; kartNumber?: number; notes?: string }) =>
+      inscriptionsApi.create(slug!, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+  });
 
-  const load = async () => {
-    if (!slug) return;
-    try {
-      const [e, insc, p] = await Promise.all([
-        eventsApi.get(slug),
-        inscriptionsApi.list(slug),
-        pilotsApi.list(),
-      ]);
-      setEvent(e);
-      setInscriptions(insc);
-      setPilots(p.filter((p) => p.active));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [slug]);
+  const event = eventQuery.data ?? null;
+  const inscriptions = inscriptionsQuery.data?.items ?? [];
+  const pagination = inscriptionsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
+  const pilots = (pilotsQuery.data?.items ?? []).filter((pilot) => pilot.active);
+  const loading = eventQuery.isLoading || inscriptionsQuery.isLoading || pilotsQuery.isLoading;
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!slug || !form.pilotId || !form.category) return;
     setError('');
     try {
-      await inscriptionsApi.create(slug, {
+      await createMutation.mutateAsync({
         pilotId: form.pilotId,
         category: form.category as Category,
         kartNumber: form.kartNumber ? parseInt(form.kartNumber) : undefined,
@@ -50,16 +61,10 @@ export function InscriptionManager() {
       });
       setShowForm(false);
       setForm({ pilotId: '', category: '', kartNumber: '', notes: '' });
-      load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear inscripción');
     }
   };
-
-  const filtered = inscriptions.filter((i) =>
-    i.pilot.name.toLowerCase().includes(search.toLowerCase()) ||
-    i.category.toLowerCase().includes(search.toLowerCase()),
-  );
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
 
@@ -145,7 +150,10 @@ export function InscriptionManager() {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           placeholder="Buscar inscripciones..."
           className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
         />
@@ -163,7 +171,7 @@ export function InscriptionManager() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((i) => (
+            {inscriptions.map((i) => (
               <tr key={i.id} className="border-b border-white/5 hover:bg-white/5">
                 <td className="px-4 py-3">
                   <p className="font-medium text-white">{i.pilot.name}</p>
@@ -185,10 +193,18 @@ export function InscriptionManager() {
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && (
+        {inscriptions.length === 0 && (
           <div className="text-center py-8 text-white/40">No hay inscripciones</div>
         )}
       </div>
+
+      <PaginationControls
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        itemLabel="inscripciones"
+        onPageChange={setPage}
+      />
     </div>
   );
 }

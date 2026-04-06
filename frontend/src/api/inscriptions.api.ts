@@ -1,6 +1,7 @@
 import { api } from './client';
 import { useAuthStore } from '../store/auth.store';
 import { Category } from './events.api';
+import { buildPaginationQuery, PaginatedResponse, PaginationParams } from './pagination';
 
 export type InscriptionStatus = 'PENDING_PAYMENT' | 'RECEIPT_SUBMITTED' | 'PAID';
 
@@ -76,7 +77,8 @@ function uploadReceiptFetch(slug: string, id: string, file: File): Promise<Inscr
 }
 
 export const inscriptionsApi = {
-  list: (slug: string) => api.get<Inscription[]>(`/events/${slug}/inscriptions`),
+  list: (slug: string, params?: PaginationParams) =>
+    api.get<PaginatedResponse<Inscription>>(`/events/${slug}/inscriptions${buildPaginationQuery(params ?? {})}`),
   get: (slug: string, id: string) => api.get<Inscription>(`/events/${slug}/inscriptions/${id}`),
   create: (slug: string, data: { pilotId: string; category: Category; kartNumber?: number; notes?: string }) =>
     api.post<Inscription>(`/events/${slug}/inscriptions`, data),

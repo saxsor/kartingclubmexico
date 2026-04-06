@@ -1,38 +1,49 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Shuffle, Trash2 } from 'lucide-react';
-import { gridApi, StartGrid } from '../../../api/grid.api';
-import { eventsApi, KartEvent, Category } from '../../../api/events.api';
-import { CATEGORY_LABELS } from '../../../lib/utils';
+import { gridApi } from '../../../api/grid.api';
+import { eventsApi, Category } from '../../../api/events.api';
 import { toast } from '../../../store/toast.store';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
+import { queryKeys } from '../../../lib/react-query';
 
 export function GridDraw() {
   const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<KartEvent | null>(null);
-  const [grids, setGrids] = useState<StartGrid[]>([]);
-  const [loading, setLoading] = useState(true);
   const [drawing, setDrawing] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
+  const gridsQuery = useQuery({
+    queryKey: slug ? queryKeys.grids.list(slug) : ['grids', 'list', 'missing'],
+    queryFn: () => gridApi.getAll(slug!),
+    enabled: !!slug,
+  });
+  const drawMutation = useMutation({
+    mutationFn: (category: Category) => gridApi.draw(slug!, category),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.grids.all });
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (category: Category) => gridApi.delete(slug!, category),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.grids.all });
+    },
+  });
 
-  const load = async () => {
-    if (!slug) return;
-    try {
-      const [e, g] = await Promise.all([eventsApi.get(slug), gridApi.getAll(slug)]);
-      setEvent(e);
-      setGrids(g);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [slug]);
+  const event = eventQuery.data ?? null;
+  const grids = gridsQuery.data ?? [];
+  const loading = eventQuery.isLoading || gridsQuery.isLoading;
 
   const handleDraw = async (category: Category) => {
     if (!slug) return;
     setDrawing(category);
     try {
-      await gridApi.draw(slug, category);
-      load();
+      await drawMutation.mutateAsync(category);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al sortear');
     } finally {
@@ -42,8 +53,7 @@ export function GridDraw() {
 
   const handleDelete = async (category: Category) => {
     if (!slug || !confirm('¿Eliminar esta parrilla?')) return;
-    await gridApi.delete(slug, category);
-    load();
+    await deleteMutation.mutateAsync(category);
   };
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;

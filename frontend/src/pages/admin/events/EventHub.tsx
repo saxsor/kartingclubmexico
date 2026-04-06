@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { ClipboardList, DollarSign, CheckSquare, Shuffle, Flag, BarChart2, Settings } from 'lucide-react';
-import { eventsApi, KartEvent } from '../../../api/events.api';
+import { eventsApi } from '../../../api/events.api';
 import { formatDate } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { useAuth } from '../../../hooks/useAuth';
+import { queryKeys } from '../../../lib/react-query';
 
 const actions = [
   { label: 'Inscripciones', to: 'inscripciones', icon: ClipboardList, description: 'Gestionar inscripciones de pilotos' },
@@ -18,13 +19,24 @@ const actions = [
 export function EventHub() {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
-  const [event, setEvent] = useState<KartEvent | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
+  const patchStatusMutation = useMutation({
+    mutationFn: (status: 'DRAFT' | 'OPEN' | 'IN_PROGRESS' | 'FINISHED') => eventsApi.patchStatus(slug!, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+      if (slug) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(slug) });
+      }
+    },
+  });
 
-  useEffect(() => {
-    if (!slug) return;
-    eventsApi.get(slug).then(setEvent).finally(() => setLoading(false));
-  }, [slug]);
+  const event = eventQuery.data ?? null;
+  const loading = eventQuery.isLoading;
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
   if (!event) return <div className="text-center py-20 text-white/40">Evento no encontrado</div>;
@@ -59,8 +71,7 @@ export function EventHub() {
           <button
             key={s}
             onClick={async () => {
-              const updated = await eventsApi.patchStatus(slug!, s);
-              setEvent(updated);
+              await patchStatusMutation.mutateAsync(s);
             }}
             disabled={event.status === s}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${

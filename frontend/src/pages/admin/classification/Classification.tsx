@@ -1,32 +1,37 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { BarChart2, Download } from 'lucide-react';
-import { resultsApi, CategoryResults } from '../../../api/results.api';
-import { eventsApi, KartEvent, Category } from '../../../api/events.api';
+import { Download } from 'lucide-react';
+import { resultsApi } from '../../../api/results.api';
+import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { PointsTable } from '../../../components/shared/PointsTable';
-import { CategoryBadge } from '../../../components/shared/CategoryBadge';
+import { queryKeys } from '../../../lib/react-query';
 
 export function Classification() {
   const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<KartEvent | null>(null);
   const [selectedCat, setSelectedCat] = useState<Category | null>(null);
-  const [results, setResults] = useState<CategoryResults | null>(null);
-  const [loading, setLoading] = useState(true);
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
+  const resultsQuery = useQuery({
+    queryKey: slug && selectedCat ? queryKeys.results.byCategory(slug, selectedCat) : ['results', 'by-category', 'missing'],
+    queryFn: () => resultsApi.getByCategory(slug!, selectedCat!),
+    enabled: !!slug && !!selectedCat,
+  });
 
   useEffect(() => {
-    if (!slug) return;
-    eventsApi.get(slug).then((e) => {
-      setEvent(e);
-      const first = e.eventCategories.find((c) => c.active);
-      if (first) setSelectedCat(first.category);
-    }).finally(() => setLoading(false));
-  }, [slug]);
+    const event = eventQuery.data;
+    if (!event || selectedCat) return;
+    const first = event.eventCategories.find((c) => c.active);
+    if (first) setSelectedCat(first.category);
+  }, [eventQuery.data, selectedCat]);
 
-  useEffect(() => {
-    if (!slug || !selectedCat) return;
-    resultsApi.getByCategory(slug, selectedCat).then(setResults);
-  }, [slug, selectedCat]);
+  const event = eventQuery.data ?? null;
+  const results = resultsQuery.data ?? null;
+  const loading = eventQuery.isLoading;
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
 

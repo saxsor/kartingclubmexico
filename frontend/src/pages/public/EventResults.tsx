@@ -1,43 +1,45 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { BarChart2 } from 'lucide-react';
-import { resultsApi, CategoryResults } from '../../api/results.api';
-import { eventsApi, KartEvent, Category } from '../../api/events.api';
+import { resultsApi } from '../../api/results.api';
+import { eventsApi, Category } from '../../api/events.api';
 import { useSSE } from '../../hooks/useSSE';
 import { CATEGORY_LABELS } from '../../lib/utils';
-import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { PointsTable } from '../../components/shared/PointsTable';
+import { queryKeys } from '../../lib/react-query';
 
 export function EventResults() {
   const { slug } = useParams<{ slug: string }>();
-  const [event, setEvent] = useState<KartEvent | null>(null);
   const [selectedCat, setSelectedCat] = useState<Category | null>(null);
-  const [results, setResults] = useState<CategoryResults | null>(null);
-  const [loading, setLoading] = useState(true);
   const { on } = useSSE(slug ?? null);
-
-  const loadResults = useCallback(async () => {
-    if (!slug || !selectedCat) return;
-    const data = await resultsApi.getByCategory(slug, selectedCat);
-    setResults(data);
-  }, [slug, selectedCat]);
-
-  useEffect(() => {
-    if (!slug) return;
-    eventsApi.get(slug).then((e) => {
-      setEvent(e);
-      const firstActive = e.eventCategories.find((c) => c.active);
-      if (firstActive) setSelectedCat(firstActive.category);
-    }).finally(() => setLoading(false));
-  }, [slug]);
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
+  const resultsQuery = useQuery({
+    queryKey: slug && selectedCat ? queryKeys.results.byCategory(slug, selectedCat) : ['results', 'by-category', 'missing'],
+    queryFn: () => resultsApi.getByCategory(slug!, selectedCat!),
+    enabled: !!slug && !!selectedCat,
+  });
 
   useEffect(() => {
-    if (selectedCat) loadResults();
-  }, [selectedCat, loadResults]);
+    const event = eventQuery.data;
+    if (!event || selectedCat) return;
+    const firstActive = event.eventCategories.find((c) => c.active);
+    if (firstActive) setSelectedCat(firstActive.category);
+  }, [eventQuery.data, selectedCat]);
 
   useEffect(() => {
-    return on('race:results', () => loadResults());
-  }, [on, loadResults]);
+    return on('race:results', () => {
+      void resultsQuery.refetch();
+    });
+  }, [on, resultsQuery]);
+
+  const event = eventQuery.data ?? null;
+  const results = resultsQuery.data ?? null;
+  const loading = eventQuery.isLoading;
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
 

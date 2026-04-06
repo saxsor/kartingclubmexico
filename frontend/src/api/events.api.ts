@@ -1,5 +1,6 @@
 import { api } from './client';
 import { useAuthStore } from '../store/auth.store';
+import { buildPaginationQuery, PaginatedResponse, PaginationParams } from './pagination';
 
 export type EventStatus = 'DRAFT' | 'OPEN' | 'IN_PROGRESS' | 'FINISHED';
 export type Category = 'SHIFTER' | 'DOS_TIEMPOS' | 'FORMULA_MUNDIAL' | 'NUEVE_HP' | 'ROOKIES' | 'MINIS';
@@ -30,7 +31,8 @@ export interface KartEvent {
 }
 
 export const eventsApi = {
-  list: () => api.get<KartEvent[]>('/events'),
+  list: (params?: PaginationParams & { public?: boolean }) =>
+    api.get<PaginatedResponse<KartEvent>>(`/events${buildPaginationQuery(params ?? {})}`),
   get: (slug: string) => api.get<KartEvent>(`/events/${slug}`),
   create: (data: unknown) => api.post<KartEvent>('/events', data),
   update: (slug: string, data: unknown) => api.put<KartEvent>(`/events/${slug}`, data),

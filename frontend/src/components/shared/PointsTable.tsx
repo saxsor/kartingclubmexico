@@ -1,5 +1,5 @@
 import { User } from 'lucide-react';
-import { cn, getPositionClass } from '../../lib/utils';
+import { cn, getPositionClass, resolveMediaUrl } from '../../lib/utils';
 
 interface Row {
   position: number;
@@ -23,7 +23,7 @@ function PilotAvatar({ photoUrl, name }: { photoUrl?: string | null; name: strin
   if (photoUrl) {
     return (
       <img
-        src={photoUrl}
+        src={resolveMediaUrl(photoUrl) ?? ''}
         alt={name}
         className="h-7 w-7 object-cover flex-shrink-0"
         style={{ imageRendering: 'auto' }}

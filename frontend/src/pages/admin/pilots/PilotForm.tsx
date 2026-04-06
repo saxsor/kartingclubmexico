@@ -5,6 +5,7 @@ import { Camera, Trash2, User } from 'lucide-react';
 import { pilotsApi } from '../../../api/pilots.api';
 import { toast } from '../../../store/toast.store';
 import { queryKeys } from '../../../lib/react-query';
+import { resolveMediaUrl } from '../../../lib/utils';
 
 export function PilotForm() {
   const { id } = useParams<{ id: string }>();
@@ -137,7 +138,7 @@ export function PilotForm() {
               {currentPilot?.photoUrl ? (
                 <img
                   key={currentPilot.photoUrl}
-                  src={`${currentPilot.photoUrl}?t=${Date.now()}`}
+                  src={`${resolveMediaUrl(currentPilot.photoUrl) ?? ''}?t=${Date.now()}`}
                   alt="Foto"
                   className="h-20 w-20 object-cover border border-[#38383f]"
                 />

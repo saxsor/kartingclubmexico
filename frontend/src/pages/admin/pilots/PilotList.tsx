@@ -7,6 +7,7 @@ import { toast } from '../../../store/toast.store';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
 import { queryKeys } from '../../../lib/react-query';
+import { resolveMediaUrl } from '../../../lib/utils';
 
 export function PilotList() {
   const [search, setSearch] = useState('');
@@ -91,7 +92,7 @@ export function PilotList() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {pilot.photoUrl ? (
-                        <img src={pilot.photoUrl} alt={pilot.name} className="h-8 w-8 object-cover flex-shrink-0" />
+                        <img src={resolveMediaUrl(pilot.photoUrl) ?? ''} alt={pilot.name} className="h-8 w-8 object-cover flex-shrink-0" />
                       ) : (
                         <div className="h-8 w-8 bg-[#38383f] flex items-center justify-center flex-shrink-0">
                           <User className="h-4 w-4 text-white/20" />

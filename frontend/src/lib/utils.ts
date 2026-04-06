@@ -20,6 +20,32 @@ export function formatCurrency(amount: number | string): string {
   }).format(Number(amount));
 }
 
+export function resolveMediaUrl(url?: string | null): string | null {
+  if (!url) return null;
+
+  if (/^(?:https?:)?\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+
+  if (url.startsWith('/app/uploads/')) {
+    return url.replace('/app/uploads/', '/uploads/');
+  }
+
+  if (url.startsWith('app/uploads/')) {
+    return `/${url.replace(/^app\/uploads\//, 'uploads/')}`;
+  }
+
+  if (url.startsWith('uploads/')) {
+    return `/${url}`;
+  }
+
+  if (url.startsWith('/')) {
+    return url;
+  }
+
+  return `/${url}`;
+}
+
 export const CATEGORY_LABELS: Record<string, string> = {
   SHIFTER: 'Shifter',
   DOS_TIEMPOS: '2 Tiempos',

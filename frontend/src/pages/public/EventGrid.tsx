@@ -7,6 +7,7 @@ import { eventsApi } from '../../api/events.api';
 import { useSSE } from '../../hooks/useSSE';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { queryKeys } from '../../lib/react-query';
+import { resolveMediaUrl } from '../../lib/utils';
 
 export function EventGrid() {
   const { slug } = useParams<{ slug: string }>();
@@ -101,7 +102,7 @@ export function EventGrid() {
 
                       {/* Pilot avatar */}
                       {pilot.photoUrl ? (
-                        <img src={pilot.photoUrl} alt={pilot.name} className="h-9 w-9 object-cover flex-shrink-0" />
+                        <img src={resolveMediaUrl(pilot.photoUrl) ?? ''} alt={pilot.name} className="h-9 w-9 object-cover flex-shrink-0" />
                       ) : (
                         <div className="h-9 w-9 bg-[#38383f] flex items-center justify-center flex-shrink-0">
                           <User className="h-4 w-4 text-white/20" />

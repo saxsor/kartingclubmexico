@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, User } from 'lucide-react';
 import { championshipApi, Standing } from '../../api/championship.api';
-import { CATEGORY_LABELS, getPositionClass, cn } from '../../lib/utils';
+import { CATEGORY_LABELS, getPositionClass, cn, resolveMediaUrl } from '../../lib/utils';
 import { queryKeys } from '../../lib/react-query';
 
 export function Championship() {
@@ -99,7 +99,7 @@ export function Championship() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         {s.pilot.photoUrl ? (
-                          <img src={s.pilot.photoUrl} alt={s.pilot.name} className="h-7 w-7 object-cover flex-shrink-0" />
+                          <img src={resolveMediaUrl(s.pilot.photoUrl) ?? ''} alt={s.pilot.name} className="h-7 w-7 object-cover flex-shrink-0" />
                         ) : (
                           <div className="h-7 w-7 bg-[#38383f] flex items-center justify-center flex-shrink-0">
                             <User className="h-3.5 w-3.5 text-white/30" />

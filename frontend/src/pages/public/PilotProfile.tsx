@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { User, Hash, Calendar } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../api/pilots.api';
-import { formatDate } from '../../lib/utils';
+import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { queryKeys } from '../../lib/react-query';
 
@@ -43,7 +43,7 @@ export function PilotProfile() {
       <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 mb-6">
         <div className="flex items-center gap-4">
           {pilot.photoUrl ? (
-            <img src={pilot.photoUrl} alt={pilot.name} className="h-16 w-16 object-cover flex-shrink-0" />
+            <img src={resolveMediaUrl(pilot.photoUrl) ?? ''} alt={pilot.name} className="h-16 w-16 object-cover flex-shrink-0" />
           ) : (
             <div className="h-16 w-16 bg-[#2a2a35] flex items-center justify-center flex-shrink-0">
               <User className="h-8 w-8 text-white/20" />

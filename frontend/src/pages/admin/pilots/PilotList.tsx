@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Trash2, User } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../../api/pilots.api';
+import { toast } from '../../../store/toast.store';
 
 export function PilotList() {
   const [pilots, setPilots] = useState<Pilot[]>([]);
@@ -20,7 +21,7 @@ export function PilotList() {
       await pilotsApi.delete(pilot.id);
       setPilots((prev) => prev.filter((p) => p.id !== pilot.id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al eliminar');
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar');
     } finally {
       setDeleting(null);
     }

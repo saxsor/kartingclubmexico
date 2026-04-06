@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from '../../../store/toast.store';
 import {
   DndContext,
   closestCenter,
@@ -192,7 +193,7 @@ export function RaceCapture() {
     // Find resultId
     const result = race?.results.find((r) => r.inscriptionId === inscriptionId);
     if (!raceId || !result) {
-      alert('Primero guarda los resultados antes de añadir penalizaciones');
+      toast.info('Primero guarda los resultados antes de añadir penalizaciones');
       return;
     }
     setPenaltyModal(result.id);

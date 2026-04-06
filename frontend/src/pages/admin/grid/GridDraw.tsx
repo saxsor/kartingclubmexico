@@ -4,6 +4,7 @@ import { Shuffle, Trash2 } from 'lucide-react';
 import { gridApi, StartGrid } from '../../../api/grid.api';
 import { eventsApi, KartEvent, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
+import { toast } from '../../../store/toast.store';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 
 export function GridDraw() {
@@ -33,7 +34,7 @@ export function GridDraw() {
       await gridApi.draw(slug, category);
       load();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al sortear');
+      toast.error(err instanceof Error ? err.message : 'Error al sortear');
     } finally {
       setDrawing(null);
     }

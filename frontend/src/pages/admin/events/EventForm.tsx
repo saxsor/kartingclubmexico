@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { eventsApi, Category, KartEvent } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
+import { toast } from '../../../store/toast.store';
 
 const ALL_CATEGORIES: Category[] = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
 
@@ -53,7 +54,7 @@ export function EventForm() {
       const updated = await eventsApi.uploadPoster(slug, file);
       setCurrentEvent(updated);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al subir poster');
+      toast.error(err instanceof Error ? err.message : 'Error al subir poster');
     } finally {
       setPosterUploading(false);
       if (posterInputRef.current) posterInputRef.current.value = '';

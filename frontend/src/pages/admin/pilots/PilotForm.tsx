@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Camera, Trash2, User } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../../api/pilots.api';
+import { toast } from '../../../store/toast.store';
 
 export function PilotForm() {
   const { id } = useParams<{ id: string }>();
@@ -40,8 +41,9 @@ export function PilotForm() {
     try {
       const updated = await pilotsApi.uploadPhoto(id, file);
       setCurrentPilot(updated);
+      toast.success('Foto actualizada');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al subir foto');
+      toast.error(err instanceof Error ? err.message : 'Error al subir foto');
     } finally {
       setPhotoUploading(false);
       if (photoInputRef.current) photoInputRef.current.value = '';

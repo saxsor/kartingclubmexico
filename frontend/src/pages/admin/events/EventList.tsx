@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2 } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../../api/events.api';
+import { toast } from '../../../store/toast.store';
 import { formatDate } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
@@ -22,7 +23,7 @@ export function EventList() {
       await eventsApi.delete(event.slug);
       setEvents((prev) => prev.filter((e) => e.slug !== event.slug));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al eliminar');
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar');
     } finally {
       setDeleting(null);
     }

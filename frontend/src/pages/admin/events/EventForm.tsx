@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { eventsApi, Category } from '../../../api/events.api';
+import { ImagePlus, Trash2 } from 'lucide-react';
+import { eventsApi, Category, KartEvent } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 
 const ALL_CATEGORIES: Category[] = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
@@ -22,10 +23,14 @@ export function EventForm() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [currentEvent, setCurrentEvent] = useState<KartEvent | null>(null);
+  const [posterUploading, setPosterUploading] = useState(false);
+  const posterInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEdit && slug) {
       eventsApi.get(slug).then((event) => {
+        setCurrentEvent(event);
         setForm({
           name: event.name,
           date: event.date.substring(0, 10),
@@ -39,6 +44,32 @@ export function EventForm() {
       });
     }
   }, [slug, isEdit]);
+
+  const handlePosterChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !slug) return;
+    setPosterUploading(true);
+    try {
+      const updated = await eventsApi.uploadPoster(slug, file);
+      setCurrentEvent(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al subir poster');
+    } finally {
+      setPosterUploading(false);
+      if (posterInputRef.current) posterInputRef.current.value = '';
+    }
+  };
+
+  const handleDeletePoster = async () => {
+    if (!slug || !confirm('¿Eliminar el poster del evento?')) return;
+    setPosterUploading(true);
+    try {
+      const updated = await eventsApi.deletePoster(slug);
+      setCurrentEvent(updated);
+    } finally {
+      setPosterUploading(false);
+    }
+  };
 
   const toggleCategory = (cat: Category) => {
     setForm((f) => ({
@@ -90,6 +121,65 @@ export function EventForm() {
       <h1 className="text-2xl font-black text-white mb-6">
         {isEdit ? 'Editar evento' : 'Nuevo evento'}
       </h1>
+
+      {/* Poster section — only when editing */}
+      {isEdit && (
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-1 h-5 bg-racing-red" />
+            <span className="text-xs font-bold uppercase tracking-widest text-white/50">Poster del evento</span>
+          </div>
+
+          {currentEvent?.posterUrl ? (
+            <div className="relative group overflow-hidden" style={{ aspectRatio: '16/7' }}>
+              <img
+                src={currentEvent.posterUrl}
+                alt="Poster"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => posterInputRef.current?.click()}
+                  disabled={posterUploading}
+                  className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 px-4 py-2 text-sm font-semibold text-white transition-colors"
+                >
+                  <ImagePlus className="h-4 w-4" /> Cambiar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeletePoster}
+                  disabled={posterUploading}
+                  className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-400 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" /> Eliminar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => posterInputRef.current?.click()}
+              disabled={posterUploading}
+              className="w-full flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/15 hover:border-racing-red/50 bg-white/3 hover:bg-racing-red/5 transition-colors py-12 text-white/40 hover:text-white/70"
+            >
+              <ImagePlus className="h-8 w-8" />
+              <span className="text-sm font-medium">
+                {posterUploading ? 'Subiendo...' : 'Subir poster del evento'}
+              </span>
+              <span className="text-xs text-white/30">JPG, PNG o WebP · máx. 10 MB · recomendado 1600×700 px</span>
+            </button>
+          )}
+
+          <input
+            ref={posterInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handlePosterChange}
+          />
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (

@@ -1,4 +1,5 @@
 import { api } from './client';
+import { useAuthStore } from '../store/auth.store';
 
 export type EventStatus = 'DRAFT' | 'OPEN' | 'IN_PROGRESS' | 'FINISHED';
 export type Category = 'SHIFTER' | 'DOS_TIEMPOS' | 'FORMULA_MUNDIAL' | 'NUEVE_HP' | 'ROOKIES' | 'MINIS';
@@ -22,6 +23,7 @@ export interface KartEvent {
   foodFee: string;
   blockCheckInOnDebt: boolean;
   transferInfo: string | null;
+  posterUrl: string | null;
   eventCategories: EventCategory[];
   createdAt: string;
   updatedAt: string;
@@ -33,6 +35,20 @@ export const eventsApi = {
   create: (data: unknown) => api.post<KartEvent>('/events', data),
   update: (slug: string, data: unknown) => api.put<KartEvent>(`/events/${slug}`, data),
   delete: (slug: string) => api.delete<void>(`/events/${slug}`),
+  uploadPoster: (slug: string, file: File) => {
+    const token = useAuthStore.getState().token;
+    const fd = new FormData();
+    fd.append('poster', file);
+    return fetch(`/api/events/${slug}/poster`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    }).then(async (r) => {
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error ?? 'Error al subir poster'); }
+      return r.json() as Promise<KartEvent>;
+    });
+  },
+  deletePoster: (slug: string) => api.delete<KartEvent>(`/events/${slug}/poster`),
   patchStatus: (slug: string, status: EventStatus) =>
     api.patch<KartEvent>(`/events/${slug}/status`, { status }),
   getCategories: (slug: string) => api.get<EventCategory[]>(`/events/${slug}/categories`),

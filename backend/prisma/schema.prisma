@@ -96,6 +96,7 @@ model Event {
   foodFee            Decimal     @db.Decimal(10, 2) @default(0)
   blockCheckInOnDebt Boolean     @default(false)
   transferInfo       String?
+  posterUrl          String?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 

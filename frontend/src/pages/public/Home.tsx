@@ -98,32 +98,44 @@ export function Home() {
           </div>
 
           <Link to={`/eventos/${nextEvent.slug}`} className="block group">
-            <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] hover:bg-[#2a2a35] transition-colors p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <StatusBadge status={nextEvent.status} />
-                  <h3
-                    className="mt-3 text-3xl font-black text-white group-hover:text-[#e10600] transition-colors uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-                  >
-                    {nextEvent.name}
-                  </h3>
-                  <p className="mt-2 text-white/50 flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4" />
-                    {formatDate(nextEvent.date)}
-                  </p>
-                  {nextEvent.description && (
-                    <p className="mt-2 text-white/40 text-sm">{nextEvent.description}</p>
-                  )}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {nextEvent.eventCategories.filter((c) => c.active).map((c) => (
-                      <CategoryBadge key={c.id} category={c.category} />
-                    ))}
-                  </div>
+            {nextEvent.posterUrl ? (
+              <div className="relative overflow-hidden border-t-[3px] border-[#e10600]" style={{ aspectRatio: '16/7' }}>
+                <img src={nextEvent.posterUrl} alt={nextEvent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#15151e] via-[#15151e]/50 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <StatusBadge status={nextEvent.status} className="mb-2" />
+                  <h3 className="text-3xl font-black text-white uppercase drop-shadow-lg" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}>{nextEvent.name}</h3>
+                  <p className="mt-1 text-white/60 text-sm flex items-center gap-2"><Calendar className="h-4 w-4" />{formatDate(nextEvent.date)}</p>
                 </div>
-                <ChevronRight className="h-6 w-6 text-white/20 group-hover:text-[#e10600] transition-colors flex-shrink-0 mt-1" />
               </div>
-            </div>
+            ) : (
+              <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] hover:bg-[#2a2a35] transition-colors p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <StatusBadge status={nextEvent.status} />
+                    <h3
+                      className="mt-3 text-3xl font-black text-white group-hover:text-[#e10600] transition-colors uppercase"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+                    >
+                      {nextEvent.name}
+                    </h3>
+                    <p className="mt-2 text-white/50 flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4" />
+                      {formatDate(nextEvent.date)}
+                    </p>
+                    {nextEvent.description && (
+                      <p className="mt-2 text-white/40 text-sm">{nextEvent.description}</p>
+                    )}
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {nextEvent.eventCategories.filter((c) => c.active).map((c) => (
+                        <CategoryBadge key={c.id} category={c.category} />
+                      ))}
+                    </div>
+                  </div>
+                  <ChevronRight className="h-6 w-6 text-white/20 group-hover:text-[#e10600] transition-colors flex-shrink-0 mt-1" />
+                </div>
+              </div>
+            )}
           </Link>
         </section>
       )}
@@ -151,7 +163,13 @@ export function Home() {
           <div className="grid gap-px sm:grid-cols-2 lg:grid-cols-3 bg-[#38383f]">
             {finishedEvents.map((event) => (
               <Link key={event.id} to={`/eventos/${event.slug}`} className="group block bg-[#1f1f27]">
-                <div className="border-t-[3px] border-[#e10600] p-5 hover:bg-[#2a2a35] transition-colors h-full">
+                {event.posterUrl && (
+                  <div className="relative overflow-hidden h-32">
+                    <img src={event.posterUrl} alt={event.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1f1f27] to-transparent" />
+                  </div>
+                )}
+                <div className={`border-t-[3px] border-[#e10600] p-5 hover:bg-[#2a2a35] transition-colors h-full ${event.posterUrl ? '' : ''}`}>
                   <div className="flex items-start justify-between mb-2">
                     <StatusBadge status={event.status} />
                     <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#e10600] transition-colors" />

@@ -5,7 +5,9 @@ import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import {
   listEvents, createEvent, getEvent, updateEvent, deleteEvent,
   patchEventStatus, getEventCategories, updateEventCategories,
+  uploadEventPoster, deleteEventPoster,
 } from '../controllers/events.controller.js';
+import { uploadPoster } from '../lib/upload.js';
 
 const router = Router();
 
@@ -42,5 +44,7 @@ router.put('/:slug', authenticate, requireRole('ADMIN'), validate(updateSchema),
 router.delete('/:slug', authenticate, requireRole('ADMIN'), deleteEvent);
 router.patch('/:slug/status', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(statusSchema), patchEventStatus);
 router.put('/:slug/categories', authenticate, requireRole('ADMIN'), validate(categoriesSchema), updateEventCategories);
+router.post('/:slug/poster', authenticate, requireRole('ADMIN'), uploadPoster.single('poster'), uploadEventPoster);
+router.delete('/:slug/poster', authenticate, requireRole('ADMIN'), deleteEventPoster);
 
 export default router;

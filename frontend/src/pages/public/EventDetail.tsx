@@ -41,43 +41,78 @@ export function EventDetail() {
         </Link>
       </div>
 
-      {/* Event header card with gradient overlay effect */}
-      <div className="relative border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 mb-6 overflow-hidden">
-        {/* Subtle background accent */}
-        <div className="absolute top-0 right-0 w-48 h-full opacity-5 pointer-events-none">
-          <svg viewBox="0 0 100 100" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="checker-detail" width="10" height="10" patternUnits="userSpaceOnUse">
-                <rect width="5" height="5" fill="white"/>
-                <rect x="5" y="5" width="5" height="5" fill="white"/>
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#checker-detail)"/>
-          </svg>
-        </div>
+      {/* Event header — poster or default */}
+      {event.posterUrl ? (
+        /* ── POSTER MODE ── */
+        <div className="relative mb-6 overflow-hidden" style={{ aspectRatio: '16/7' }}>
+          <img
+            src={event.posterUrl}
+            alt={event.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Gradient overlay — bottom to top */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#15151e] via-[#15151e]/60 to-transparent" />
+          {/* Left red accent bar */}
+          <div className="absolute top-0 left-0 w-1 h-full bg-[#e10600]" />
 
-        <div className="relative">
-          <StatusBadge status={event.status} className="mb-4" />
-          <h1
-            className="text-4xl md:text-5xl font-black text-white uppercase leading-tight"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-          >
-            {event.name}
-          </h1>
-          <p className="mt-3 text-white/50 flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4" />
-            {formatDate(event.date)}
-          </p>
+          {/* Content overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <StatusBadge status={event.status} className="mb-3" />
+            <h1
+              className="text-4xl md:text-5xl font-black text-white uppercase leading-tight drop-shadow-lg"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+            >
+              {event.name}
+            </h1>
+            <p className="mt-2 text-white/70 flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4" />
+              {formatDate(event.date)}
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* ── DEFAULT MODE (checkered) ── */
+        <div className="relative border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 mb-6 overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-full opacity-5 pointer-events-none">
+            <svg viewBox="0 0 100 100" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="checker-detail" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <rect width="5" height="5" fill="white"/>
+                  <rect x="5" y="5" width="5" height="5" fill="white"/>
+                </pattern>
+              </defs>
+              <rect width="100" height="100" fill="url(#checker-detail)"/>
+            </svg>
+          </div>
+          <div className="relative">
+            <StatusBadge status={event.status} className="mb-4" />
+            <h1
+              className="text-4xl md:text-5xl font-black text-white uppercase leading-tight"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+            >
+              {event.name}
+            </h1>
+            <p className="mt-3 text-white/50 flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4" />
+              {formatDate(event.date)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Description + categories (below poster or inline for default) */}
+      {(event.description || event.eventCategories.some(c => c.active)) && (
+        <div className="mb-6 px-1">
           {event.description && (
-            <p className="mt-4 text-white/60 text-sm leading-relaxed">{event.description}</p>
+            <p className="text-white/60 text-sm leading-relaxed mb-3">{event.description}</p>
           )}
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {event.eventCategories.filter((c) => c.active).map((c) => (
               <CategoryBadge key={c.id} category={c.category} />
             ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Actions */}
       {actions.length > 0 && (

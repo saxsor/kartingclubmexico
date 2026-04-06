@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import slugify from 'slugify';
+import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
 import { Category } from '@prisma/client';
 
@@ -72,6 +73,43 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
 export async function deleteEvent(req: Request, res: Response): Promise<void> {
   await prisma.event.delete({ where: { slug: req.params.slug } });
   res.status(204).send();
+}
+
+export async function uploadEventPoster(req: Request, res: Response): Promise<void> {
+  const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
+  if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+  if (!req.file) { res.status(400).json({ error: 'No se recibió ningún archivo' }); return; }
+
+  // Delete old poster if exists
+  if (event.posterUrl) {
+    const oldPath = `/app${event.posterUrl}`;
+    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+  }
+
+  const posterUrl = `/uploads/posters/${req.file.filename}`;
+  const updated = await prisma.event.update({
+    where: { slug: req.params.slug },
+    data: { posterUrl },
+    include: { eventCategories: true },
+  });
+  res.json(updated);
+}
+
+export async function deleteEventPoster(req: Request, res: Response): Promise<void> {
+  const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
+  if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+
+  if (event.posterUrl) {
+    const filePath = `/app${event.posterUrl}`;
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+
+  const updated = await prisma.event.update({
+    where: { slug: req.params.slug },
+    data: { posterUrl: null },
+    include: { eventCategories: true },
+  });
+  res.json(updated);
 }
 
 export async function patchEventStatus(req: Request, res: Response): Promise<void> {

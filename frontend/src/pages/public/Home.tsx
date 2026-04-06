@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Trophy, ChevronRight, Flag } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
-import { formatDate } from '../../lib/utils';
+import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 
@@ -90,7 +90,7 @@ export function Home() {
           <Link to={`/eventos/${nextEvent.slug}`} className="block group">
             {nextEvent.posterUrl ? (
               <div className="relative overflow-hidden border-t-[3px] border-[#e10600]" style={{ aspectRatio: '16/7' }}>
-                <img src={nextEvent.posterUrl} alt={nextEvent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={resolveMediaUrl(nextEvent.posterUrl) ?? ''} alt={nextEvent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#15151e] via-[#15151e]/50 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <StatusBadge status={nextEvent.status} className="mb-2" />
@@ -155,7 +155,7 @@ export function Home() {
               <Link key={event.id} to={`/eventos/${event.slug}`} className="group block bg-[#1f1f27]">
                 {event.posterUrl && (
                   <div className="relative overflow-hidden h-32">
-                    <img src={event.posterUrl} alt={event.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={resolveMediaUrl(event.posterUrl) ?? ''} alt={event.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#1f1f27] to-transparent" />
                   </div>
                 )}

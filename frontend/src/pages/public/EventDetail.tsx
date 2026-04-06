@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight } from 'lucide-react';
 import { eventsApi } from '../../api/events.api';
-import { formatDate } from '../../lib/utils';
+import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { queryKeys } from '../../lib/react-query';
@@ -48,7 +48,7 @@ export function EventDetail() {
         /* ── POSTER MODE ── */
         <div className="relative mb-6 overflow-hidden" style={{ aspectRatio: '16/7' }}>
           <img
-            src={event.posterUrl}
+            src={resolveMediaUrl(event.posterUrl) ?? ''}
             alt={event.name}
             className="absolute inset-0 w-full h-full object-cover"
           />

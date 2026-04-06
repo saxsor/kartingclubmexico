@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Plus, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { paymentsApi } from '../../../api/payments.api';
-import { inscriptionsApi } from '../../../api/inscriptions.api';
-import { formatCurrency } from '../../../lib/utils';
+import { eventsApi } from '../../../api/events.api';
+import { inscriptionsApi, type Inscription } from '../../../api/inscriptions.api';
+import { formatCurrency, resolveMediaUrl } from '../../../lib/utils';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
 import { queryKeys } from '../../../lib/react-query';
@@ -14,12 +15,18 @@ export function CashBox() {
   const [showForm, setShowForm] = useState<string | null>(null); // inscriptionId
   const [form, setForm] = useState({ type: 'SERVICE_FEE', amount: '', notes: '' });
   const [processingReceipt, setProcessingReceipt] = useState<string | null>(null);
+  const [processingCashPayment, setProcessingCashPayment] = useState<string | null>(null);
   const [inscriptionsPage, setInscriptionsPage] = useState(1);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const queryClient = useQueryClient();
   const cashboxQuery = useQuery({
     queryKey: slug ? queryKeys.payments.cashbox(slug, { page: paymentsPage, pageSize: 10 }) : ['payments', 'cashbox', 'missing'],
     queryFn: () => paymentsApi.getCashBox(slug!, { page: paymentsPage, pageSize: 10 }),
+    enabled: !!slug,
+  });
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
     enabled: !!slug,
   });
   const inscriptionsQuery = useQuery({
@@ -51,9 +58,31 @@ export function CashBox() {
   });
 
   const cashbox = cashboxQuery.data ?? null;
+  const event = eventQuery.data ?? null;
   const inscriptions = inscriptionsQuery.data?.items ?? [];
   const inscriptionsPagination = inscriptionsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
-  const loading = cashboxQuery.isLoading || inscriptionsQuery.isLoading;
+  const loading = cashboxQuery.isLoading || inscriptionsQuery.isLoading || eventQuery.isLoading;
+
+  const getPaymentSummary = (inscription: Inscription) => {
+    const serviceFee = Number(event?.serviceFee ?? 0);
+    const foodFee = Number(event?.foodFee ?? 0);
+    const required = serviceFee + foodFee;
+    const totalPaid = inscription.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
+    const servicePaid = inscription.payments
+      .filter((payment) => payment.type === 'SERVICE_FEE')
+      .reduce((sum, payment) => sum + Number(payment.amount), 0);
+    const foodPaid = inscription.payments
+      .filter((payment) => payment.type === 'FOOD_FEE')
+      .reduce((sum, payment) => sum + Number(payment.amount), 0);
+
+    return {
+      required,
+      totalPaid,
+      outstanding: Math.max(required - totalPaid, 0),
+      serviceOutstanding: Math.max(serviceFee - servicePaid, 0),
+      foodOutstanding: Math.max(foodFee - foodPaid, 0),
+    };
+  };
 
   const handleApproveReceipt = async (id: string) => {
     if (!slug) return;
@@ -85,6 +114,38 @@ export function CashBox() {
     } });
     setShowForm(null);
     setForm({ type: 'SERVICE_FEE', amount: '', notes: '' });
+  };
+
+  const handleMarkCashPaid = async (inscription: Inscription) => {
+    if (!slug || !event) return;
+    const summary = getPaymentSummary(inscription);
+    if (summary.outstanding <= 0) return;
+    if (!confirm(`¿Registrar ${formatCurrency(summary.outstanding)} como pago en efectivo para ${inscription.pilot.name}?`)) return;
+
+    const payments: { type: string; amount: number; notes: string }[] = [];
+    let remaining = summary.outstanding;
+    const serviceAmount = Math.min(summary.serviceOutstanding, remaining);
+    if (serviceAmount > 0) {
+      payments.push({ type: 'SERVICE_FEE', amount: serviceAmount, notes: 'Pago en efectivo en evento' });
+      remaining -= serviceAmount;
+    }
+    const foodAmount = Math.min(summary.foodOutstanding, remaining);
+    if (foodAmount > 0) {
+      payments.push({ type: 'FOOD_FEE', amount: foodAmount, notes: 'Pago en efectivo en evento' });
+      remaining -= foodAmount;
+    }
+    if (remaining > 0) {
+      payments.push({ type: 'OTHER', amount: remaining, notes: 'Pago en efectivo en evento' });
+    }
+
+    setProcessingCashPayment(inscription.id);
+    try {
+      for (const payment of payments) {
+        await addPaymentMutation.mutateAsync({ inscriptionId: inscription.id, data: payment });
+      }
+    } finally {
+      setProcessingCashPayment(null);
+    }
   };
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
@@ -125,7 +186,7 @@ export function CashBox() {
                     <p className="text-xs text-white/50">{insc.category}</p>
                     {insc.receiptPath && (
                       <a
-                        href={insc.receiptPath}
+                        href={resolveMediaUrl(insc.receiptPath) ?? '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-yellow-400 hover:text-yellow-300 underline underline-offset-2 mt-1 inline-block"
@@ -164,69 +225,86 @@ export function CashBox() {
           Registrar pago
         </h2>
         <div className="space-y-2">
-          {inscriptions.map((insc) => (
-            <div key={insc.id} className="rounded-lg border border-white/10 bg-white/5 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-white">{insc.pilot.name}</p>
-                  <p className="text-xs text-white/50">
-                    {insc.category} |{' '}
-                    <span className={
-                      insc.status === 'PAID' ? 'text-green-400' :
-                      insc.status === 'RECEIPT_SUBMITTED' ? 'text-yellow-400' :
-                      'text-orange-400'
-                    }>
-                      {insc.status === 'PAID' ? 'Pagado' :
-                       insc.status === 'RECEIPT_SUBMITTED' ? 'Recibo enviado' :
-                       'Pendiente'}
-                    </span>{' '}|{' '}
-                    Total: {formatCurrency(insc.payments.reduce((s, p) => s + Number(p.amount), 0))}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowForm(showForm === insc.id ? null : insc.id)}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 transition-colors"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Pago
-                </button>
-              </div>
+          {inscriptions.map((insc) => {
+            const paymentSummary = getPaymentSummary(insc);
+            const canMarkCashPaid = insc.status !== 'PAID' && paymentSummary.outstanding > 0;
 
-              {showForm === insc.id && (
-                <form onSubmit={handleAddPayment} className="mt-3 pt-3 border-t border-white/10 flex gap-2 flex-wrap">
-                  <select
-                    value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
-                  >
-                    <option value="SERVICE_FEE">Cuota servicio</option>
-                    <option value="FOOD_FEE">Cuota comida</option>
-                    <option value="OTHER">Otro</option>
-                  </select>
-                  <input
-                    type="number"
-                    value={form.amount}
-                    onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                    placeholder="Monto"
-                    required
-                    min="0"
-                    step="0.01"
-                    className="w-24 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    value={form.notes}
-                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    placeholder="Notas (opcional)"
-                    className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
-                  />
-                  <button type="submit" className="rounded-lg bg-racing-red px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
-                    Guardar
-                  </button>
-                </form>
-              )}
-            </div>
-          ))}
+            return (
+              <div key={insc.id} className="rounded-lg border border-white/10 bg-white/5 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-white">{insc.pilot.name}</p>
+                    <p className="text-xs text-white/50">
+                      {insc.category} |{' '}
+                      <span className={
+                        insc.status === 'PAID' ? 'text-green-400' :
+                        insc.status === 'RECEIPT_SUBMITTED' ? 'text-yellow-400' :
+                        'text-orange-400'
+                      }>
+                        {insc.status === 'PAID' ? 'Pagado' :
+                         insc.status === 'RECEIPT_SUBMITTED' ? 'Recibo enviado' :
+                         'Pendiente'}
+                      </span>{' '}|{' '}
+                      Total: {formatCurrency(paymentSummary.totalPaid)} | Saldo: {formatCurrency(paymentSummary.outstanding)}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {canMarkCashPaid && (
+                      <button
+                        onClick={() => handleMarkCashPaid(insc)}
+                        disabled={processingCashPayment === insc.id || addPaymentMutation.isPending}
+                        className="flex items-center gap-1.5 rounded-lg bg-green-500/20 border border-green-500/30 px-3 py-1.5 text-xs text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-60"
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        {processingCashPayment === insc.id ? 'Registrando...' : 'Pagado efectivo'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowForm(showForm === insc.id ? null : insc.id)}
+                      className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 transition-colors"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Pago
+                    </button>
+                  </div>
+                </div>
+
+                {showForm === insc.id && (
+                  <form onSubmit={handleAddPayment} className="mt-3 pt-3 border-t border-white/10 flex gap-2 flex-wrap">
+                    <select
+                      value={form.type}
+                      onChange={(e) => setForm({ ...form, type: e.target.value })}
+                      className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+                    >
+                      <option value="SERVICE_FEE">Cuota servicio</option>
+                      <option value="FOOD_FEE">Cuota comida</option>
+                      <option value="OTHER">Otro</option>
+                    </select>
+                    <input
+                      type="number"
+                      value={form.amount}
+                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      placeholder="Monto"
+                      required
+                      min="0"
+                      step="0.01"
+                      className="w-24 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={form.notes}
+                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                      placeholder="Notas (opcional)"
+                      className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+                    />
+                    <button type="submit" className="rounded-lg bg-racing-red px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+                      Guardar
+                    </button>
+                  </form>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

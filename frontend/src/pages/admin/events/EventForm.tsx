@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { eventsApi, Category } from '../../../api/events.api';
-import { CATEGORY_LABELS } from '../../../lib/utils';
+import { CATEGORY_LABELS, resolveMediaUrl } from '../../../lib/utils';
 import { toast } from '../../../store/toast.store';
 import { queryKeys } from '../../../lib/react-query';
 
@@ -160,7 +160,7 @@ export function EventForm() {
               <div className="relative overflow-hidden border border-[#38383f]" style={{ aspectRatio: '16/7' }}>
                 <img
                   key={currentEvent.posterUrl}
-                  src={`${currentEvent.posterUrl}?t=${Date.now()}`}
+                  src={`${resolveMediaUrl(currentEvent.posterUrl) ?? ''}?t=${Date.now()}`}
                   alt="Poster"
                   className="w-full h-full object-cover"
                 />

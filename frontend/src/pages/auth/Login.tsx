@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { Trophy, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export function Login() {
@@ -37,9 +37,11 @@ export function Login() {
         {/* Logo area */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="h-14 w-14 bg-[#e10600] flex items-center justify-center shadow-lg shadow-red-600/30">
-              <Trophy className="h-7 w-7 text-white" />
-            </div>
+            <img
+              src="/karting_club_logo.png"
+              alt="Karting Club México"
+              className="h-16 w-auto object-contain drop-shadow-[0_10px_24px_rgba(225,6,0,0.3)]"
+            />
           </div>
           <h1
             className="text-3xl font-black text-white uppercase tracking-tight leading-tight"

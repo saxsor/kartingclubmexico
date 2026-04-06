@@ -45,10 +45,18 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        f1: {
+          dark: '#15151e',
+          surface: '#1f1f27',
+          elevated: '#2a2a35',
+          border: '#38383f',
+          red: '#e10600',
+          'red-hover': '#b30500',
+        },
         racing: {
-          red: '#dc2626',
-          dark: '#0f0f0f',
-          gray: '#1a1a1a',
+          red: '#e10600',
+          dark: '#15151e',
+          gray: '#1f1f27',
         },
       },
       borderRadius: {
@@ -69,6 +77,10 @@ const config: Config = {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+      },
+      fontFamily: {
+        barlow: ['Barlow Condensed', 'sans-serif'],
+        inter: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

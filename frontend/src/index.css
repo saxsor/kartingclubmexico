@@ -59,21 +59,65 @@
   }
 }
 
-/* Racing-specific styles */
+/* F1-style design system */
 .racing-gradient {
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+  background: linear-gradient(135deg, #15151e 0%, #1f1f27 50%, #15151e 100%);
 }
 
 .racing-stripe {
   background: repeating-linear-gradient(
     45deg,
     transparent,
-    transparent 10px,
-    rgba(220, 38, 38, 0.1) 10px,
-    rgba(220, 38, 38, 0.1) 20px
+    transparent 8px,
+    rgba(225, 6, 0, 0.06) 8px,
+    rgba(225, 6, 0, 0.06) 16px
   );
 }
 
-.position-gold { @apply text-yellow-400 font-bold; }
-.position-silver { @apply text-gray-300 font-bold; }
+/* F1 heading style — Barlow Condensed, uppercase, very bold */
+.f1-heading {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Section label: small uppercase red text with left red border */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.section-label::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 1.5rem;
+  background-color: #e10600;
+  flex-shrink: 0;
+}
+.section-label span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* F1-style card: dark surface, red top border */
+.card-f1 {
+  border-top: 3px solid #e10600;
+  background-color: #1f1f27;
+  border-radius: 0 0 0.5rem 0.5rem;
+  padding: 1.25rem;
+  transition: background-color 0.15s;
+}
+.card-f1:hover {
+  background-color: #2a2a35;
+}
+
+/* Position colors */
+.position-gold { @apply font-bold; color: #ffd700; }
+.position-silver { @apply font-bold; color: #c0c0c0; }
 .position-bronze { @apply text-orange-400 font-bold; }

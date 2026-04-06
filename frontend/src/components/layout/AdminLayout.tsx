@@ -31,60 +31,76 @@ export function AdminLayout() {
   );
 
   return (
-    <div className="flex h-screen bg-racing-dark text-white overflow-hidden">
+    <div className="flex h-screen bg-[#15151e] text-white overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col bg-racing-gray border-r border-white/10 transition-transform duration-300',
+          'fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col bg-[#1f1f27] border-r border-[#38383f] transition-transform duration-300',
           'lg:static lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex h-16 items-center gap-2 px-6 border-b border-white/10">
-          <Trophy className="h-6 w-6 text-racing-red" />
-          <span className="font-bold text-lg">Karting Club México</span>
+        {/* Sidebar header / logo */}
+        <div className="flex h-16 items-center gap-3 px-5 border-b border-[#38383f]">
+          <div className="flex items-center justify-center h-7 w-7 bg-[#e10600] flex-shrink-0">
+            <Trophy className="h-4 w-4 text-white" />
+          </div>
+          <div className="flex flex-col leading-none">
+            <span
+              className="text-sm font-black text-white uppercase tracking-wider"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+            >
+              KARTING CLUB
+            </span>
+            <span
+              className="text-[10px] font-bold text-[#e10600] uppercase tracking-widest"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+            >
+              MÉXICO
+            </span>
+          </div>
           <button
-            className="ml-auto lg:hidden text-white/50"
+            className="ml-auto lg:hidden text-white/40 hover:text-white"
             onClick={() => setSidebarOpen(false)}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
           {filteredNav.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors',
                   isActive
-                    ? 'bg-racing-red text-white'
-                    : 'text-white/60 hover:text-white hover:bg-white/10',
+                    ? 'bg-[#e10600] text-white'
+                    : 'text-white/50 hover:text-white hover:bg-[#2a2a35]',
                 )
               }
               onClick={() => setSidebarOpen(false)}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-4 w-4 flex-shrink-0" />
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="border-t border-white/10 p-4">
+        <div className="border-t border-[#38383f] p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-8 w-8 rounded-full bg-racing-red flex items-center justify-center text-sm font-bold">
+            <div className="h-8 w-8 bg-[#e10600] flex items-center justify-center text-sm font-bold flex-shrink-0">
               {user?.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{user?.name}</p>
-              <p className="text-xs text-white/50 truncate">{user?.role}</p>
+              <p className="text-sm font-semibold truncate">{user?.name}</p>
+              <p className="text-xs text-white/40 truncate uppercase tracking-wider">{user?.role}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/60 hover:text-red-400 hover:bg-white/5 transition-colors"
+            className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-[#e10600] hover:bg-[#2a2a35] transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Cerrar sesión
@@ -102,20 +118,27 @@ export function AdminLayout() {
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center gap-4 border-b border-white/10 px-6 lg:hidden">
+        <header className="flex h-16 items-center gap-4 border-b border-[#38383f] bg-[#15151e] px-6 lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-white/60 hover:text-white"
+            className="text-white/50 hover:text-white"
           >
             <Menu className="h-6 w-6" />
           </button>
           <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-racing-red" />
-            <span className="font-bold">Karting Club México</span>
+            <div className="flex items-center justify-center h-6 w-6 bg-[#e10600]">
+              <Trophy className="h-3.5 w-3.5 text-white" />
+            </div>
+            <span
+              className="font-black text-sm uppercase tracking-wider"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+            >
+              Karting Club <span className="text-[#e10600]">México</span>
+            </span>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-racing-dark p-6">
+        <main className="flex-1 overflow-y-auto bg-[#15151e] p-6">
           <Outlet />
         </main>
       </div>

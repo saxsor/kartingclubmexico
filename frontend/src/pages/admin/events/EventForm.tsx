@@ -139,7 +139,7 @@ export function EventForm() {
             value={form.transferInfo}
             onChange={(e) => setForm({ ...form, transferInfo: e.target.value })}
             rows={4}
-            placeholder={'Banco: BBVA\nCuenta: 1234567890\nCLABE: 012345678901234567\nTitular: Edel Racing'}
+            placeholder={'Banco: BBVA\nCuenta: 1234567890\nCLABE: 012345678901234567\nTitular: Karting Club México'}
             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none resize-none"
           />
           <p className="mt-1 text-xs text-white/40">

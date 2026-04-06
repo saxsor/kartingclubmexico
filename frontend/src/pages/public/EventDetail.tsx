@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Grid, Flag, BarChart2, ClipboardList } from 'lucide-react';
+import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
 import { formatDate } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -16,8 +16,12 @@ export function EventDetail() {
     eventsApi.get(slug).then(setEvent).finally(() => setLoading(false));
   }, [slug]);
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
-  if (!event) return <div className="text-center py-20 text-white/40">Evento no encontrado</div>;
+  if (loading) return (
+    <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Cargando...</div>
+  );
+  if (!event) return (
+    <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Evento no encontrado</div>
+  );
 
   const actions = [
     { label: 'Inscribirme', to: `/eventos/${slug}/inscribirse`, icon: ClipboardList, show: event.status === 'OPEN', highlight: true },
@@ -27,55 +31,89 @@ export function EventDetail() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Meta tags for sharing */}
+      {/* Breadcrumb */}
       <div className="mb-6">
-        <Link to="/eventos" className="text-sm text-white/50 hover:text-white">
+        <Link
+          to="/eventos"
+          className="text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+        >
           ← Eventos
         </Link>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 mb-6">
-        <StatusBadge status={event.status} className="mb-3" />
-        <h1 className="text-3xl font-black text-white">{event.name}</h1>
-        <p className="mt-2 text-white/60 flex items-center gap-2">
-          <Calendar className="h-4 w-4" />
-          {formatDate(event.date)}
-        </p>
-        {event.description && (
-          <p className="mt-4 text-white/70">{event.description}</p>
-        )}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {event.eventCategories.filter((c) => c.active).map((c) => (
-            <CategoryBadge key={c.id} category={c.category} />
-          ))}
+      {/* Event header card with gradient overlay effect */}
+      <div className="relative border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 mb-6 overflow-hidden">
+        {/* Subtle background accent */}
+        <div className="absolute top-0 right-0 w-48 h-full opacity-5 pointer-events-none">
+          <svg viewBox="0 0 100 100" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="checker-detail" width="10" height="10" patternUnits="userSpaceOnUse">
+                <rect width="5" height="5" fill="white"/>
+                <rect x="5" y="5" width="5" height="5" fill="white"/>
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#checker-detail)"/>
+          </svg>
+        </div>
+
+        <div className="relative">
+          <StatusBadge status={event.status} className="mb-4" />
+          <h1
+            className="text-4xl md:text-5xl font-black text-white uppercase leading-tight"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+          >
+            {event.name}
+          </h1>
+          <p className="mt-3 text-white/50 flex items-center gap-2 text-sm">
+            <Calendar className="h-4 w-4" />
+            {formatDate(event.date)}
+          </p>
+          {event.description && (
+            <p className="mt-4 text-white/60 text-sm leading-relaxed">{event.description}</p>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {event.eventCategories.filter((c) => c.active).map((c) => (
+              <CategoryBadge key={c.id} category={c.category} />
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* Actions */}
       {actions.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 mb-6">
           {actions.map((action) => (
             <Link
               key={action.to}
               to={action.to}
-              className={`flex items-center gap-4 rounded-xl border p-5 transition-colors group ${
+              className={`group flex items-center gap-4 p-5 transition-colors ${
                 action.highlight
-                  ? 'border-racing-red/50 bg-racing-red/10 hover:bg-racing-red/20'
-                  : 'border-white/10 bg-white/5 hover:bg-white/10'
+                  ? 'bg-[#e10600] hover:bg-[#b30500] text-white'
+                  : 'border-t-[3px] border-[#38383f] bg-[#1f1f27] hover:bg-[#2a2a35] hover:border-[#e10600] text-white'
               }`}
             >
-              <div className="h-10 w-10 rounded-lg bg-racing-red/20 flex items-center justify-center group-hover:bg-racing-red/30 transition-colors">
-                <action.icon className="h-5 w-5 text-racing-red" />
+              <div className={`h-10 w-10 flex items-center justify-center flex-shrink-0 ${
+                action.highlight ? 'bg-white/20' : 'bg-[#2a2a35] group-hover:bg-[#38383f]'
+              }`}>
+                <action.icon className={`h-5 w-5 ${action.highlight ? 'text-white' : 'text-[#e10600]'}`} />
               </div>
-              <span className="font-semibold text-white">{action.label}</span>
+              <span
+                className="font-black uppercase tracking-wide text-sm flex-1"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+              >
+                {action.label}
+              </span>
+              <ChevronRight className={`h-4 w-4 flex-shrink-0 ${action.highlight ? 'text-white/70' : 'text-white/20 group-hover:text-[#e10600]'}`} />
             </Link>
           ))}
         </div>
       )}
 
+      {/* In progress notice */}
       {event.status === 'IN_PROGRESS' && (
-        <div className="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-400 flex items-center gap-2">
-          <Flag className="h-4 w-4" />
-          Este evento está en curso. Los resultados se actualizan en tiempo real.
+        <div className="border-l-4 border-yellow-500 bg-yellow-500/10 px-5 py-4 text-sm text-yellow-400 flex items-center gap-3">
+          <Flag className="h-4 w-4 flex-shrink-0" />
+          <span>Este evento está en curso. Los resultados se actualizan en tiempo real.</span>
         </div>
       )}
     </div>

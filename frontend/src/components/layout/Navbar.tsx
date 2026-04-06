@@ -26,23 +26,40 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-racing-dark/95 backdrop-blur">
+    <nav className="sticky top-0 z-50 border-b border-[#38383f] bg-[#15151e]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-white">
-            <Trophy className="h-6 w-6 text-racing-red" />
-            <span className="font-bold text-lg tracking-tight">Karting Club México</span>
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-3 text-white group">
+            <div className="flex items-center justify-center h-8 w-8 bg-[#e10600] flex-shrink-0">
+              <Trophy className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex flex-col leading-none">
+              <span
+                className="font-barlow font-bold text-base tracking-wider text-white uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, letterSpacing: '0.06em' }}
+              >
+                KARTING CLUB
+              </span>
+              <span
+                className="text-[#e10600] text-xs font-bold tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: '0.1em' }}
+              >
+                MÉXICO
+              </span>
+            </div>
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-8">
             {publicLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-sm text-white/70 hover:text-white transition-colors"
+                className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors relative group"
               >
                 {link.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#e10600] group-hover:w-full transition-all duration-200" />
               </Link>
             ))}
           </div>
@@ -52,16 +69,16 @@ export function Navbar() {
               <>
                 <Link
                   to="/app/dashboard"
-                  className="flex items-center gap-1.5 text-sm text-white/70 hover:text-white"
+                  className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-white/60 hover:text-white font-bold"
                 >
                   <Settings className="h-4 w-4" />
                   Admin
                 </Link>
-                <span className="text-white/30">|</span>
-                <span className="text-sm text-white/60">{user?.name}</span>
+                <span className="text-white/20">|</span>
+                <span className="text-xs text-white/50">{user?.name}</span>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-sm text-white/70 hover:text-red-400 transition-colors"
+                  className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-white/60 hover:text-[#e10600] transition-colors font-bold"
                 >
                   <LogOut className="h-4 w-4" />
                   Salir
@@ -70,7 +87,7 @@ export function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="rounded-md bg-racing-red px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                className="bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors"
               >
                 Ingresar
               </Link>
@@ -89,12 +106,12 @@ export function Navbar() {
 
       {/* Mobile menu */}
       <div className={cn('md:hidden', mobileOpen ? 'block' : 'hidden')}>
-        <div className="border-t border-white/10 px-4 py-3 space-y-3">
+        <div className="border-t border-[#38383f] bg-[#1f1f27] px-4 py-4 space-y-3">
           {publicLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className="block text-sm text-white/70 hover:text-white"
+              className="block text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white py-1"
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
@@ -104,14 +121,14 @@ export function Navbar() {
             <>
               <Link
                 to="/app/dashboard"
-                className="block text-sm text-white/70 hover:text-white"
+                className="block text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white py-1"
                 onClick={() => setMobileOpen(false)}
               >
                 Panel Admin
               </Link>
               <button
                 onClick={() => { handleLogout(); setMobileOpen(false); }}
-                className="block text-sm text-red-400"
+                className="block text-xs font-bold uppercase tracking-widest text-[#e10600] py-1"
               >
                 Cerrar sesión
               </button>
@@ -119,7 +136,7 @@ export function Navbar() {
           ) : (
             <Link
               to="/login"
-              className="block text-sm font-medium text-racing-red"
+              className="inline-block bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors"
               onClick={() => setMobileOpen(false)}
             >
               Ingresar

@@ -211,8 +211,8 @@ export function CashBox() {
       {cashbox && cashbox.payments.length > 0 && (
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60 mb-3">Historial de pagos</h2>
-          <div className="rounded-xl border border-white/10 overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-xl border border-white/10 overflow-x-auto">
+            <table className="w-full min-w-[500px] text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Piloto</th>

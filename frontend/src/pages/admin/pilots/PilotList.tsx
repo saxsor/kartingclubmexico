@@ -63,8 +63,8 @@ export function PilotList() {
       {loading ? (
         <div className="text-center py-10 text-white/40 text-sm uppercase tracking-widest">Cargando...</div>
       ) : (
-        <div className="border border-[#38383f] overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="border border-[#38383f] overflow-x-auto">
+          <table className="w-full min-w-[500px] text-sm">
             <thead>
               <tr className="border-b border-[#38383f] bg-[#1f1f27]">
                 <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Piloto</th>

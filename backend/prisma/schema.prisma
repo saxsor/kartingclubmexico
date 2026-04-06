@@ -83,6 +83,9 @@ model Pilot {
 
   inscriptions Inscription[]
   standings    ChampionshipStanding[]
+
+  @@index([active])
+  @@index([kartNumber])
 }
 
 model Event {
@@ -104,6 +107,9 @@ model Event {
   eventCategories EventCategory[]
   inscriptions    Inscription[]
   races           Race[]
+
+  @@index([status])
+  @@index([year])
 }
 
 model EventCategory {
@@ -139,6 +145,9 @@ model Inscription {
   gridPositions StartGridPosition[]
 
   @@unique([eventId, pilotId, category])
+  @@index([eventId])
+  @@index([pilotId])
+  @@index([status])
 }
 
 model Payment {

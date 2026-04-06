@@ -111,8 +111,8 @@ export function UserManager() {
       {loading ? (
         <div className="text-center py-10 text-white/40">Cargando...</div>
       ) : (
-        <div className="rounded-xl border border-white/10 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-white/10 overflow-x-auto">
+          <table className="w-full min-w-[500px] text-sm">
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Usuario</th>

@@ -30,7 +30,7 @@ export function EventDetail() {
   ].filter((a) => a.show);
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto pb-24 md:pb-0">
       {/* Breadcrumb */}
       <div className="mb-6">
         <Link
@@ -149,6 +149,19 @@ export function EventDetail() {
         <div className="border-l-4 border-yellow-500 bg-yellow-500/10 px-5 py-4 text-sm text-yellow-400 flex items-center gap-3">
           <Flag className="h-4 w-4 flex-shrink-0" />
           <span>Este evento está en curso. Los resultados se actualizan en tiempo real.</span>
+        </div>
+      )}
+
+      {/* Sticky CTA — mobile only, visible when event is OPEN */}
+      {event.status === 'OPEN' && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-[#15151e] via-[#15151e]/95 to-transparent md:hidden">
+          <Link
+            to={`/eventos/${event.slug}/inscribirse`}
+            className="flex items-center justify-center gap-2 w-full bg-[#e10600] hover:bg-[#b30500] py-4 text-sm font-black uppercase tracking-widest text-white transition-colors"
+          >
+            <ClipboardList className="h-4 w-4" />
+            Inscribirme a este evento
+          </Link>
         </div>
       )}
     </div>

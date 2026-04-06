@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { PublicLayout } from '../components/layout/PublicLayout';
+import { NotFound } from '../pages/public/NotFound';
 import { AdminLayout } from '../components/layout/AdminLayout';
 import { Home } from '../pages/public/Home';
 import { Events } from '../pages/public/Events';
@@ -66,4 +67,5 @@ export const router = createBrowserRouter([
       { path: 'usuarios', element: <UserManager /> },
     ],
   },
+  { path: '*', element: <NotFound /> },
 ]);

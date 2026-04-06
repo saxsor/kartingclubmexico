@@ -1,5 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Trophy, Menu, X, LogOut, Settings } from 'lucide-react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Menu, X, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../lib/utils';
@@ -41,14 +41,25 @@ export function Navbar() {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8">
             {publicLinks.map((link) => (
-              <Link
+              <NavLink
                 key={link.to}
                 to={link.to}
-                className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors relative group"
+                end={link.to === '/'}
+                className={({ isActive }) => cn(
+                  'text-xs font-bold uppercase tracking-widest transition-colors relative',
+                  isActive ? 'text-white' : 'text-white/60 hover:text-white',
+                )}
               >
-                {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#e10600] group-hover:w-full transition-all duration-200" />
-              </Link>
+                {({ isActive }) => (
+                  <>
+                    {link.label}
+                    <span className={cn(
+                      'absolute -bottom-1 left-0 h-0.5 bg-[#e10600] transition-all duration-200',
+                      isActive ? 'w-full' : 'w-0 group-hover:w-full',
+                    )} />
+                  </>
+                )}
+              </NavLink>
             ))}
           </div>
 
@@ -96,14 +107,20 @@ export function Navbar() {
       <div className={cn('md:hidden', mobileOpen ? 'block' : 'hidden')}>
         <div className="border-t border-[#38383f] bg-[#1f1f27] px-4 py-4 space-y-3">
           {publicLinks.map((link) => (
-            <Link
+            <NavLink
               key={link.to}
               to={link.to}
-              className="block text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white py-1"
+              end={link.to === '/'}
+              className={({ isActive }) => cn(
+                'block text-xs font-bold uppercase tracking-widest py-1 border-l-2 pl-3 transition-colors',
+                isActive
+                  ? 'border-[#e10600] text-white'
+                  : 'border-transparent text-white/60 hover:text-white',
+              )}
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
-            </Link>
+            </NavLink>
           ))}
           {isAuthenticated ? (
             <>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Hash, Trash2 } from 'lucide-react';
+import { Plus, Search, Trash2, User } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../../api/pilots.api';
 
 export function PilotList() {
@@ -14,7 +14,7 @@ export function PilotList() {
   }, []);
 
   const handleDelete = async (pilot: Pilot) => {
-    if (!confirm(`¿Eliminar al piloto "${pilot.name}"? Se eliminará su historial de participaciones.`)) return;
+    if (!confirm(`¿Eliminar al piloto "${pilot.name}"?`)) return;
     setDeleting(pilot.id);
     try {
       await pilotsApi.delete(pilot.id);
@@ -41,7 +41,7 @@ export function PilotList() {
         </div>
         <Link
           to="/app/pilotos/nuevo"
-          className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+          className="flex items-center gap-2 bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-sm font-bold uppercase tracking-wider text-white transition-colors"
         >
           <Plus className="h-4 w-4" />
           Nuevo piloto
@@ -55,50 +55,66 @@ export function PilotList() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nombre, alias o número..."
-          className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+          className="w-full border border-white/10 bg-[#1f1f27] pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
         />
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-white/40">Cargando...</div>
+        <div className="text-center py-10 text-white/40 text-sm uppercase tracking-widest">Cargando...</div>
       ) : (
-        <div className="rounded-xl border border-white/10 overflow-hidden">
+        <div className="border border-[#38383f] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 bg-white/5">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Piloto</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Alias</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Kart</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Estado</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-white/60">Acciones</th>
+              <tr className="border-b border-[#38383f] bg-[#1f1f27]">
+                <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Piloto</th>
+                <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40 hidden sm:table-cell">Alias</th>
+                <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Kart</th>
+                <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40 hidden md:table-cell">Estado</th>
+                <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-white/40">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((pilot) => (
-                <tr key={pilot.id} className="border-b border-white/5 hover:bg-white/5">
-                  <td className="px-4 py-3 font-medium text-white">{pilot.name}</td>
-                  <td className="px-4 py-3 text-white/60">{pilot.alias ?? '-'}</td>
-                  <td className="px-4 py-3 text-center">
-                    {pilot.kartNumber ? (
-                      <span className="font-mono font-bold text-white/80">#{pilot.kartNumber}</span>
-                    ) : '-'}
+                <tr key={pilot.id} className="border-b border-[#38383f]/50 hover:bg-[#2a2a35] transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      {pilot.photoUrl ? (
+                        <img src={pilot.photoUrl} alt={pilot.name} className="h-8 w-8 object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="h-8 w-8 bg-[#38383f] flex items-center justify-center flex-shrink-0">
+                          <User className="h-4 w-4 text-white/20" />
+                        </div>
+                      )}
+                      <span className="font-bold text-white text-sm">{pilot.name}</span>
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      pilot.active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+                  <td className="px-4 py-3 text-white/50 text-xs hidden sm:table-cell">
+                    {pilot.alias ? `"${pilot.alias}"` : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-center font-mono text-white/60 text-xs">
+                    {pilot.kartNumber ? `#${pilot.kartNumber}` : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-center hidden md:table-cell">
+                    <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                      pilot.active
+                        ? 'bg-green-500/15 text-green-400 border border-green-500/30'
+                        : 'bg-white/5 text-white/30 border border-white/10'
                     }`}>
                       {pilot.active ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
-                      <Link to={`/app/pilotos/${pilot.id}`} className="text-xs text-racing-red hover:underline">
+                      <Link
+                        to={`/app/pilotos/${pilot.id}`}
+                        className="text-xs font-bold uppercase tracking-wider text-[#e10600] hover:text-white transition-colors"
+                      >
                         Editar
                       </Link>
                       <button
                         onClick={() => handleDelete(pilot)}
                         disabled={deleting === pilot.id}
-                        className="text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-40"
+                        className="text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -109,7 +125,9 @@ export function PilotList() {
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <div className="text-center py-8 text-white/40">No se encontraron pilotos</div>
+            <div className="text-center py-8 text-white/40 text-sm uppercase tracking-widest">
+              No se encontraron pilotos
+            </div>
           )}
         </div>
       )}

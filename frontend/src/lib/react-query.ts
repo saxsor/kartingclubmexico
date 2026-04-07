@@ -57,4 +57,11 @@ export const queryKeys = {
     all: ['championship'] as const,
     current: () => ['championship', 'current'] as const,
   },
+  championships: {
+    all: ['championships'] as const,
+    list: () => ['championships', 'list'] as const,
+    detail: (id: string) => ['championships', 'detail', id] as const,
+    standings: (id: string, category: string) => ['championships', 'standings', id, category] as const,
+    unassigned: () => ['championships', 'unassigned-events'] as const,
+  },
 };

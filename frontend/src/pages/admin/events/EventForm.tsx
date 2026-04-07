@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { eventsApi, Category } from '../../../api/events.api';
+import { championshipApi } from '../../../api/championship.api';
 import { CATEGORY_LABELS, resolveMediaUrl } from '../../../lib/utils';
 import { toast } from '../../../store/toast.store';
 import { queryKeys } from '../../../lib/react-query';
@@ -24,6 +25,7 @@ export function EventForm() {
     blockCheckInOnDebt: false,
     transferInfo: '',
     categories: [] as Category[],
+    championshipId: '' as string,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,6 +55,11 @@ export function EventForm() {
     },
   });
 
+  const championshipsQuery = useQuery({
+    queryKey: queryKeys.championships.list(),
+    queryFn: () => championshipApi.list(),
+  });
+
   useEffect(() => {
     const event = eventQuery.data;
     if (!event) return;
@@ -66,6 +73,7 @@ export function EventForm() {
       blockCheckInOnDebt: event.blockCheckInOnDebt,
       transferInfo: event.transferInfo ?? '',
       categories: event.eventCategories.filter((c) => c.active).map((c) => c.category),
+      championshipId: event.championshipId ?? '',
     });
   }, [eventQuery.data]);
 
@@ -123,6 +131,7 @@ export function EventForm() {
         blockCheckInOnDebt: form.blockCheckInOnDebt,
         transferInfo: form.transferInfo || undefined,
         categories: form.categories,
+        championshipId: form.championshipId || null,
       };
 
       if (isEdit && slug) {
@@ -330,6 +339,21 @@ export function EventForm() {
           <label htmlFor="blockCheckIn" className="text-sm text-white/70">
             Bloquear check-in si hay deuda pendiente
           </label>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-white/70 mb-1.5">Campeonato</label>
+          <select
+            value={form.championshipId}
+            onChange={(e) => setForm({ ...form, championshipId: e.target.value })}
+            className="w-full rounded-lg border border-white/10 bg-[#1f1f27] px-3 py-2.5 text-sm text-white focus:border-racing-red focus:outline-none"
+          >
+            <option value="">— Sin campeonato —</option>
+            {(championshipsQuery.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>{c.name} ({c.year})</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-white/40">El evento contará para la clasificación de este campeonato.</p>
         </div>
 
         <div>

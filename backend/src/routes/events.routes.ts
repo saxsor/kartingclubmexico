@@ -24,6 +24,7 @@ const createSchema = z.object({
   blockCheckInOnDebt: z.boolean().optional(),
   transferInfo: z.string().optional(),
   categories: z.array(categoryEnum).optional(),
+  championshipId: z.string().optional().nullable(),
 });
 
 const updateSchema = createSchema.partial();

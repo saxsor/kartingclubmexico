@@ -8,7 +8,7 @@ import { EventDetail } from '../pages/public/EventDetail';
 import { EventRegister } from '../pages/public/EventRegister';
 import { EventGrid } from '../pages/public/EventGrid';
 import { EventResults } from '../pages/public/EventResults';
-import { Championship } from '../pages/public/Championship';
+import { Championship, ChampionshipDetailPublic } from '../pages/public/Championship';
 import { PilotProfile } from '../pages/public/PilotProfile';
 import { Login } from '../pages/auth/Login';
 import { ForgotPassword } from '../pages/auth/ForgotPassword';
@@ -27,6 +27,8 @@ import { RacePanel } from '../pages/admin/races/RacePanel';
 import { RaceCapture } from '../pages/admin/races/RaceCapture';
 import { Classification } from '../pages/admin/classification/Classification';
 import { UserManager } from '../pages/admin/users/UserManager';
+import { ChampionshipList } from '../pages/admin/championships/ChampionshipList';
+import { ChampionshipDetail } from '../pages/admin/championships/ChampionshipDetail';
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +42,7 @@ export const router = createBrowserRouter([
       { path: 'eventos/:slug/parrilla', element: <EventGrid /> },
       { path: 'eventos/:slug/resultados', element: <EventResults /> },
       { path: 'campeonato', element: <Championship /> },
+      { path: 'campeonato/:id', element: <ChampionshipDetailPublic /> },
       { path: 'pilotos/:id', element: <PilotProfile /> },
     ],
   },
@@ -65,6 +68,8 @@ export const router = createBrowserRouter([
       { path: 'eventos/:slug/carreras', element: <RacePanel /> },
       { path: 'eventos/:slug/carreras/:raceId', element: <RaceCapture /> },
       { path: 'eventos/:slug/clasificacion', element: <Classification /> },
+      { path: 'campeonatos', element: <ChampionshipList /> },
+      { path: 'campeonatos/:id', element: <ChampionshipDetail /> },
       { path: 'usuarios', element: <UserManager /> },
     ],
   },

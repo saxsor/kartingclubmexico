@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export function Login() {
-  const { isAuthenticated, signIn } = useAuth();
+  const { isAuthenticated, user, signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,15 +12,15 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (isAuthenticated) return <Navigate to="/app/dashboard" replace />;
+  if (isAuthenticated) return <Navigate to={user?.role === 'VALIDATOR' ? '/app/eventos' : '/app/dashboard'} replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await signIn(email, password);
-      navigate('/app/dashboard');
+      const loggedUser = await signIn(email, password);
+      navigate(loggedUser.role === 'VALIDATOR' ? '/app/eventos' : '/app/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
     } finally {

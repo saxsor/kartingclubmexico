@@ -10,8 +10,8 @@ const checkInSchema = z.object({
   kartNumber: z.number().int().positive(),
 });
 
-router.get('/checkin', authenticate, requireRole('ADMIN', 'ORGANIZER'), listCheckIns);
-router.post('/inscriptions/:id/checkin', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(checkInSchema), doCheckIn);
-router.delete('/inscriptions/:id/checkin', authenticate, requireRole('ADMIN', 'ORGANIZER'), undoCheckIn);
+router.get('/checkin', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), listCheckIns);
+router.post('/inscriptions/:id/checkin', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), validate(checkInSchema), doCheckIn);
+router.delete('/inscriptions/:id/checkin', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), undoCheckIn);
 
 export default router;

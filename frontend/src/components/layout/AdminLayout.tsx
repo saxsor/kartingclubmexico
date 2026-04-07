@@ -7,9 +7,9 @@ import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../lib/utils';
 
 const navItems = [
-  { label: 'Dashboard', to: '/app/dashboard', icon: BarChart2 },
-  { label: 'Pilotos', to: '/app/pilotos', icon: Users },
-  { label: 'Eventos', to: '/app/eventos', icon: Calendar },
+  { label: 'Dashboard', to: '/app/dashboard', icon: BarChart2, minRole: 'ORGANIZER' },
+  { label: 'Pilotos', to: '/app/pilotos', icon: Users, minRole: 'ORGANIZER' },
+  { label: 'Eventos', to: '/app/eventos', icon: Calendar, minRole: 'VALIDATOR' },
   { label: 'Usuarios', to: '/app/usuarios', icon: UserCog, adminOnly: true },
 ];
 
@@ -25,9 +25,12 @@ export function AdminLayout() {
     navigate('/login');
   };
 
-  const filteredNav = navItems.filter(
-    (item) => !item.adminOnly || user?.role === 'ADMIN',
-  );
+  const filteredNav = navItems.filter((item) => {
+    if (item.adminOnly) return user?.role === 'ADMIN';
+    if (item.minRole === 'VALIDATOR') return true;
+    if (item.minRole === 'ORGANIZER') return user?.role === 'ADMIN' || user?.role === 'ORGANIZER';
+    return true;
+  });
 
   return (
     <div className="flex h-screen bg-[#15151e] text-white overflow-hidden">

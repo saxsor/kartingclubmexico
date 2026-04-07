@@ -10,7 +10,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'ORGANIZER';
+  role: 'ADMIN' | 'ORGANIZER' | 'VALIDATOR';
   active: boolean;
   createdAt: string;
 }
@@ -118,6 +118,7 @@ export function UserManager() {
                 className="w-full rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
               >
                 <option value="ORGANIZER">Organizador</option>
+                <option value="VALIDATOR">Validador</option>
                 <option value="ADMIN">Administrador</option>
               </select>
             </div>
@@ -150,7 +151,9 @@ export function UserManager() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'
+                      user.role === 'ADMIN' ? 'bg-red-500/20 text-red-400' :
+                      user.role === 'VALIDATOR' ? 'bg-yellow-500/20 text-yellow-400' :
+                      'bg-blue-500/20 text-blue-400'
                     }`}>
                       {user.role}
                     </span>

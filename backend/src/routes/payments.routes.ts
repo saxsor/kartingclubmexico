@@ -12,9 +12,9 @@ const paymentSchema = z.object({
   notes: z.string().optional(),
 });
 
-router.get('/cashbox', authenticate, requireRole('ADMIN', 'ORGANIZER'), getCashBox);
+router.get('/cashbox', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), getCashBox);
 router.get('/cashbox/export', authenticate, requireRole('ADMIN', 'ORGANIZER'), exportCashBox);
-router.post('/inscriptions/:id/payments', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(paymentSchema), addPayment);
+router.post('/inscriptions/:id/payments', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), validate(paymentSchema), addPayment);
 router.delete('/payments/:paymentId', authenticate, requireRole('ADMIN'), deletePayment);
 
 export default router;

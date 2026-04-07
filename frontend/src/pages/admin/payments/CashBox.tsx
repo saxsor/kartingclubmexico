@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useAuth } from '../../../hooks/useAuth';
 import { useParams } from 'react-router-dom';
 import { Plus, CheckCircle, XCircle, FileText, Download, Trash2 } from 'lucide-react';
 import { downloadCsv } from '../../../lib/download';
@@ -12,6 +13,7 @@ import { PaginationControls } from '../../../components/shared/PaginationControl
 import { queryKeys } from '../../../lib/react-query';
 
 export function CashBox() {
+  const { user } = useAuth();
   const { slug } = useParams<{ slug: string }>();
   const [showForm, setShowForm] = useState<string | null>(null); // inscriptionId
   const [form, setForm] = useState({ type: 'SERVICE_FEE', amount: '', notes: '' });
@@ -188,8 +190,8 @@ export function CashBox() {
         </div>
       )}
 
-      {/* Pending receipts section */}
-      {inscriptions.filter((i) => i.status === 'RECEIPT_SUBMITTED').length > 0 && (
+      {/* Pending receipts section — hidden for VALIDATOR */}
+      {user?.role !== 'VALIDATOR' && inscriptions.filter((i) => i.status === 'RECEIPT_SUBMITTED').length > 0 && (
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-yellow-400 mb-3 flex items-center gap-2">
             <FileText className="h-4 w-4" />

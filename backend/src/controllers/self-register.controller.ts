@@ -6,7 +6,7 @@ import { CATEGORY_LABELS } from '../lib/category-labels.js';
 
 export async function selfRegister(req: Request, res: Response): Promise<void> {
   const { slug } = req.params;
-  const { name, alias, email, phone, kartNumber, category, notes } = req.body;
+  const { name, alias, email, phone, kartNumber, category, notes, companions } = req.body;
 
   // Find event
   const event = await prisma.event.findUnique({ where: { slug } });
@@ -50,12 +50,15 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
     });
     if (existing) return null;
 
+    const parsedCompanions = companions ? parseInt(companions) : 0;
+
     const inscription = await tx.inscription.create({
       data: {
         eventId: event.id,
         pilotId: pilot.id,
         category,
         kartNumber: parsedKartNumber,
+        companions: isNaN(parsedCompanions) ? 0 : parsedCompanions,
         notes: notes || null,
         selfRegistered: true,
         status: 'PENDING_PAYMENT',
@@ -86,6 +89,7 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
     transferInfo: event.transferInfo,
     serviceFee: event.serviceFee,
     foodFee: event.foodFee,
+    companions: registration.companions,
   });
 }
 
@@ -124,22 +128,26 @@ export async function approveReceipt(req: Request, res: Response): Promise<void>
   if (inscription.event.slug !== slug) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
   if (inscription.status !== 'RECEIPT_SUBMITTED') { res.status(400).json({ error: 'No hay recibo pendiente de aprobación' }); return; }
 
-  const [updated] = await prisma.$transaction([
-    prisma.inscription.update({
+  const totalFoodFee = Number(inscription.event.foodFee) * (inscription.companions + 1);
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const insc = await tx.inscription.update({
       where: { id },
       data: { status: 'PAID' },
       include: { pilot: true, payments: true, checkIn: true },
-    }),
-    prisma.payment.create({
-      data: {
-        inscriptionId: id,
-        type: 'SERVICE_FEE',
-        amount: inscription.event.serviceFee,
-        notes: 'Pago aprobado via recibo',
-        createdBy: user.name,
-      },
-    }),
-  ]);
+    });
+    if (Number(inscription.event.serviceFee) > 0) {
+      await tx.payment.create({
+        data: { inscriptionId: id, type: 'SERVICE_FEE', amount: inscription.event.serviceFee, notes: 'Pago aprobado via recibo', createdBy: user.name },
+      });
+    }
+    if (totalFoodFee > 0) {
+      await tx.payment.create({
+        data: { inscriptionId: id, type: 'FOOD_FEE', amount: totalFoodFee, notes: `Comida ${inscription.companions + 1} persona(s)`, createdBy: user.name },
+      });
+    }
+    return insc;
+  });
 
   // Send payment approved email (fire-and-forget)
   if (updated.pilot.email) {

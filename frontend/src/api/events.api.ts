@@ -29,6 +29,7 @@ export interface KartEvent {
   blockCheckInOnDebt: boolean;
   transferInfo: string | null;
   posterUrl: string | null;
+  track: string | null;
   eventCategories: EventCategory[];
   createdAt: string;
   updatedAt: string;

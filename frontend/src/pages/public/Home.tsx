@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, ChevronRight, Flag } from 'lucide-react';
+import { Calendar, ChevronRight, Flag, MapPin } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -37,7 +37,7 @@ export function Home() {
             <img
               src="/karting_club_logo.png"
               alt="Karting Club México"
-              className="h-24 md:h-32 w-auto object-contain drop-shadow-lg"
+              className="h-36 md:h-48 w-auto object-contain drop-shadow-lg"
             />
           </div>
 
@@ -89,13 +89,15 @@ export function Home() {
 
           <Link to={`/eventos/${nextEvent.slug}`} className="block group">
             {nextEvent.posterUrl ? (
-              <div className="relative overflow-hidden border-t-[3px] border-[#e10600]" style={{ aspectRatio: '16/7' }}>
-                <img src={resolveMediaUrl(nextEvent.posterUrl) ?? ''} alt={nextEvent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#15151e] via-[#15151e]/50 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6">
+              <div className="relative border-t-[3px] border-[#e10600] bg-[#0d0d14]">
+                <img src={resolveMediaUrl(nextEvent.posterUrl) ?? ''} alt={nextEvent.name} className="w-full object-contain group-hover:opacity-90 transition-opacity duration-300" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#15151e] via-[#15151e]/70 to-transparent">
                   <StatusBadge status={nextEvent.status} className="mb-2" />
                   <h3 className="text-3xl font-black text-white uppercase drop-shadow-lg" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}>{nextEvent.name}</h3>
                   <p className="mt-1 text-white/60 text-sm flex items-center gap-2"><Calendar className="h-4 w-4" />{formatDate(nextEvent.date)}</p>
+                  {nextEvent.track && (
+                    <p className="mt-0.5 text-white/50 text-xs flex items-center gap-2"><MapPin className="h-3.5 w-3.5" />{nextEvent.track}</p>
+                  )}
                 </div>
               </div>
             ) : (
@@ -113,6 +115,12 @@ export function Home() {
                       <Calendar className="h-4 w-4" />
                       {formatDate(nextEvent.date)}
                     </p>
+                    {nextEvent.track && (
+                      <p className="mt-0.5 text-white/40 flex items-center gap-2 text-xs">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {nextEvent.track}
+                      </p>
+                    )}
                     {nextEvent.description && (
                       <p className="mt-2 text-white/40 text-sm">{nextEvent.description}</p>
                     )}
@@ -154,9 +162,8 @@ export function Home() {
             {finishedEvents.map((event) => (
               <Link key={event.id} to={`/eventos/${event.slug}`} className="group block bg-[#1f1f27]">
                 {event.posterUrl && (
-                  <div className="relative overflow-hidden h-32">
-                    <img src={resolveMediaUrl(event.posterUrl) ?? ''} alt={event.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1f1f27] to-transparent" />
+                  <div className="relative bg-[#0d0d14]">
+                    <img src={resolveMediaUrl(event.posterUrl) ?? ''} alt={event.name} className="w-full object-contain group-hover:opacity-90 transition-opacity duration-300" />
                   </div>
                 )}
                 <div className={`border-t-[3px] border-[#e10600] p-5 hover:bg-[#2a2a35] transition-colors h-full ${event.posterUrl ? '' : ''}`}>
@@ -171,6 +178,11 @@ export function Home() {
                     {event.name}
                   </h3>
                   <p className="mt-1 text-xs text-white/40 uppercase tracking-wide">{formatDate(event.date)}</p>
+                  {event.track && (
+                    <p className="mt-0.5 text-xs text-white/30 flex items-center gap-1.5">
+                      <MapPin className="h-3 w-3 flex-shrink-0" />{event.track}
+                    </p>
+                  )}
                   <div className="mt-3 flex flex-wrap gap-1">
                     {event.eventCategories.filter((c) => c.active).map((c) => (
                       <CategoryBadge key={c.id} category={c.category} />

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { racesApi, Race } from '../../../api/races.api';
 import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
@@ -26,6 +26,18 @@ export function RacePanel() {
   });
   const createMutation = useMutation({
     mutationFn: (data: { category: Category; number: number; laps?: number }) => racesApi.create(slug!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.races.all });
+    },
+  });
+  const bulkCreateMutation = useMutation({
+    mutationFn: () => racesApi.bulkCreate(slug!, { racesPerCategory: 3, laps: 15 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.races.all });
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (raceId: string) => racesApi.delete(slug!, raceId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.races.all });
     },
@@ -66,15 +78,28 @@ export function RacePanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-xl font-black text-white">Carreras</h1>
-        <button
-          onClick={() => setCreating(!creating)}
-          className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Nueva carrera
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              if (!confirm(`¿Generar automáticamente 3 carreras para cada categoría activa? Se saltarán las que ya existan.`)) return;
+              bulkCreateMutation.mutate();
+            }}
+            disabled={bulkCreateMutation.isPending || activeCategories.length === 0}
+            className="flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-white/70 hover:bg-white/10 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${bulkCreateMutation.isPending ? 'animate-spin' : ''}`} />
+            Generar 3 por categoría
+          </button>
+          <button
+            onClick={() => setCreating(!creating)}
+            className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Nueva carrera
+          </button>
+        </div>
       </div>
 
       {creating && (
@@ -136,12 +161,25 @@ export function RacePanel() {
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     {race.status === 'PENDING' && (
-                      <button
-                        onClick={() => handleStatus(race, 'IN_PROGRESS')}
-                        className="rounded-lg bg-yellow-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-yellow-500 transition-colors"
-                      >
-                        Iniciar
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleStatus(race, 'IN_PROGRESS')}
+                          className="rounded-lg bg-yellow-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-yellow-500 transition-colors"
+                        >
+                          Iniciar
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (!confirm(`¿Eliminar Carrera ${race.number}?`)) return;
+                            deleteMutation.mutate(race.id);
+                          }}
+                          disabled={deleteMutation.isPending}
+                          className="rounded-lg border border-red-500/20 px-2 py-1.5 text-xs text-red-400/70 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-40"
+                          title="Eliminar carrera"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </>
                     )}
                     {race.status === 'IN_PROGRESS' && (
                       <button

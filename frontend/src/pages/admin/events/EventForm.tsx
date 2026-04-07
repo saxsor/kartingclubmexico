@@ -18,6 +18,7 @@ export function EventForm() {
     name: '',
     date: '',
     description: '',
+    track: '',
     serviceFee: '0',
     foodFee: '0',
     blockCheckInOnDebt: false,
@@ -59,6 +60,7 @@ export function EventForm() {
       name: event.name,
       date: event.date.substring(0, 10),
       description: event.description ?? '',
+      track: event.track ?? '',
       serviceFee: event.serviceFee,
       foodFee: event.foodFee,
       blockCheckInOnDebt: event.blockCheckInOnDebt,
@@ -115,6 +117,7 @@ export function EventForm() {
         name: form.name,
         date: form.date,
         description: form.description || undefined,
+        track: form.track || undefined,
         serviceFee: parseFloat(form.serviceFee),
         foodFee: parseFloat(form.foodFee),
         blockCheckInOnDebt: form.blockCheckInOnDebt,
@@ -261,6 +264,18 @@ export function EventForm() {
             rows={3}
             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none resize-none"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-white/70 mb-1.5">Pista / Circuito</label>
+          <input
+            type="text"
+            value={form.track}
+            onChange={(e) => setForm({ ...form, track: e.target.value })}
+            placeholder="Karting Club México — Pista Norte"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-white/40">Se mostrará en los banners debajo de la fecha.</p>
         </div>
 
         <div>

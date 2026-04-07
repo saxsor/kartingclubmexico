@@ -15,6 +15,7 @@ export interface Inscription {
   pilotId: string;
   category: Category;
   kartNumber: number | null;
+  companions: number;
   status: InscriptionStatus;
   notes: string | null;
   receiptPath: string | null;
@@ -52,6 +53,7 @@ export interface SelfRegisterData {
   kartNumber?: string;
   category: Category;
   notes?: string;
+  companions?: number;
 }
 
 export interface SelfRegisterResponse {
@@ -59,6 +61,7 @@ export interface SelfRegisterResponse {
   transferInfo: string | null;
   serviceFee: string;
   foodFee: string;
+  companions: number;
 }
 
 function uploadReceiptFetch(slug: string, id: string, file: File): Promise<Inscription> {

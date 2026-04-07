@@ -63,7 +63,7 @@ export async function addPayment(req: Request, res: Response): Promise<void> {
     });
 
     const totalPaid = [...inscription.payments, payment].reduce((s, p) => s + Number(p.amount), 0);
-    const required = Number(inscription.event.serviceFee) + Number(inscription.event.foodFee);
+    const required = Number(inscription.event.serviceFee) + Number(inscription.event.foodFee) * (inscription.companions + 1);
 
     if (totalPaid >= required) {
       await tx.inscription.update({
@@ -81,7 +81,34 @@ export async function addPayment(req: Request, res: Response): Promise<void> {
 }
 
 export async function deletePayment(req: Request, res: Response): Promise<void> {
-  await prisma.payment.delete({ where: { id: req.params.paymentId } });
+  await prisma.$transaction(async (tx) => {
+    const payment = await tx.payment.findUnique({
+      where: { id: req.params.paymentId },
+      include: {
+        inscription: {
+          select: { id: true, status: true, companions: true, payments: true, event: { select: { serviceFee: true, foodFee: true } } },
+        },
+      },
+    });
+    if (!payment) return;
+
+    await tx.payment.delete({ where: { id: req.params.paymentId } });
+
+    // Recalculate total after deletion; if now below required, revert status to PENDING_PAYMENT
+    const remainingTotal = payment.inscription.payments
+      .filter((p) => p.id !== req.params.paymentId)
+      .reduce((s, p) => s + Number(p.amount), 0);
+    const required = Number(payment.inscription.event.serviceFee)
+      + Number(payment.inscription.event.foodFee) * (payment.inscription.companions + 1);
+
+    if (remainingTotal < required && payment.inscription.status === 'PAID') {
+      await tx.inscription.update({
+        where: { id: payment.inscription.id },
+        data: { status: 'PENDING_PAYMENT' },
+      });
+    }
+  });
+
   res.status(204).send();
 }
 

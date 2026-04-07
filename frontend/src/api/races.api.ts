@@ -48,6 +48,9 @@ export const racesApi = {
   get: (slug: string, raceId: string) => api.get<Race>(`/events/${slug}/races/${raceId}`),
   create: (slug: string, data: { category: Category; number: number; laps?: number }) =>
     api.post<Race>(`/events/${slug}/races`, data),
+  bulkCreate: (slug: string, data?: { racesPerCategory?: number; laps?: number }) =>
+    api.post<Race[]>(`/events/${slug}/races/bulk`, data ?? {}),
+  delete: (slug: string, raceId: string) => api.delete<void>(`/events/${slug}/races/${raceId}`),
   patchStatus: (slug: string, raceId: string, status: RaceStatus) =>
     api.patch<Race>(`/events/${slug}/races/${raceId}/status`, { status }),
   saveResults: (raceId: string, results: { inscriptionId: string; position: number | null; lapsCompleted: number; status: ResultStatus }[]) =>

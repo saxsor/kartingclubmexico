@@ -30,6 +30,8 @@ export interface KartEvent {
   transferInfo: string | null;
   posterUrl: string | null;
   track: string | null;
+  championshipId: string | null;
+  championship: { id: string; name: string } | null;
   eventCategories: EventCategory[];
   createdAt: string;
   updatedAt: string;

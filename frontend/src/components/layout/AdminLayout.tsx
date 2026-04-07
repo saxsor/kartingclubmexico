@@ -1,6 +1,6 @@
 import { NavLink, Outlet, Navigate, useNavigate } from 'react-router-dom';
 import {
-  Users, Calendar, BarChart2, UserCog, LogOut, Menu, X,
+  Users, Calendar, BarChart2, UserCog, LogOut, Menu, X, Trophy,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Dashboard', to: '/app/dashboard', icon: BarChart2, minRole: 'ORGANIZER' },
   { label: 'Pilotos', to: '/app/pilotos', icon: Users, minRole: 'ORGANIZER' },
   { label: 'Eventos', to: '/app/eventos', icon: Calendar, minRole: 'VALIDATOR' },
+  { label: 'Campeonatos', to: '/app/campeonatos', icon: Trophy, minRole: 'ORGANIZER' },
   { label: 'Usuarios', to: '/app/usuarios', icon: UserCog, adminOnly: true },
 ];
 

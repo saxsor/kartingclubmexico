@@ -11,6 +11,7 @@ import gridRoutes from './grid.routes.js';
 import racesRoutes from './races.routes.js';
 import { eventRouter as resultsEventRouter, raceRouter as resultsRaceRouter } from './results.routes.js';
 import championshipRoutes from './championship.routes.js';
+import championshipsRoutes from './championships.routes.js';
 import selfRegisterRoutes from './self-register.routes.js';
 import analyticsRoutes from './analytics.routes.js';
 import { sseManager } from '../lib/sse.js';
@@ -35,6 +36,7 @@ router.use('/events/:slug', resultsEventRouter);
 router.use('/races', resultsRaceRouter);
 
 router.use('/championship', championshipRoutes);
+router.use('/championships', championshipsRoutes);
 router.use('/analytics', analyticsRoutes);
 
 // SSE stream endpoint

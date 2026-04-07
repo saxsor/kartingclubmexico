@@ -119,6 +119,15 @@ model Pilot {
   @@index([kartNumber])
 }
 
+model Championship {
+  id        String   @id @default(uuid())
+  name      String
+  year      Int
+  events    Event[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Event {
   id                 String      @id @default(uuid())
   name               String
@@ -133,15 +142,18 @@ model Event {
   transferInfo       String?
   posterUrl          String?
   track              String?
+  championshipId     String?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
+  championship    Championship?   @relation(fields: [championshipId], references: [id], onDelete: SetNull)
   eventCategories EventCategory[]
   inscriptions    Inscription[]
   races           Race[]
 
   @@index([status])
   @@index([year])
+  @@index([championshipId])
 }
 
 model EventCategory {

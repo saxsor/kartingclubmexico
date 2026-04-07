@@ -16,7 +16,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
   const [events, total] = await prisma.$transaction([
     prisma.event.findMany({
       where,
-      include: { eventCategories: true },
+      include: { eventCategories: true, championship: { select: { id: true, name: true } } },
       orderBy: { date: 'desc' },
       skip,
       take: pageSize,
@@ -31,7 +31,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
 }
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, blockCheckInOnDebt, transferInfo, track, categories } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, blockCheckInOnDebt, transferInfo, track, categories, championshipId } = req.body;
 
   const baseSlug = slugify(name, { lower: true, strict: true });
   let slug = baseSlug;
@@ -52,6 +52,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
       blockCheckInOnDebt: blockCheckInOnDebt ?? false,
       transferInfo: transferInfo ?? null,
       track: track ?? null,
+      championshipId: championshipId ?? null,
       eventCategories: {
         create: (categories as Category[] ?? []).map((c) => ({ category: c })),
       },
@@ -64,14 +65,14 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
 export async function getEvent(req: Request, res: Response): Promise<void> {
   const event = await prisma.event.findUnique({
     where: { slug: req.params.slug },
-    include: { eventCategories: true },
+    include: { eventCategories: true, championship: { select: { id: true, name: true } } },
   });
   if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
   res.json(event);
 }
 
 export async function updateEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, blockCheckInOnDebt, transferInfo, track } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, blockCheckInOnDebt, transferInfo, track, championshipId } = req.body;
   const event = await prisma.event.update({
     where: { slug: req.params.slug },
     data: {
@@ -84,6 +85,7 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
       ...(blockCheckInOnDebt !== undefined && { blockCheckInOnDebt }),
       ...(transferInfo !== undefined && { transferInfo }),
       ...(track !== undefined && { track: track || null }),
+      ...('championshipId' in req.body && { championshipId: championshipId || null }),
     },
     include: { eventCategories: true },
   });

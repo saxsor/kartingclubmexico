@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Plus, CheckCircle, XCircle, FileText, Download } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, FileText, Download, Trash2 } from 'lucide-react';
 import { downloadCsv } from '../../../lib/download';
 import { paymentsApi } from '../../../api/payments.api';
 import { eventsApi } from '../../../api/events.api';
@@ -57,6 +57,13 @@ export function CashBox() {
       queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
     },
   });
+  const deletePaymentMutation = useMutation({
+    mutationFn: (paymentId: string) => paymentsApi.deletePayment(slug!, paymentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+  });
 
   const cashbox = cashboxQuery.data ?? null;
   const event = eventQuery.data ?? null;
@@ -67,7 +74,8 @@ export function CashBox() {
   const getPaymentSummary = (inscription: Inscription) => {
     const serviceFee = Number(event?.serviceFee ?? 0);
     const foodFee = Number(event?.foodFee ?? 0);
-    const required = serviceFee + foodFee;
+    const totalFoodFee = foodFee * (inscription.companions + 1);
+    const required = serviceFee + totalFoodFee;
     const totalPaid = inscription.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
     const servicePaid = inscription.payments
       .filter((payment) => payment.type === 'SERVICE_FEE')
@@ -81,7 +89,7 @@ export function CashBox() {
       totalPaid,
       outstanding: Math.max(required - totalPaid, 0),
       serviceOutstanding: Math.max(serviceFee - servicePaid, 0),
-      foodOutstanding: Math.max(foodFee - foodPaid, 0),
+      foodOutstanding: Math.max(totalFoodFee - foodPaid, 0),
     };
   };
 
@@ -245,7 +253,7 @@ export function CashBox() {
                   <div>
                     <p className="font-medium text-white">{insc.pilot.name}</p>
                     <p className="text-xs text-white/50">
-                      {insc.category} |{' '}
+                      {insc.category}{insc.companions > 0 ? ` · ${insc.companions} acomp.` : ''} |{' '}
                       <span className={
                         insc.status === 'PAID' ? 'text-green-400' :
                         insc.status === 'RECEIPT_SUBMITTED' ? 'text-yellow-400' :
@@ -255,7 +263,7 @@ export function CashBox() {
                          insc.status === 'RECEIPT_SUBMITTED' ? 'Recibo enviado' :
                          'Pendiente'}
                       </span>{' '}|{' '}
-                      Total: {formatCurrency(paymentSummary.totalPaid)} | Saldo: {formatCurrency(paymentSummary.outstanding)}
+                      Total: {formatCurrency(paymentSummary.totalPaid)} / {formatCurrency(paymentSummary.required)} | Saldo: {formatCurrency(paymentSummary.outstanding)}
                     </p>
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
@@ -337,6 +345,7 @@ export function CashBox() {
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Tipo</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-white/60">Monto</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Fecha</th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -351,6 +360,19 @@ export function CashBox() {
                     </td>
                     <td className="px-4 py-3 text-white/50 text-xs">
                       {new Date(p.paidAt).toLocaleString('es-MX')}
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => {
+                          if (!confirm(`¿Eliminar este pago de ${formatCurrency(Number(p.amount))} para ${p.inscription.pilot.name}? Si el piloto estaba marcado como pagado, su estado se revertirá.`)) return;
+                          deletePaymentMutation.mutate(p.id);
+                        }}
+                        disabled={deletePaymentMutation.isPending}
+                        className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                        title="Eliminar pago"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))}

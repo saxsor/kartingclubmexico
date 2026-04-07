@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight } from 'lucide-react';
+import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight, MapPin } from 'lucide-react';
 import { eventsApi } from '../../api/events.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -46,11 +46,11 @@ export function EventDetail() {
       {/* Event header — poster or default */}
       {event.posterUrl ? (
         /* ── POSTER MODE ── */
-        <div className="relative mb-6 overflow-hidden" style={{ aspectRatio: '16/7' }}>
+        <div className="relative mb-6 bg-[#0d0d14]">
           <img
             src={resolveMediaUrl(event.posterUrl) ?? ''}
             alt={event.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="w-full object-contain"
           />
           {/* Gradient overlay — bottom to top */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#15151e] via-[#15151e]/60 to-transparent" />
@@ -70,6 +70,12 @@ export function EventDetail() {
               <Calendar className="h-4 w-4" />
               {formatDate(event.date)}
             </p>
+            {event.track && (
+              <p className="mt-1 text-white/50 flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4" />
+                {event.track}
+              </p>
+            )}
           </div>
         </div>
       ) : (
@@ -98,6 +104,12 @@ export function EventDetail() {
               <Calendar className="h-4 w-4" />
               {formatDate(event.date)}
             </p>
+            {event.track && (
+              <p className="mt-1 text-white/40 flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4" />
+                {event.track}
+              </p>
+            )}
           </div>
         </div>
       )}

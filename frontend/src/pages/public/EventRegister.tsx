@@ -46,13 +46,14 @@ export function EventRegister() {
       kartNumber?: string;
       category: Category;
       notes?: string;
+      companions?: number;
     }) => inscriptionsApi.selfRegister(slug!, payload),
   });
   const receiptUpload = useFileUpload();
 
   const [form, setForm] = useState({
     name: '', alias: '', email: '', phone: '', kartNumber: '',
-    category: '' as Category | '', notes: '',
+    category: '' as Category | '', notes: '', companions: 0,
   });
 
   const event = eventQuery.data ?? null;
@@ -74,6 +75,7 @@ export function EventRegister() {
         kartNumber: form.kartNumber || undefined,
         category: form.category as Category,
         notes: form.notes || undefined,
+        companions: form.companions,
       });
       setRegisterResult(result);
       setStep('payment');
@@ -231,6 +233,28 @@ export function EventRegister() {
           </div>
 
           <div>
+            <label className={labelClass}>Número de acompañantes</label>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, companions: Math.max(0, form.companions - 1) })}
+                className="h-10 w-10 flex items-center justify-center border border-white/10 bg-[#1f1f27] text-white/60 hover:bg-[#2a2a35] hover:text-white transition-colors text-lg font-bold"
+              >−</button>
+              <span className="w-8 text-center text-white font-bold text-lg">{form.companions}</span>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, companions: Math.min(10, form.companions + 1) })}
+                className="h-10 w-10 flex items-center justify-center border border-white/10 bg-[#1f1f27] text-white/60 hover:bg-[#2a2a35] hover:text-white transition-colors text-lg font-bold"
+              >+</button>
+            </div>
+            {Number(event?.foodFee ?? 0) > 0 && (
+              <p className="mt-1.5 text-xs text-white/40 uppercase tracking-wide">
+                La comida se cobra por persona — piloto{form.companions > 0 ? ` + ${form.companions} acompañante${form.companions > 1 ? 's' : ''}` : ''} = {form.companions + 1} persona{form.companions > 0 ? 's' : ''}
+              </p>
+            )}
+          </div>
+
+          <div>
             <label className={labelClass}>Notas (opcional)</label>
             <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
               rows={2} placeholder="Cualquier información adicional..."
@@ -266,15 +290,19 @@ export function EventRegister() {
             </div>
             {Number(registerResult.foodFee) > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-white/50">Cuota de comida</span>
-                <span className="font-bold text-white">{formatCurrency(Number(registerResult.foodFee))}</span>
+                <span className="text-white/50">
+                  Comida ({registerResult.companions + 1} persona{registerResult.companions > 0 ? 's' : ''})
+                </span>
+                <span className="font-bold text-white">
+                  {formatCurrency(Number(registerResult.foodFee) * (registerResult.companions + 1))}
+                </span>
               </div>
             )}
             <div className="border-t border-[#38383f] pt-3 flex justify-between">
               <span className="text-sm font-bold text-white uppercase tracking-wide">Total</span>
               <span className="text-xl font-black text-[#e10600]"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                {formatCurrency(Number(registerResult.serviceFee) + Number(registerResult.foodFee))}
+                {formatCurrency(Number(registerResult.serviceFee) + Number(registerResult.foodFee) * (registerResult.companions + 1))}
               </span>
             </div>
           </div>

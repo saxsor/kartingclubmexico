@@ -131,6 +131,7 @@ model Event {
   blockCheckInOnDebt Boolean     @default(false)
   transferInfo       String?
   posterUrl          String?
+  track              String?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
@@ -160,6 +161,7 @@ model Inscription {
   pilotId    String
   category   Category
   kartNumber Int?
+  companions     Int               @default(0)
   status         InscriptionStatus @default(PENDING_PAYMENT)
   notes          String?
   receiptPath    String?

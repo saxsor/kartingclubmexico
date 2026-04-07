@@ -31,7 +31,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
 }
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, blockCheckInOnDebt, transferInfo, categories } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, blockCheckInOnDebt, transferInfo, track, categories } = req.body;
 
   const baseSlug = slugify(name, { lower: true, strict: true });
   let slug = baseSlug;
@@ -51,6 +51,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
       foodFee: foodFee ?? 0,
       blockCheckInOnDebt: blockCheckInOnDebt ?? false,
       transferInfo: transferInfo ?? null,
+      track: track ?? null,
       eventCategories: {
         create: (categories as Category[] ?? []).map((c) => ({ category: c })),
       },
@@ -70,7 +71,7 @@ export async function getEvent(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, blockCheckInOnDebt, transferInfo } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, blockCheckInOnDebt, transferInfo, track } = req.body;
   const event = await prisma.event.update({
     where: { slug: req.params.slug },
     data: {
@@ -82,6 +83,7 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
       ...(foodFee !== undefined && { foodFee }),
       ...(blockCheckInOnDebt !== undefined && { blockCheckInOnDebt }),
       ...(transferInfo !== undefined && { transferInfo }),
+      ...(track !== undefined && { track: track || null }),
     },
     include: { eventCategories: true },
   });

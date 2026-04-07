@@ -67,10 +67,10 @@ export async function createInscription(req: Request, res: Response): Promise<vo
   const event = await getEventOrFail(req.params.slug, res);
   if (!event) return;
 
-  const { pilotId, category, kartNumber, notes } = req.body;
+  const { pilotId, category, kartNumber, notes, companions } = req.body;
 
   const inscription = await prisma.inscription.create({
-    data: { eventId: event.id, pilotId, category, kartNumber, notes },
+    data: { eventId: event.id, pilotId, category, kartNumber, notes, companions: companions ?? 0 },
     include: { pilot: true, payments: true, checkIn: true },
   });
   res.status(201).json(inscription);
@@ -86,7 +86,7 @@ export async function getInscription(req: Request, res: Response): Promise<void>
 }
 
 export async function updateInscription(req: Request, res: Response): Promise<void> {
-  const { category, kartNumber, notes, status } = req.body;
+  const { category, kartNumber, notes, status, companions } = req.body;
   const inscription = await prisma.inscription.update({
     where: { id: req.params.id },
     data: {
@@ -94,6 +94,7 @@ export async function updateInscription(req: Request, res: Response): Promise<vo
       ...(kartNumber !== undefined && { kartNumber }),
       ...(notes !== undefined && { notes }),
       ...(status !== undefined && { status }),
+      ...(companions !== undefined && { companions }),
     },
     include: { pilot: true, payments: true, checkIn: true },
   });

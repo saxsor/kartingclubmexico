@@ -87,7 +87,7 @@ export function UserManager() {
         <form onSubmit={handleCreate} className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-white">Nuevo usuario</h2>
-            <button type="button" onClick={() => setShowForm(false)}>
+            <button type="button" onClick={() => setShowForm(false)} aria-label="Cerrar formulario">
               <X className="h-5 w-5 text-white/40" />
             </button>
           </div>

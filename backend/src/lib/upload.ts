@@ -40,3 +40,12 @@ export const uploadPilotPhoto = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: imageFilter,
 });
+
+export const uploadCsv = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
+  fileFilter: (_req, file, cb) => {
+    const ok = /csv|text\/plain/.test(file.mimetype) || file.originalname.endsWith('.csv');
+    cb(null, ok);
+  },
+});

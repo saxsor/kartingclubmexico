@@ -1,7 +1,6 @@
 import { NavLink, Outlet, Navigate, useNavigate } from 'react-router-dom';
 import {
-  Trophy, Users, Calendar, ClipboardList, DollarSign,
-  CheckSquare, Shuffle, Flag, BarChart2, UserCog, LogOut, Menu, X
+  Users, Calendar, BarChart2, UserCog, LogOut, Menu, X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';

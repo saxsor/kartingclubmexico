@@ -4,59 +4,69 @@ const BASE_URL = '/api';
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+const SAFE_METHODS: RequestMethod[] = ['GET'];
+
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return match ? match[1] : null;
+}
+
 async function request<T>(
   method: RequestMethod,
   path: string,
   body?: unknown,
   options?: { signal?: AbortSignal },
 ): Promise<T> {
-  const token = useAuthStore.getState().token;
-
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (!SAFE_METHODS.includes(method)) {
+    const csrf = getCsrfToken();
+    if (csrf) headers['X-CSRF-Token'] = csrf;
   }
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
+    credentials: 'include',
     body: body !== undefined ? JSON.stringify(body) : undefined,
     signal: options?.signal,
   });
 
-  // Handle 401 - try refresh
-  if (response.status === 401) {
-    const refreshToken = useAuthStore.getState().refreshToken;
-    if (refreshToken) {
-      const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
-      if (refreshRes.ok) {
-        const { token: newToken, refreshToken: newRefreshToken } = await refreshRes.json();
-        if (newRefreshToken) {
-          useAuthStore.getState().setSessionTokens(newToken, newRefreshToken);
-        } else {
-          useAuthStore.getState().setToken(newToken);
-        }
-        headers['Authorization'] = `Bearer ${newToken}`;
-        const retryRes = await fetch(`${BASE_URL}${path}`, {
-          method,
-          headers,
-          body: body !== undefined ? JSON.stringify(body) : undefined,
-        });
-        if (!retryRes.ok) {
-          const err = await retryRes.json().catch(() => ({ error: 'Error desconocido' }));
-          throw new Error(err.error ?? `HTTP ${retryRes.status}`);
-        }
-        if (retryRes.status === 204) return undefined as T;
-        return retryRes.json();
+  // Handle 401 - try silent refresh
+  if (response.status === 401 && path !== '/auth/refresh') {
+    const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (refreshRes.ok) {
+      // Cookies rotated by server; retry original request with fresh CSRF token
+      // (the server sets a new csrf_token cookie on refresh)
+      const retryHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (!SAFE_METHODS.includes(method)) {
+        const csrf = getCsrfToken();
+        if (csrf) retryHeaders['X-CSRF-Token'] = csrf;
       }
+
+      const retryRes = await fetch(`${BASE_URL}${path}`, {
+        method,
+        headers: retryHeaders,
+        credentials: 'include',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+
+      if (!retryRes.ok) {
+        const err = await retryRes.json().catch(() => ({ error: 'Error desconocido' }));
+        throw new Error(err.error ?? `HTTP ${retryRes.status}`);
+      }
+      if (retryRes.status === 204) return undefined as T;
+      return retryRes.json();
     }
+
     useAuthStore.getState().logout();
     throw new Error('Sesión expirada');
   }

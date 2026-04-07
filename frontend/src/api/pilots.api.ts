@@ -1,6 +1,10 @@
 import { api } from './client';
-import { useAuthStore } from '../store/auth.store';
 import { buildPaginationQuery, PaginatedResponse, PaginationParams } from './pagination';
+
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return match ? match[1] : null;
+}
 
 export interface Pilot {
   id: string;
@@ -24,12 +28,13 @@ export const pilotsApi = {
   update: (id: string, data: Partial<Pilot>) => api.put<Pilot>(`/pilots/${id}`, data),
   delete: (id: string) => api.delete<void>(`/pilots/${id}`),
   uploadPhoto: (id: string, file: File): Promise<Pilot> => {
-    const token = useAuthStore.getState().token;
     const fd = new FormData();
     fd.append('photo', file);
+    const csrf = getCsrfToken();
     return fetch(`/api/pilots/${id}/photo`, {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      headers: csrf ? { 'X-CSRF-Token': csrf } : {},
+      credentials: 'include',
       body: fd,
     }).then(async (r) => {
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error ?? 'Error al subir foto'); }

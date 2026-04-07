@@ -19,9 +19,9 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus, Trash2, Save, AlertTriangle } from 'lucide-react';
-import { racesApi, Race, RaceResult, ResultStatus } from '../../../api/races.api';
-import { inscriptionsApi, Inscription } from '../../../api/inscriptions.api';
+import { GripVertical, Save, AlertTriangle } from 'lucide-react';
+import { racesApi, Race, ResultStatus } from '../../../api/races.api';
+import { inscriptionsApi } from '../../../api/inscriptions.api';
 import { useOfflineSync } from '../../../hooks/useOfflineSync';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 import { queryKeys } from '../../../lib/react-query';
@@ -40,11 +40,10 @@ interface SortableItemProps {
   position: number;
   entry: RaceEntry;
   onStatusChange: (id: string, status: ResultStatus) => void;
-  onLapsChange: (id: string, laps: number) => void;
   onAddPenalty: (id: string) => void;
 }
 
-function SortableItem({ id, position, entry, onStatusChange, onLapsChange, onAddPenalty }: SortableItemProps) {
+function SortableItem({ id, position, entry, onStatusChange, onAddPenalty }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
 
@@ -94,7 +93,7 @@ function SortableItem({ id, position, entry, onStatusChange, onLapsChange, onAdd
         <button
           onClick={() => onAddPenalty(id)}
           className="text-white/30 hover:text-orange-400 transition-colors"
-          title="Añadir penalización"
+          aria-label="Añadir penalización"
         >
           <AlertTriangle className="h-4 w-4" />
         </button>
@@ -270,7 +269,6 @@ export function RaceCapture() {
                 position={idx + 1}
                 entry={entry}
                 onStatusChange={handleStatusChange}
-                onLapsChange={() => {}}
                 onAddPenalty={handleAddPenalty}
               />
             ))}

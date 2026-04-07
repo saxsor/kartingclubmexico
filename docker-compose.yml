@@ -1,13 +1,11 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: edel_racing
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-edel_racing}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -24,15 +22,11 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
-    environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/edel_racing
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - internal
-    ports:
-      - "4000:4000"
     volumes:
       - uploads_data:/app/uploads
 

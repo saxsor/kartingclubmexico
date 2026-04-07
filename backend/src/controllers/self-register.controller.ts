@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { config } from '../config/index.js';
+import { sendInscriptionConfirmation, sendPaymentApprovedEmail } from '../services/email.service.js';
+import { CATEGORY_LABELS } from '../lib/category-labels.js';
 
 export async function selfRegister(req: Request, res: Response): Promise<void> {
   const { slug } = req.params;
@@ -65,6 +68,19 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
 
   if (!registration) { res.status(409).json({ error: 'Ya estás inscrito en esta categoría para este evento' }); return; }
 
+  // Send confirmation email (fire-and-forget)
+  if (registration.pilot.email) {
+    sendInscriptionConfirmation(registration.pilot.email, {
+      pilotName: registration.pilot.name,
+      eventName: event.name,
+      category: CATEGORY_LABELS[category] ?? category,
+      serviceFee: Number(event.serviceFee),
+      foodFee: Number(event.foodFee),
+      transferInfo: event.transferInfo,
+      eventUrl: `${config.APP_URL}/eventos/${event.slug}/inscribirse`,
+    }).catch((err) => console.error('[EMAIL] inscription confirmation failed:', err));
+  }
+
   res.status(201).json({
     inscription: registration,
     transferInfo: event.transferInfo,
@@ -124,6 +140,16 @@ export async function approveReceipt(req: Request, res: Response): Promise<void>
       },
     }),
   ]);
+
+  // Send payment approved email (fire-and-forget)
+  if (updated.pilot.email) {
+    sendPaymentApprovedEmail(
+      updated.pilot.email,
+      updated.pilot.name,
+      inscription.event.name,
+      `${config.APP_URL}/eventos/${slug}/parrilla`,
+    ).catch((err) => console.error('[EMAIL] payment approved failed:', err));
+  }
 
   res.json(updated);
 }

@@ -4,9 +4,9 @@ import { validate } from '../middleware/validate.middleware.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import {
   listPilots, createPilot, getPilot, updatePilot, deletePilot, getPilotHistory,
-  uploadPilotPhoto, deletePilotPhoto,
+  uploadPilotPhoto, deletePilotPhoto, importPilots,
 } from '../controllers/pilots.controller.js';
-import { uploadPilotPhoto as multerPilotPhoto } from '../lib/upload.js';
+import { uploadPilotPhoto as multerPilotPhoto, uploadCsv } from '../lib/upload.js';
 
 const router = Router();
 
@@ -19,6 +19,7 @@ const pilotSchema = z.object({
   active: z.boolean().optional(),
 });
 
+router.post('/import', authenticate, requireRole('ADMIN', 'ORGANIZER'), uploadCsv.single('file'), importPilots);
 router.get('/', listPilots);
 router.get('/:id', getPilot);
 router.get('/:id/history', getPilotHistory);

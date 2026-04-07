@@ -4,6 +4,9 @@ import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
 import { Category } from '@prisma/client';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
+import { config } from '../config/index.js';
+import { sendResultsPublishedEmail } from '../services/email.service.js';
+import { CATEGORY_LABELS } from '../lib/category-labels.js';
 
 export async function listEvents(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
@@ -133,7 +136,80 @@ export async function patchEventStatus(req: Request, res: Response): Promise<voi
     where: { slug: req.params.slug },
     data: { status },
   });
+
+  // When an event is marked FINISHED, notify each pilot with their final result
+  if (status === 'FINISHED') {
+    notifyResultsPublished(event.slug, event.name).catch((err) =>
+      console.error('[EMAIL] results notification failed:', err),
+    );
+  }
+
   res.json(event);
+}
+
+async function notifyResultsPublished(slug: string, eventName: string): Promise<void> {
+  // Fetch finished races with results, grouped by pilot
+  const races = await prisma.race.findMany({
+    where: { event: { slug }, status: 'FINISHED' },
+    include: {
+      results: {
+        include: { inscription: { include: { pilot: true } } },
+      },
+    },
+  });
+
+  // Aggregate total points per pilot per category
+  const pilotTotals = new Map<string, { pilot: { name: string; email: string | null }; category: string; totalPoints: number; position: number }>();
+
+  for (const race of races) {
+    for (const result of race.results) {
+      const key = `${result.inscription.pilotId}-${race.category}`;
+      const existing = pilotTotals.get(key);
+      if (existing) {
+        existing.totalPoints += result.finalPoints;
+      } else {
+        pilotTotals.set(key, {
+          pilot: result.inscription.pilot,
+          category: race.category,
+          totalPoints: result.finalPoints,
+          position: 0,
+        });
+      }
+    }
+  }
+
+  // Assign positions per category
+  const byCategory = new Map<string, { key: string; totalPoints: number }[]>();
+  for (const [key, v] of pilotTotals) {
+    const arr = byCategory.get(v.category) ?? [];
+    arr.push({ key, totalPoints: v.totalPoints });
+    byCategory.set(v.category, arr);
+  }
+
+  for (const arr of byCategory.values()) {
+    arr.sort((a, b) => b.totalPoints - a.totalPoints);
+    arr.forEach((item, idx) => {
+      const entry = pilotTotals.get(item.key)!;
+      entry.position = idx + 1;
+    });
+  }
+
+  const resultsUrl = `${config.APP_URL}/eventos/${slug}/resultados`;
+
+  const sends = [...pilotTotals.values()]
+    .filter((v) => v.pilot.email)
+    .map((v) =>
+      sendResultsPublishedEmail(v.pilot.email!, {
+        pilotName: v.pilot.name,
+        eventName,
+        category: CATEGORY_LABELS[v.category] ?? v.category,
+        position: v.position,
+        totalPoints: v.totalPoints,
+        resultsUrl,
+      }).catch((err) => console.error(`[EMAIL] results for ${v.pilot.email} failed:`, err)),
+    );
+
+  await Promise.all(sends);
 }
 
 export async function getEventCategories(req: Request, res: Response): Promise<void> {

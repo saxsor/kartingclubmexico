@@ -8,6 +8,13 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(4000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  APP_URL: z.string().default('http://localhost'),
+  // SMTP (optional — emails disabled if not configured)
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default('Edel Racing <no-reply@edelracing.mx>'),
 });
 
 const parsed = envSchema.safeParse(process.env);

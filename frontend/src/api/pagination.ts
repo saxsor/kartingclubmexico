@@ -14,6 +14,8 @@ export interface PaginationParams {
   page?: number;
   pageSize?: number;
   search?: string;
+  status?: string;
+  category?: string;
 }
 
 export function buildPaginationQuery<T extends object>(params: T) {

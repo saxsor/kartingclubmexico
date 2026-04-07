@@ -10,39 +10,25 @@ export interface AuthUser {
 
 interface AuthState {
   user: AuthUser | null;
-  token: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
-  login: (user: AuthUser, token: string, refreshToken: string) => void;
-  setSessionTokens: (token: string, refreshToken: string) => void;
+  login: (user: AuthUser) => void;
   logout: () => void;
-  setToken: (token: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
-      refreshToken: null,
       isAuthenticated: false,
 
-      login: (user, token, refreshToken) =>
-        set({ user, token, refreshToken, isAuthenticated: true }),
+      login: (user) => set({ user, isAuthenticated: true }),
 
-      setSessionTokens: (token, refreshToken) => set({ token, refreshToken }),
-
-      logout: () =>
-        set({ user: null, token: null, refreshToken: null, isAuthenticated: false }),
-
-      setToken: (token) => set({ token }),
+      logout: () => set({ user: null, isAuthenticated: false }),
     }),
     {
       name: 'edel-racing-auth',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
-        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
     },

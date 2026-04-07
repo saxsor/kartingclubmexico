@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Plus, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, FileText, Download } from 'lucide-react';
+import { downloadCsv } from '../../../lib/download';
 import { paymentsApi } from '../../../api/payments.api';
 import { eventsApi } from '../../../api/events.api';
 import { inscriptionsApi, type Inscription } from '../../../api/inscriptions.api';
@@ -152,7 +153,16 @@ export function CashBox() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-black text-white">Caja — {slug}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-black text-white">Caja — {slug}</h1>
+        <button
+          onClick={() => downloadCsv(`/api/events/${slug}/cashbox/export`, `${slug}-caja.csv`).catch(() => {})}
+          className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+          aria-label="Exportar caja a CSV"
+        >
+          <Download className="h-3.5 w-3.5" /> CSV
+        </button>
+      </div>
 
       {cashbox && (
         <div className="grid gap-4 sm:grid-cols-4">

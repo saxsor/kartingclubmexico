@@ -84,3 +84,36 @@ export async function deletePayment(req: Request, res: Response): Promise<void> 
   await prisma.payment.delete({ where: { id: req.params.paymentId } });
   res.status(204).send();
 }
+
+export async function exportCashBox(req: Request, res: Response): Promise<void> {
+  const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
+  if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+
+  const payments = await prisma.payment.findMany({
+    where: { inscription: { eventId: event.id } },
+    include: {
+      inscription: {
+        include: { pilot: { select: { name: true, alias: true, email: true } } },
+      },
+    },
+    orderBy: { paidAt: 'asc' },
+  });
+
+  const rows = [
+    '"Piloto","Alias","Email","Tipo","Monto","Notas","Registrado por","Fecha"',
+    ...payments.map((p) => [
+      `"${p.inscription.pilot.name}"`,
+      `"${p.inscription.pilot.alias ?? ''}"`,
+      `"${p.inscription.pilot.email ?? ''}"`,
+      `"${p.type}"`,
+      `"${Number(p.amount).toFixed(2)}"`,
+      `"${(p.notes ?? '').replace(/"/g, '""')}"`,
+      `"${p.createdBy ?? ''}"`,
+      `"${new Date(p.paidAt).toLocaleString('es-MX')}"`,
+    ].join(',')),
+  ].join('\n');
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${req.params.slug}-caja.csv"`);
+  res.send('\uFEFF' + rows);
+}

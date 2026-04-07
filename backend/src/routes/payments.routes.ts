@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
-import { getCashBox, addPayment, deletePayment } from '../controllers/payments.controller.js';
+import { getCashBox, addPayment, deletePayment, exportCashBox } from '../controllers/payments.controller.js';
 
 const router = Router({ mergeParams: true });
 
@@ -13,6 +13,7 @@ const paymentSchema = z.object({
 });
 
 router.get('/cashbox', authenticate, requireRole('ADMIN', 'ORGANIZER'), getCashBox);
+router.get('/cashbox/export', authenticate, requireRole('ADMIN', 'ORGANIZER'), exportCashBox);
 router.post('/inscriptions/:id/payments', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(paymentSchema), addPayment);
 router.delete('/payments/:paymentId', authenticate, requireRole('ADMIN'), deletePayment);
 

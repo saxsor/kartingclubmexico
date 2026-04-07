@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -113,7 +113,12 @@ export function Login() {
           </button>
         </div>
 
-        <p className="text-center text-xs text-white/20 mt-4 uppercase tracking-widest">
+        <div className="flex justify-center mt-4">
+          <Link to="/recuperar-contrasena" className="text-xs text-white/30 hover:text-white/60 transition-colors">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
+        <p className="text-center text-xs text-white/20 mt-2 uppercase tracking-widest">
           Solo acceso para organizadores autorizados
         </p>
       </div>

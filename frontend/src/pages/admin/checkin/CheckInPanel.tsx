@@ -152,8 +152,8 @@ export function CheckInPanel() {
                   </div>
                   <button
                     onClick={() => handleUndo(insc)}
+                    aria-label={`Deshacer check-in de ${insc.pilot.name}`}
                     className="text-white/30 hover:text-red-400 transition-colors"
-                    title="Deshacer check-in"
                   >
                     <X className="h-5 w-5" />
                   </button>

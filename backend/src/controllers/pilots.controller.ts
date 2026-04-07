@@ -126,3 +126,102 @@ export async function getPilotHistory(req: Request, res: Response): Promise<void
 
   res.json({ pilot, inscriptions, standings });
 }
+
+function parseCsvRow(line: string): string[] {
+  const fields: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if (ch === ',' && !inQuotes) {
+      fields.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  fields.push(current.trim());
+  return fields;
+}
+
+export async function importPilots(req: Request, res: Response): Promise<void> {
+  if (!req.file) { res.status(400).json({ error: 'No se recibió ningún archivo CSV' }); return; }
+
+  const text = req.file.buffer.toString('utf-8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = text.split('\n').filter((l) => l.trim());
+
+  if (lines.length < 2) { res.status(400).json({ error: 'El CSV debe tener encabezado y al menos una fila' }); return; }
+
+  // Detect header (first row), map columns by name
+  const header = parseCsvRow(lines[0]).map((h) => h.toLowerCase().replace(/[^a-z]/g, ''));
+  const colIdx = {
+    name: header.findIndex((h) => ['nombre', 'name'].includes(h)),
+    alias: header.findIndex((h) => ['alias', 'apodo'].includes(h)),
+    email: header.findIndex((h) => h === 'email' || h === 'correo'),
+    phone: header.findIndex((h) => ['telefono', 'phone', 'tel'].includes(h)),
+    kartNumber: header.findIndex((h) => ['kart', 'kartnumber', 'numero'].includes(h)),
+  };
+
+  if (colIdx.name === -1) {
+    res.status(400).json({ error: 'El CSV debe tener una columna "nombre" o "name"' });
+    return;
+  }
+
+  const dataRows = lines.slice(1);
+  const preview: { name: string; alias: string; email: string; phone: string; kartNumber: string; action: 'create' | 'update' }[] = [];
+
+  for (const line of dataRows) {
+    if (!line.trim()) continue;
+    const cols = parseCsvRow(line);
+    const name = cols[colIdx.name] ?? '';
+    if (!name) continue;
+    const alias = colIdx.alias >= 0 ? (cols[colIdx.alias] ?? '') : '';
+    const email = colIdx.email >= 0 ? (cols[colIdx.email] ?? '') : '';
+    const phone = colIdx.phone >= 0 ? (cols[colIdx.phone] ?? '') : '';
+    const kartNumber = colIdx.kartNumber >= 0 ? (cols[colIdx.kartNumber] ?? '') : '';
+
+    const existing = email ? await prisma.pilot.findFirst({ where: { email } }) : null;
+    preview.push({ name, alias, email, phone, kartNumber, action: existing ? 'update' : 'create' });
+  }
+
+  // If query param confirm=true, actually execute
+  if (req.query.confirm === 'true') {
+    let created = 0, updated = 0, errors = 0;
+    for (const row of preview) {
+      try {
+        const kart = row.kartNumber ? parseInt(row.kartNumber) : undefined;
+        const existing = row.email ? await prisma.pilot.findFirst({ where: { email: row.email } }) : null;
+        if (existing) {
+          await prisma.pilot.update({
+            where: { id: existing.id },
+            data: {
+              name: row.name,
+              alias: row.alias || existing.alias,
+              phone: row.phone || existing.phone,
+              kartNumber: kart ?? existing.kartNumber,
+            },
+          });
+          updated++;
+        } else {
+          await prisma.pilot.create({
+            data: {
+              name: row.name,
+              alias: row.alias || null,
+              email: row.email || null,
+              phone: row.phone || null,
+              kartNumber: kart ?? null,
+            },
+          });
+          created++;
+        }
+      } catch { errors++; }
+    }
+    res.json({ created, updated, errors, total: preview.length });
+    return;
+  }
+
+  res.json({ preview, total: preview.length });
+}

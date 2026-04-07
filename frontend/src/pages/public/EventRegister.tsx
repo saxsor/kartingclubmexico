@@ -6,6 +6,8 @@ import { eventsApi, Category } from '../../api/events.api';
 import { inscriptionsApi, SelfRegisterResponse } from '../../api/inscriptions.api';
 import { CATEGORY_LABELS, formatCurrency } from '../../lib/utils';
 import { queryKeys } from '../../lib/react-query';
+import { useFileUpload } from '../../hooks/useFileUpload';
+import { UploadProgress } from '../../components/shared/UploadProgress';
 
 const ALL_CATEGORIES: Category[] = [
   'SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS',
@@ -46,10 +48,7 @@ export function EventRegister() {
       notes?: string;
     }) => inscriptionsApi.selfRegister(slug!, payload),
   });
-  const uploadReceiptMutation = useMutation({
-    mutationFn: ({ inscriptionId, file }: { inscriptionId: string; file: File }) =>
-      inscriptionsApi.uploadReceipt(slug!, inscriptionId, file),
-  });
+  const receiptUpload = useFileUpload();
 
   const [form, setForm] = useState({
     name: '', alias: '', email: '', phone: '', kartNumber: '',
@@ -58,7 +57,6 @@ export function EventRegister() {
 
   const event = eventQuery.data ?? null;
   const loadingEvent = eventQuery.isLoading;
-  const uploadingReceipt = uploadReceiptMutation.isPending;
   const submitting = selfRegisterMutation.isPending;
 
   const activeCategories = event?.eventCategories.filter((c) => c.active).map((c) => c.category) ?? [];
@@ -88,7 +86,11 @@ export function EventRegister() {
     if (!slug || !registerResult || !receiptFile) return;
     setError('');
     try {
-      await uploadReceiptMutation.mutateAsync({ inscriptionId: registerResult.inscription.id, file: receiptFile });
+      await receiptUpload.upload({
+        url: `/api/events/${slug}/inscriptions/${registerResult.inscription.id}/receipt`,
+        field: 'receipt',
+        file: receiptFile,
+      });
       setReceiptUploaded(true);
       setStep('done');
     } catch (err) {
@@ -313,16 +315,23 @@ export function EventRegister() {
               </div>
             </label>
 
+            <UploadProgress
+              progress={receiptUpload.progress}
+              uploading={receiptUpload.uploading}
+              error={receiptUpload.error}
+              label="Subiendo comprobante..."
+            />
+
             {error && (
               <div className="border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
             )}
 
             <button
               onClick={handleUploadReceipt}
-              disabled={!receiptFile || uploadingReceipt}
+              disabled={!receiptFile || receiptUpload.uploading}
               className="w-full bg-[#e10600] hover:bg-[#b30500] py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50"
             >
-              {uploadingReceipt ? 'Subiendo...' : 'Enviar comprobante'}
+              {receiptUpload.uploading ? `Subiendo ${receiptUpload.progress}%...` : 'Enviar comprobante'}
             </button>
 
             <button

@@ -1,8 +1,6 @@
 import { api } from './client';
 
 export interface LoginResponse {
-  token: string;
-  refreshToken: string;
   user: { id: string; email: string; name: string; role: 'ADMIN' | 'ORGANIZER' };
 }
 

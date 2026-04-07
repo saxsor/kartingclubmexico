@@ -93,7 +93,7 @@ function SortableItem({ id, position, entry, onStatusChange, onAddPenalty }: Sor
         <button
           onClick={() => onAddPenalty(id)}
           className="text-white/30 hover:text-orange-400 transition-colors"
-          title="Añadir penalización"
+          aria-label="Añadir penalización"
         >
           <AlertTriangle className="h-4 w-4" />
         </button>

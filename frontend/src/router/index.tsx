@@ -11,6 +11,8 @@ import { EventResults } from '../pages/public/EventResults';
 import { Championship } from '../pages/public/Championship';
 import { PilotProfile } from '../pages/public/PilotProfile';
 import { Login } from '../pages/auth/Login';
+import { ForgotPassword } from '../pages/auth/ForgotPassword';
+import { ResetPassword } from '../pages/auth/ResetPassword';
 import { Dashboard } from '../pages/admin/Dashboard';
 import { PilotList } from '../pages/admin/pilots/PilotList';
 import { PilotForm } from '../pages/admin/pilots/PilotForm';
@@ -41,10 +43,9 @@ export const router = createBrowserRouter([
       { path: 'pilotos/:id', element: <PilotProfile /> },
     ],
   },
-  {
-    path: '/login',
-    element: <Login />,
-  },
+  { path: '/login', element: <Login /> },
+  { path: '/recuperar-contrasena', element: <ForgotPassword /> },
+  { path: '/recuperar-contrasena/:token', element: <ResetPassword /> },
   {
     path: '/app',
     element: <AdminLayout />,

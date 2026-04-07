@@ -1,33 +1,78 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Plus, X, Search } from 'lucide-react';
-import { inscriptionsApi } from '../../../api/inscriptions.api';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { Plus, X, Search, ClipboardList, Download } from 'lucide-react';
+import { downloadCsv } from '../../../lib/download';
+import { inscriptionsApi, InscriptionStatus } from '../../../api/inscriptions.api';
 import { pilotsApi } from '../../../api/pilots.api';
 import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
+import { EmptyState } from '../../../components/shared/EmptyState';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
 import { queryKeys } from '../../../lib/react-query';
+import { useDebounce } from '../../../hooks/useDebounce';
+
+const STATUS_LABELS: Record<InscriptionStatus, string> = {
+  PENDING_PAYMENT: 'Pago pendiente',
+  RECEIPT_SUBMITTED: 'Comprobante enviado',
+  PAID: 'Pagado',
+};
 
 export function InscriptionManager() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
+  const debouncedSearch = useDebounce(searchInput, 300);
   const [form, setForm] = useState({ pilotId: '', category: '' as Category | '', kartNumber: '', notes: '' });
   const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
+
+  const page = parseInt(searchParams.get('page') ?? '1', 10);
+  const statusFilter = searchParams.get('status') as InscriptionStatus | null;
+  const categoryFilter = searchParams.get('category') as Category | null;
+
+  const setFilter = (key: string, value: string | null) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value) {
+        next.set(key, value);
+      } else {
+        next.delete(key);
+      }
+      next.set('page', '1');
+      return next;
+    });
+  };
+
+  const setPage = (p: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('page', String(p));
+      return next;
+    });
+  };
+
   const eventQuery = useQuery({
     queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
     queryFn: () => eventsApi.get(slug!),
     enabled: !!slug,
   });
+
+  const listParams = {
+    page,
+    pageSize: 10,
+    search: debouncedSearch || undefined,
+    status: statusFilter ?? undefined,
+    category: categoryFilter ?? undefined,
+  };
+
   const inscriptionsQuery = useQuery({
-    queryKey: slug ? queryKeys.inscriptions.list(slug, { page, pageSize: 10, search }) : ['inscriptions', 'list', 'missing'],
-    queryFn: () => inscriptionsApi.list(slug!, { page, pageSize: 10, search }),
+    queryKey: slug ? queryKeys.inscriptions.list(slug, listParams) : ['inscriptions', 'list', 'missing'],
+    queryFn: () => inscriptionsApi.list(slug!, listParams),
     enabled: !!slug,
   });
   const pilotsQuery = useQuery({
@@ -67,26 +112,36 @@ export function InscriptionManager() {
   };
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
+  const hasFilters = !!(debouncedSearch || statusFilter || categoryFilter);
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-xl font-black text-white">Inscripciones — {event?.name}</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
-        >
-          <Plus className="h-4 w-4" /> Inscribir piloto
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => downloadCsv(`/api/events/${slug}/inscriptions/export`, `${slug}-inscripciones.csv`).catch(() => {})}
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+            aria-label="Exportar inscripciones a CSV"
+          >
+            <Download className="h-3.5 w-3.5" /> CSV
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+          >
+            <Plus className="h-4 w-4" /> Inscribir piloto
+          </button>
+        </div>
       </div>
 
       {showForm && (
         <form onSubmit={handleCreate} className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-white">Nueva inscripción</h2>
-            <button type="button" onClick={() => setShowForm(false)}>
+            <button type="button" onClick={() => setShowForm(false)} aria-label="Cerrar formulario">
               <X className="h-5 w-5 text-white/40 hover:text-white" />
             </button>
           </div>
@@ -145,18 +200,52 @@ export function InscriptionManager() {
         </form>
       )}
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Buscar inscripciones..."
-          className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
-        />
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-48">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              setFilter('search', e.target.value || null);
+            }}
+            placeholder="Buscar piloto..."
+            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+          />
+        </div>
+        <select
+          value={statusFilter ?? ''}
+          onChange={(e) => setFilter('status', e.target.value || null)}
+          className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+        >
+          <option value="">Todos los estados</option>
+          {(Object.keys(STATUS_LABELS) as InscriptionStatus[]).map((s) => (
+            <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+          ))}
+        </select>
+        <select
+          value={categoryFilter ?? ''}
+          onChange={(e) => setFilter('category', e.target.value || null)}
+          className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+        >
+          <option value="">Todas las categorías</option>
+          {activeCategories.map((c) => (
+            <option key={c.id} value={c.category}>{CATEGORY_LABELS[c.category]}</option>
+          ))}
+        </select>
+        {hasFilters && (
+          <button
+            onClick={() => {
+              setSearchInput('');
+              setSearchParams({});
+            }}
+            className="text-xs text-white/40 hover:text-white transition-colors flex items-center gap-1"
+          >
+            <X className="h-3.5 w-3.5" /> Limpiar
+          </button>
+        )}
       </div>
 
       <div className="rounded-xl border border-white/10 overflow-x-auto">
@@ -194,7 +283,15 @@ export function InscriptionManager() {
           </tbody>
         </table>
         {inscriptions.length === 0 && (
-          <div className="text-center py-8 text-white/40">No hay inscripciones</div>
+          <EmptyState
+            icon={ClipboardList}
+            title={hasFilters ? 'Sin resultados' : 'Sin inscripciones'}
+            description={
+              hasFilters
+                ? 'No hay inscripciones con los filtros seleccionados.'
+                : 'Aún no hay pilotos inscritos en este evento.'
+            }
+          />
         )}
       </div>
 

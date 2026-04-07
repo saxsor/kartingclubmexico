@@ -7,12 +7,16 @@ import { toast } from '../../../store/toast.store';
 import { formatDate } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
+import { ConfirmDialog } from '../../../components/shared/ConfirmDialog';
+import { EmptyState } from '../../../components/shared/EmptyState';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
 import { queryKeys } from '../../../lib/react-query';
+import { Flag } from 'lucide-react';
 
 export function EventList() {
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmEvent, setConfirmEvent] = useState<KartEvent | null>(null);
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
   const listParams = { page, pageSize: 10 };
@@ -31,11 +35,14 @@ export function EventList() {
   const pagination = eventsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
   const loading = eventsQuery.isLoading;
 
-  const handleDelete = async (event: KartEvent) => {
-    if (!confirm(`¿Eliminar el evento "${event.name}"? Esta acción eliminará también todas sus inscripciones, carreras y resultados. No se puede deshacer.`)) return;
-    setDeleting(event.slug);
+  const handleDelete = (event: KartEvent) => setConfirmEvent(event);
+
+  const confirmDelete = async () => {
+    if (!confirmEvent) return;
+    setDeleting(confirmEvent.slug);
+    setConfirmEvent(null);
     try {
-      await deleteMutation.mutateAsync(event.slug);
+      await deleteMutation.mutateAsync(confirmEvent.slug);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al eliminar');
     } finally {
@@ -61,6 +68,13 @@ export function EventList() {
 
       {loading ? (
         <div className="text-center py-10 text-white/40">Cargando...</div>
+      ) : events.length === 0 ? (
+        <EmptyState
+          icon={Flag}
+          title="Sin eventos aún"
+          description="Crea el primer evento de la temporada para comenzar a gestionar inscripciones y carreras."
+          action={{ label: 'Crear evento', href: '/app/eventos/nuevo' }}
+        />
       ) : (
         <div className="space-y-3">
           {events.map((event) => (
@@ -94,6 +108,7 @@ export function EventList() {
                   <button
                     onClick={() => handleDelete(event)}
                     disabled={deleting === event.slug}
+                    aria-label={`Eliminar evento ${event.name}`}
                     className="rounded-lg border border-red-500/30 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -102,9 +117,6 @@ export function EventList() {
               </div>
             </div>
           ))}
-          {events.length === 0 && (
-            <div className="text-center py-12 text-white/40">No hay eventos. Crea el primero.</div>
-          )}
         </div>
       )}
 
@@ -114,6 +126,16 @@ export function EventList() {
         total={pagination.total}
         itemLabel="eventos"
         onPageChange={setPage}
+      />
+
+      <ConfirmDialog
+        open={!!confirmEvent}
+        title="Eliminar evento"
+        description={`¿Eliminar "${confirmEvent?.name}"? Se borrarán todas sus inscripciones, carreras y resultados. No se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmEvent(null)}
+        variant="danger"
       />
     </div>
   );

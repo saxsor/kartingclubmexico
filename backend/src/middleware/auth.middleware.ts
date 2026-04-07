@@ -20,13 +20,13 @@ declare global {
 }
 
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const token = req.cookies?.access_token;
+
+  if (!token) {
     res.status(401).json({ error: 'No autorizado' });
     return;
   }
 
-  const token = authHeader.substring(7);
   try {
     const payload = jwt.verify(token, config.JWT_SECRET) as JwtPayload;
     if (payload.tokenType !== 'access') {

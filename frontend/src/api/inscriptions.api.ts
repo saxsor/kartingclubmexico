@@ -1,7 +1,11 @@
 import { api } from './client';
-import { useAuthStore } from '../store/auth.store';
 import { Category } from './events.api';
 import { buildPaginationQuery, PaginatedResponse, PaginationParams } from './pagination';
+
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return match ? match[1] : null;
+}
 
 export type InscriptionStatus = 'PENDING_PAYMENT' | 'RECEIPT_SUBMITTED' | 'PAID';
 
@@ -58,14 +62,15 @@ export interface SelfRegisterResponse {
 }
 
 function uploadReceiptFetch(slug: string, id: string, file: File): Promise<Inscription> {
-  const token = useAuthStore.getState().token;
   const formData = new FormData();
   formData.append('receipt', file);
+  const csrf = getCsrfToken();
   const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (csrf) headers['X-CSRF-Token'] = csrf;
   return fetch(`/api/events/${slug}/inscriptions/${id}/receipt`, {
     method: 'POST',
     headers,
+    credentials: 'include',
     body: formData,
   }).then(async (res) => {
     if (!res.ok) {

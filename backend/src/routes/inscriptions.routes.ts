@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import {
-  listInscriptions, createInscription, getInscription, updateInscription, deleteInscription,
+  listInscriptions, createInscription, getInscription, updateInscription, deleteInscription, exportInscriptions,
 } from '../controllers/inscriptions.controller.js';
 
 const router = Router({ mergeParams: true });
@@ -25,6 +25,7 @@ const updateSchema = z.object({
 });
 
 router.use(authenticate, requireRole('ADMIN', 'ORGANIZER'));
+router.get('/export', exportInscriptions);
 router.get('/', listInscriptions);
 router.post('/', validate(createSchema), createInscription);
 router.get('/:id', getInscription);

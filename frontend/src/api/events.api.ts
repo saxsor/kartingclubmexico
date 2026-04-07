@@ -1,6 +1,10 @@
 import { api } from './client';
-import { useAuthStore } from '../store/auth.store';
 import { buildPaginationQuery, PaginatedResponse, PaginationParams } from './pagination';
+
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return match ? match[1] : null;
+}
 
 export type EventStatus = 'DRAFT' | 'OPEN' | 'IN_PROGRESS' | 'FINISHED';
 export type Category = 'SHIFTER' | 'DOS_TIEMPOS' | 'FORMULA_MUNDIAL' | 'NUEVE_HP' | 'ROOKIES' | 'MINIS';
@@ -38,12 +42,13 @@ export const eventsApi = {
   update: (slug: string, data: unknown) => api.put<KartEvent>(`/events/${slug}`, data),
   delete: (slug: string) => api.delete<void>(`/events/${slug}`),
   uploadPoster: (slug: string, file: File) => {
-    const token = useAuthStore.getState().token;
     const fd = new FormData();
     fd.append('poster', file);
+    const csrf = getCsrfToken();
     return fetch(`/api/events/${slug}/poster`, {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      headers: csrf ? { 'X-CSRF-Token': csrf } : {},
+      credentials: 'include',
       body: fd,
     }).then(async (r) => {
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error ?? 'Error al subir poster'); }

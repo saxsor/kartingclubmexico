@@ -1,20 +1,105 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Trash2, User } from 'lucide-react';
+import { Plus, Search, Trash2, Upload, User, Users, X } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../../api/pilots.api';
 import { toast } from '../../../store/toast.store';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
+import { ConfirmDialog } from '../../../components/shared/ConfirmDialog';
+import { EmptyState } from '../../../components/shared/EmptyState';
 import { queryKeys } from '../../../lib/react-query';
 import { resolveMediaUrl } from '../../../lib/utils';
+import { useDebounce } from '../../../hooks/useDebounce';
+
+interface ImportPreviewRow {
+  name: string;
+  alias?: string;
+  email?: string;
+  phone?: string;
+  kartNumber?: number;
+  action: 'create' | 'update';
+}
+
+interface ImportResult {
+  created: number;
+  updated: number;
+  errors: number;
+  total: number;
+}
+
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return match ? match[1] : null;
+}
 
 export function PilotList() {
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
-  const listParams = { page, pageSize: 10, search };
+
+  // CSV import state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingFileRef = useRef<File | null>(null);
+  const [importPreview, setImportPreview] = useState<ImportPreviewRow[] | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importConfirming, setImportConfirming] = useState(false);
+
+  const handleImportFile = async (file: File) => {
+    pendingFileRef.current = file;
+    setImportLoading(true);
+    setImportPreview(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const csrf = getCsrfToken();
+      const res = await fetch('/api/pilots/import', {
+        method: 'POST',
+        headers: csrf ? { 'X-CSRF-Token': csrf } : {},
+        credentials: 'include',
+        body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? 'Error al procesar CSV');
+      setImportPreview(data.preview ?? []);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al importar');
+    } finally {
+      setImportLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    if (!importPreview) return;
+    setImportConfirming(true);
+    try {
+      const fd = new FormData();
+      if (!pendingFileRef.current) return;
+      fd.append('file', pendingFileRef.current);
+      const csrf = getCsrfToken();
+      const res = await fetch('/api/pilots/import?confirm=true', {
+        method: 'POST',
+        headers: csrf ? { 'X-CSRF-Token': csrf } : {},
+        credentials: 'include',
+        body: fd,
+      });
+      const data: ImportResult = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as unknown as { error?: string }).error ?? 'Error al confirmar importación');
+      toast.success(`Importación completada: ${data.created} creados, ${data.updated} actualizados${data.errors > 0 ? `, ${data.errors} errores` : ''}`);
+      setImportPreview(null);
+      pendingFileRef.current = null;
+      queryClient.invalidateQueries({ queryKey: queryKeys.pilots.all });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al confirmar');
+    } finally {
+      setImportConfirming(false);
+    }
+  };
+
+  const listParams = { page, pageSize: 10, search: debouncedSearch };
   const pilotsQuery = useQuery({
     queryKey: queryKeys.pilots.list(listParams),
     queryFn: () => pilotsApi.list(listParams),
@@ -30,11 +115,18 @@ export function PilotList() {
   const pagination = pilotsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
   const loading = pilotsQuery.isLoading;
 
+  const [confirmPilot, setConfirmPilot] = useState<Pilot | null>(null);
+
   const handleDelete = async (pilot: Pilot) => {
-    if (!confirm(`¿Eliminar al piloto "${pilot.name}"?`)) return;
-    setDeleting(pilot.id);
+    setConfirmPilot(pilot);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmPilot) return;
+    setDeleting(confirmPilot.id);
+    setConfirmPilot(null);
     try {
-      await deleteMutation.mutateAsync(pilot.id);
+      await deleteMutation.mutateAsync(confirmPilot.id);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al eliminar');
     } finally {
@@ -44,19 +136,120 @@ export function PilotList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-white">Pilotos</h1>
           <p className="text-white/50 text-sm mt-1">{pagination.total} pilotos registrados</p>
         </div>
-        <Link
-          to="/app/pilotos/nuevo"
-          className="flex items-center gap-2 bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-sm font-bold uppercase tracking-wider text-white transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Nuevo piloto
-        </Link>
+        <div className="flex gap-2">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 border border-white/10 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-white/10 transition-colors"
+            aria-label="Importar pilotos desde CSV"
+          >
+            <Upload className="h-3.5 w-3.5" /> CSV
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImportFile(file);
+            }}
+          />
+          <Link
+            to="/app/pilotos/nuevo"
+            className="flex items-center gap-2 bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-sm font-bold uppercase tracking-wider text-white transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo piloto
+          </Link>
+        </div>
       </div>
+
+      {/* CSV Import Preview Panel */}
+      {(importLoading || importPreview !== null) && (
+        <div className="border border-white/10 bg-white/5 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-white text-sm uppercase tracking-wider">
+              {importLoading ? 'Procesando CSV...' : `Vista previa — ${importPreview?.length ?? 0} pilotos`}
+            </h2>
+            {!importLoading && (
+              <button
+                onClick={() => { setImportPreview(null); pendingFileRef.current = null; }}
+                aria-label="Cerrar vista previa"
+                className="text-white/30 hover:text-white transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          {importLoading && (
+            <div className="text-center py-6 text-white/40 text-sm">Analizando archivo...</div>
+          )}
+
+          {!importLoading && importPreview !== null && (
+            <>
+              {importPreview.length === 0 ? (
+                <p className="text-sm text-white/40">El archivo no contiene filas válidas.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[480px] text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="pb-2 text-left text-[10px] font-bold uppercase tracking-wider text-white/40">Nombre</th>
+                        <th className="pb-2 text-left text-[10px] font-bold uppercase tracking-wider text-white/40 hidden sm:table-cell">Alias</th>
+                        <th className="pb-2 text-left text-[10px] font-bold uppercase tracking-wider text-white/40 hidden md:table-cell">Email</th>
+                        <th className="pb-2 text-center text-[10px] font-bold uppercase tracking-wider text-white/40">Kart</th>
+                        <th className="pb-2 text-center text-[10px] font-bold uppercase tracking-wider text-white/40">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importPreview.map((row, i) => (
+                        <tr key={i} className="border-b border-white/5">
+                          <td className="py-2 pr-3 text-white font-medium">{row.name}</td>
+                          <td className="py-2 pr-3 text-white/50 hidden sm:table-cell">{row.alias ?? '—'}</td>
+                          <td className="py-2 pr-3 text-white/50 hidden md:table-cell">{row.email ?? '—'}</td>
+                          <td className="py-2 text-center font-mono text-white/50">{row.kartNumber ?? '—'}</td>
+                          <td className="py-2 text-center">
+                            <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                              row.action === 'create'
+                                ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                                : 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                            }`}>
+                              {row.action === 'create' ? 'Crear' : 'Actualizar'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {importPreview.length > 0 && (
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleConfirmImport}
+                    disabled={importConfirming}
+                    className="bg-[#e10600] hover:bg-[#b30500] disabled:opacity-50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors"
+                  >
+                    {importConfirming ? 'Importando...' : `Confirmar importación (${importPreview.length})`}
+                  </button>
+                  <button
+                    onClick={() => { setImportPreview(null); pendingFileRef.current = null; }}
+                    className="border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/50 hover:bg-white/10 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
@@ -127,6 +320,7 @@ export function PilotList() {
                       <button
                         onClick={() => handleDelete(pilot)}
                         disabled={deleting === pilot.id}
+                        aria-label={`Eliminar piloto ${pilot.name}`}
                         className="text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -137,10 +331,21 @@ export function PilotList() {
               ))}
             </tbody>
           </table>
-          {pilots.length === 0 && (
-            <div className="text-center py-8 text-white/40 text-sm uppercase tracking-widest">
-              No se encontraron pilotos
-            </div>
+          {pilots.length === 0 && !loading && (
+            <EmptyState
+              icon={Users}
+              title={debouncedSearch ? 'Sin resultados' : 'Sin pilotos'}
+              description={
+                debouncedSearch
+                  ? `No se encontró ningún piloto con "${debouncedSearch}".`
+                  : 'Agrega el primer piloto para comenzar.'
+              }
+              action={
+                !debouncedSearch
+                  ? { label: 'Agregar piloto', href: '/app/pilotos/nuevo' }
+                  : undefined
+              }
+            />
           )}
         </div>
       )}
@@ -151,6 +356,16 @@ export function PilotList() {
         total={pagination.total}
         itemLabel="pilotos"
         onPageChange={setPage}
+      />
+
+      <ConfirmDialog
+        open={!!confirmPilot}
+        title="Eliminar piloto"
+        description={`¿Seguro que quieres eliminar a "${confirmPilot?.name}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmPilot(null)}
+        variant="danger"
       />
     </div>
   );

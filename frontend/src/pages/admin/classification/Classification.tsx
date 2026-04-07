@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import { resultsApi } from '../../../api/results.api';
+import { downloadCsv } from '../../../lib/download';
 import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { PointsTable } from '../../../components/shared/PointsTable';
@@ -43,22 +44,20 @@ export function Classification() {
         <h1 className="text-xl font-black text-white">Clasificación — {event?.name}</h1>
         {selectedCat && slug && (
           <div className="flex gap-2">
-            <a
-              href={resultsApi.exportUrl(slug, 'csv', selectedCat)}
-              download
+            <button
+              onClick={() => downloadCsv(resultsApi.exportUrl(slug, 'csv', selectedCat), `${slug}-${selectedCat}-resultados.csv`).catch(() => {})}
               className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 transition-colors"
+              aria-label="Exportar resultados a CSV"
             >
-              <Download className="h-3.5 w-3.5" />
-              CSV
-            </a>
-            <a
-              href={resultsApi.exportUrl(slug, 'pdf', selectedCat)}
-              download
+              <Download className="h-3.5 w-3.5" /> CSV
+            </button>
+            <button
+              onClick={() => { window.open(resultsApi.exportUrl(slug, 'pdf', selectedCat), '_blank'); }}
               className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 transition-colors"
+              aria-label="Exportar resultados a PDF"
             >
-              <Download className="h-3.5 w-3.5" />
-              PDF
-            </a>
+              <Download className="h-3.5 w-3.5" /> PDF
+            </button>
           </div>
         )}
       </div>

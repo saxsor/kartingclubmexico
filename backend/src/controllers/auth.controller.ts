@@ -40,13 +40,17 @@ function setCookies(res: Response, accessToken: string, refreshToken: string): v
     path: '/api/auth',
   });
 
-  // Non-httpOnly CSRF token so the frontend can read it and send as X-CSRF-Token header
+  // Non-httpOnly CSRF token so the frontend can read it and send as X-CSRF-Token header.
+  // Lifetime matches the refresh token — the value rotates on every token refresh,
+  // so there's no security benefit to expiring it with the short-lived access token.
+  // Using ACCESS_TOKEN_MAX_AGE here caused 403s: the csrf cookie expired while the
+  // refresh token was still valid, and the CSRF check runs before auth (so no 401 retry).
   const csrfToken = crypto.randomBytes(32).toString('hex');
   res.cookie('csrf_token', csrfToken, {
     httpOnly: false,
     sameSite: 'lax',
     secure: isProduction,
-    maxAge: ACCESS_TOKEN_MAX_AGE,
+    maxAge: REFRESH_TOKEN_MAX_AGE,
     path: '/',
   });
 }

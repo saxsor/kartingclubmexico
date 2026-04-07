@@ -5,8 +5,8 @@ Sistema completo de gestión de carreras de karting con resultados en tiempo rea
 ## Stack
 
 - **Backend**: Node.js + Express + TypeScript + Prisma + PostgreSQL
-- **Frontend**: React + TypeScript + Vite + Tailwind CSS
-- **Auth**: JWT con roles ADMIN / ORGANIZER
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS + PWA
+- **Auth**: JWT con roles ADMIN / ORGANIZER / VALIDATOR, doble cookie (access + refresh)
 - **Realtime**: Server-Sent Events (SSE)
 - **Deploy**: Docker + docker-compose + Nginx
 
@@ -41,6 +41,7 @@ nano .env
 
 Variables obligatorias:
 - `JWT_SECRET` — genera uno seguro: `openssl rand -base64 32`
+- `JWT_REFRESH_SECRET` — genera uno distinto: `openssl rand -base64 32`
 - `CORS_ORIGIN` — tu dominio: `https://tudominio.com`
 - `DATABASE_URL` — se configura automáticamente con Docker Compose
 
@@ -50,13 +51,9 @@ Variables obligatorias:
 docker compose up -d --build
 ```
 
-### 4. Inicializar la base de datos
+Las migraciones de base de datos se aplican automáticamente al arrancar el backend.
 
-```bash
-docker compose exec backend npx prisma db push
-```
-
-### 5. Cargar datos de prueba (seed)
+### 4. Cargar datos de prueba (seed)
 
 ```bash
 docker compose run --rm \
@@ -90,7 +87,8 @@ docker compose exec nginx nginx -s reload
 | `/eventos/:slug/inscribirse` | Formulario de auto-inscripción para pilotos |
 | `/campeonato` | Tabla de campeonato acumulado |
 | `/login` | Login administradores |
-| `/app/dashboard` | Panel de administración |
+| `/app/dashboard` | Panel de administración (ADMIN / ORGANIZER) |
+| `/app/eventos` | Listado de eventos (todos los roles) |
 | `/api/` | API REST |
 | `/uploads/receipts/` | Comprobantes de pago subidos |
 
@@ -111,42 +109,59 @@ docker compose exec nginx nginx -s reload
 
 ### Desde el panel de administración
 
-1. **Crear evento** — nombre, fecha, categorías activas, cuota de servicio, cuota de alimentos y datos de transferencia bancaria para pagos
+1. **Crear evento** — nombre, fecha, pista/circuito, categorías activas, cuota de servicio, cuota de alimentos y datos de transferencia bancaria
 2. **Abrir inscripciones** — cambiar status a `OPEN` para activar el formulario público
-3. **Inscribir pilotos** — manualmente desde *Gestionar → Inscripciones*, o esperar auto-inscripciones del público
-4. **Caja** — revisar y aprobar comprobantes de pago enviados por los pilotos; también registrar pagos manuales
+3. **Inscribir pilotos** — manualmente desde *Gestionar → Inscripciones* (con número de acompañantes para comida), o esperar auto-inscripciones del público
+4. **Caja** — revisar y aprobar comprobantes de pago enviados por pilotos; registrar pagos manuales; eliminar pagos incorrectos (revierte el estado a pendiente automáticamente)
 5. **Check-in** — confirmar llegada y asignar número de kart
 6. **Sorteo de parrilla** — aleatorio entre pilotos con check-in completado
-7. **Carreras** — crear 3 carreras por categoría, capturar posiciones con drag-and-drop
+7. **Carreras** — generar 3 carreras por categoría con un clic (se pueden agregar más o eliminar carreras pendientes); capturar posiciones con drag-and-drop
 8. **Clasificación** — ver tabla de puntos y exportar resultados (PDF/CSV)
 9. **Finalizar** — cambiar status a `FINISHED`
 
 ### Flujo de auto-inscripción (pilotos sin login)
 
 1. El piloto entra al evento público → botón **"Inscribirme"** (visible solo si el evento está `OPEN`)
-2. Llena el formulario: nombre, alias, email, teléfono, número de kart preferido, categoría
+2. Llena el formulario: nombre, alias, email, teléfono, número de kart preferido, categoría, número de acompañantes (para cuota de alimentos)
 3. El sistema crea o actualiza su perfil de piloto (identificado por email) y genera la inscripción
-4. Se muestran los **datos bancarios** para hacer la transferencia y el monto a pagar
+4. Se muestran los **datos bancarios** para hacer la transferencia y el monto a pagar (cuota de servicio + cuota de alimentos × (piloto + acompañantes))
 5. El piloto **sube su comprobante** de pago (JPG, PNG o PDF, máx. 10 MB) → inscripción queda en estado *Recibo enviado*
 6. El admin/organizador ve los comprobantes pendientes en **Caja** y los **Aprueba** o **Rechaza**
-7. Al aprobar, la inscripción pasa a *Pagada* y se registra el pago automáticamente
+7. Al aprobar, la inscripción pasa a *Pagada* y se registran los pagos automáticamente
 
 ---
 
 ## Roles y permisos
 
-| Acción | ADMIN | ORGANIZER |
-|--------|-------|-----------|
-| Crear / editar / eliminar eventos | ✓ | — |
-| Crear / editar / eliminar pilotos | ✓ | — |
-| Gestionar usuarios | ✓ | — |
-| Inscribir pilotos | ✓ | ✓ |
-| Aprobar / rechazar comprobantes | ✓ | ✓ |
-| Registrar pagos manuales | ✓ | ✓ |
-| Check-in | ✓ | ✓ |
-| Sorteo de parrilla | ✓ | ✓ |
-| Capturar resultados de carreras | ✓ | ✓ |
-| Ver panel público | todos | todos |
+| Acción | ADMIN | ORGANIZER | VALIDATOR |
+|--------|:-----:|:---------:|:---------:|
+| Crear / editar / eliminar eventos | ✓ | — | — |
+| Crear / editar / eliminar pilotos | ✓ | — | — |
+| Gestionar usuarios | ✓ | — | — |
+| Ver dashboard de recaudación | ✓ | ✓ | — |
+| Inscribir pilotos | ✓ | ✓ | ✓ |
+| Ver listado de inscripciones | ✓ | ✓ | ✓ |
+| Aprobar / rechazar comprobantes | ✓ | ✓ | — |
+| Registrar pagos manuales | ✓ | ✓ | ✓ |
+| Ver caja | ✓ | ✓ | ✓ |
+| Eliminar pagos | ✓ | — | — |
+| Check-in | ✓ | ✓ | ✓ |
+| Sorteo de parrilla | ✓ | ✓ | — |
+| Capturar resultados de carreras | ✓ | ✓ | — |
+| Ver clasificación | ✓ | ✓ | — |
+| Ver panel público | todos | todos | todos |
+
+> El rol **VALIDATOR** está pensado para organizadores en pit lane durante el evento: pueden hacer check-in, inscribir pilotos de último momento y registrar pagos en efectivo, pero no tienen acceso a configuración, finanzas ni resultados.
+
+---
+
+## Cuota de alimentos con acompañantes
+
+La cuota de alimentos se calcula por persona: `foodFee × (1 piloto + N acompañantes)`.
+
+- En la auto-inscripción pública, el piloto elige cuántos acompañantes lleva
+- En inscripción manual desde el panel, el campo "Acompañantes" está en el formulario de nueva inscripción
+- La caja muestra el desglose y el saldo correcto por piloto
 
 ---
 
@@ -186,12 +201,15 @@ La clasificación del evento suma las 3 carreras por piloto por categoría. Dese
 edel-racing/
 ├── backend/
 │   ├── prisma/
-│   │   └── schema.prisma          Modelos de base de datos
+│   │   ├── schema.prisma              Modelos de base de datos
+│   │   └── migrations/                Migraciones SQL (se aplican automáticamente)
 │   └── src/
 │       ├── controllers/
 │       │   ├── events.controller.ts
 │       │   ├── inscriptions.controller.ts
+│       │   ├── payments.controller.ts
 │       │   ├── pilots.controller.ts
+│       │   ├── races.controller.ts
 │       │   ├── self-register.controller.ts   ← Auto-inscripción pública
 │       │   └── ...
 │       ├── lib/
@@ -205,13 +223,14 @@ edel-racing/
 │       ├── api/
 │       ├── pages/
 │       │   ├── admin/
-│       │   │   ├── events/        Gestión de eventos (crear, editar, eliminar)
-│       │   │   ├── pilots/        Gestión de pilotos (crear, editar, eliminar)
+│       │   │   ├── events/        Gestión de eventos (crear, editar, hub por evento)
+│       │   │   ├── pilots/        Gestión de pilotos
 │       │   │   ├── payments/      Caja + aprobación de comprobantes
-│       │   │   ├── checkin/
-│       │   │   ├── grid/
-│       │   │   ├── races/
-│       │   │   └── classification/
+│       │   │   ├── checkin/       Check-in con búsqueda por nombre/kart
+│       │   │   ├── grid/          Sorteo de parrilla
+│       │   │   ├── races/         Control de carreras y captura de resultados
+│       │   │   ├── classification/ Clasificación y exportación
+│       │   │   └── users/         Gestión de usuarios (ADMIN only)
 │       │   └── public/
 │       │       ├── EventRegister.tsx         ← Formulario auto-inscripción
 │       │       └── ...
@@ -244,11 +263,10 @@ docker compose exec postgres pg_dump -U postgres edel_racing > backup_$(date +%Y
 cat backup.sql | docker compose exec -T postgres psql -U postgres edel_racing
 
 # Acceder a Prisma Studio (explorador visual de BD)
-docker compose exec backend npx prisma studio --port 5555
-# Exponer el puerto: docker compose exec -p 5555:5555 backend npx prisma studio
+docker compose exec -p 5555:5555 backend npx prisma studio --port 5555
 
-# Aplicar cambios de schema sin migraciones
-docker compose exec backend npx prisma db push
+# Aplicar migraciones manualmente (normalmente automático al arrancar)
+docker compose exec backend npx prisma migrate deploy
 ```
 
 ---
@@ -261,7 +279,8 @@ DATABASE_URL=postgresql://postgres:password@postgres:5432/edel_racing
 
 # JWT — genera con: openssl rand -base64 32
 JWT_SECRET=cambia_esto_en_produccion
-JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=cambia_esto_tambien_en_produccion
+JWT_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=30d
 
 # Servidor

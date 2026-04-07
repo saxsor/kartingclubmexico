@@ -24,12 +24,12 @@ const updateSchema = z.object({
   status: z.enum(['PENDING_PAYMENT', 'PAID']).optional(),
 });
 
-router.use(authenticate, requireRole('ADMIN', 'ORGANIZER'));
-router.get('/export', exportInscriptions);
-router.get('/', listInscriptions);
-router.post('/', validate(createSchema), createInscription);
-router.get('/:id', getInscription);
-router.put('/:id', validate(updateSchema), updateInscription);
+// VALIDATOR can list, view and create inscriptions, but not edit or delete
+router.get('/export', authenticate, requireRole('ADMIN', 'ORGANIZER'), exportInscriptions);
+router.get('/', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), listInscriptions);
+router.post('/', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), validate(createSchema), createInscription);
+router.get('/:id', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), getInscription);
+router.put('/:id', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(updateSchema), updateInscription);
 router.delete('/:id', authenticate, requireRole('ADMIN'), deleteInscription);
 
 export default router;

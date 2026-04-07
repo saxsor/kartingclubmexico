@@ -11,9 +11,9 @@ const actions = [
   { label: 'Inscripciones', to: 'inscripciones', icon: ClipboardList, description: 'Gestionar inscripciones de pilotos' },
   { label: 'Caja', to: 'caja', icon: DollarSign, description: 'Control de pagos y cobros' },
   { label: 'Check-in', to: 'checkin', icon: CheckSquare, description: 'Confirmación de llegada' },
-  { label: 'Parrilla', to: 'parrilla', icon: Shuffle, description: 'Sorteo de parrilla de salida' },
-  { label: 'Carreras', to: 'carreras', icon: Flag, description: 'Control de carreras y tiempos' },
-  { label: 'Clasificación', to: 'clasificacion', icon: BarChart2, description: 'Resultados y clasificación' },
+  { label: 'Parrilla', to: 'parrilla', icon: Shuffle, description: 'Sorteo de parrilla de salida', adminOnly: true },
+  { label: 'Carreras', to: 'carreras', icon: Flag, description: 'Control de carreras y tiempos', adminOnly: true },
+  { label: 'Clasificación', to: 'clasificacion', icon: BarChart2, description: 'Resultados y clasificación', adminOnly: true },
 ];
 
 export function EventHub() {
@@ -65,8 +65,8 @@ export function EventHub() {
         </div>
       </div>
 
-      {/* Quick status change */}
-      <div className="flex flex-wrap gap-2">
+      {/* Quick status change — hidden for VALIDATOR */}
+      {user?.role !== 'VALIDATOR' && <div className="flex flex-wrap gap-2">
         {(['DRAFT', 'OPEN', 'IN_PROGRESS', 'FINISHED'] as const).map((s) => (
           <button
             key={s}
@@ -83,10 +83,10 @@ export function EventHub() {
             {s === 'DRAFT' ? 'Borrador' : s === 'OPEN' ? 'Abrir' : s === 'IN_PROGRESS' ? 'Iniciar' : 'Finalizar'}
           </button>
         ))}
-      </div>
+      </div>}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {actions.map((action) => (
+        {actions.filter((a) => !a.adminOnly || user?.role !== 'VALIDATOR').map((action) => (
           <Link
             key={action.to}
             to={`/app/eventos/${slug}/${action.to}`}

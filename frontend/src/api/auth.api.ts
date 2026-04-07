@@ -1,7 +1,7 @@
 import { api } from './client';
 
 export interface LoginResponse {
-  user: { id: string; email: string; name: string; role: 'ADMIN' | 'ORGANIZER' };
+  user: { id: string; email: string; name: string; role: 'ADMIN' | 'ORGANIZER' | 'VALIDATOR' };
 }
 
 export const authApi = {

@@ -12,14 +12,14 @@ const createSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   name: z.string().min(2),
-  role: z.enum(['ADMIN', 'ORGANIZER']).default('ORGANIZER'),
+  role: z.enum(['ADMIN', 'ORGANIZER', 'VALIDATOR']).default('ORGANIZER'),
 });
 
 const updateSchema = z.object({
   email: z.string().email().optional(),
   password: z.string().min(8).optional(),
   name: z.string().min(2).optional(),
-  role: z.enum(['ADMIN', 'ORGANIZER']).optional(),
+  role: z.enum(['ADMIN', 'ORGANIZER', 'VALIDATOR']).optional(),
 }).partial();
 
 const activeSchema = z.object({ active: z.boolean() });

@@ -29,6 +29,12 @@ services:
       - internal
     volumes:
       - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health | grep -q '\"db\":\"ok\"'"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   frontend:
     build:
@@ -49,8 +55,10 @@ services:
       - nginx_certs:/etc/letsencrypt
       - nginx_certs_www:/var/www/certbot
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
     networks:
       - internal
       - external

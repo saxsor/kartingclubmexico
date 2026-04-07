@@ -71,6 +71,43 @@ async function request<T>(
     throw new Error('Sesión expirada');
   }
 
+  // Handle 403 CSRF errors — the csrf_token cookie may have expired while the
+  // refresh token is still valid. Attempt a silent refresh to get a new csrf cookie,
+  // then retry once. If refresh fails, fall through to the normal error path.
+  if (response.status === 403 && path !== '/auth/refresh') {
+    const errBody = await response.json().catch(() => ({ error: '' }));
+    if (errBody.error === 'CSRF token inválido') {
+      const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (refreshRes.ok) {
+        const retryHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (!SAFE_METHODS.includes(method)) {
+          const csrf = getCsrfToken();
+          if (csrf) retryHeaders['X-CSRF-Token'] = csrf;
+        }
+        const retryRes = await fetch(`${BASE_URL}${path}`, {
+          method,
+          headers: retryHeaders,
+          credentials: 'include',
+          body: body !== undefined ? JSON.stringify(body) : undefined,
+        });
+        if (!retryRes.ok) {
+          const err = await retryRes.json().catch(() => ({ error: 'Error desconocido' }));
+          throw new Error(err.error ?? `HTTP ${retryRes.status}`);
+        }
+        if (retryRes.status === 204) return undefined as T;
+        return retryRes.json();
+      }
+
+      useAuthStore.getState().logout();
+      throw new Error('Sesión expirada');
+    }
+    throw new Error(errBody.error ?? `HTTP ${response.status}`);
+  }
+
   if (!response.ok) {
     const err = await response.json().catch(() => ({ error: 'Error desconocido' }));
     throw new Error(err.error ?? `HTTP ${response.status}`);

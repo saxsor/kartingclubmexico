@@ -27,7 +27,7 @@ export function InscriptionManager() {
   const [showForm, setShowForm] = useState(false);
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
   const debouncedSearch = useDebounce(searchInput, 300);
-  const [form, setForm] = useState({ pilotId: '', category: '' as Category | '', kartNumber: '', notes: '' });
+  const [form, setForm] = useState({ pilotId: '', category: '' as Category | '', kartNumber: '', notes: '', companions: 0 });
   const [error, setError] = useState('');
   const queryClient = useQueryClient();
 
@@ -80,7 +80,7 @@ export function InscriptionManager() {
     queryFn: () => pilotsApi.list({ page: 1, pageSize: 100 }),
   });
   const createMutation = useMutation({
-    mutationFn: (payload: { pilotId: string; category: Category; kartNumber?: number; notes?: string }) =>
+    mutationFn: (payload: { pilotId: string; category: Category; kartNumber?: number; notes?: string; companions?: number }) =>
       inscriptionsApi.create(slug!, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
@@ -103,9 +103,10 @@ export function InscriptionManager() {
         category: form.category as Category,
         kartNumber: form.kartNumber ? parseInt(form.kartNumber) : undefined,
         notes: form.notes || undefined,
+        companions: form.companions,
       });
       setShowForm(false);
-      setForm({ pilotId: '', category: '', kartNumber: '', notes: '' });
+      setForm({ pilotId: '', category: '', kartNumber: '', notes: '', companions: 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear inscripción');
     }
@@ -183,6 +184,22 @@ export function InscriptionManager() {
                 onChange={(e) => setForm({ ...form, kartNumber: e.target.value })}
                 className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-white/70 mb-1">Acompañantes (comida)</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, companions: Math.max(0, form.companions - 1) })}
+                  className="h-9 w-9 flex items-center justify-center rounded border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors font-bold"
+                >−</button>
+                <span className="w-6 text-center text-white font-semibold">{form.companions}</span>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, companions: Math.min(10, form.companions + 1) })}
+                  className="h-9 w-9 flex items-center justify-center rounded border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors font-bold"
+                >+</button>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-white/70 mb-1">Notas</label>

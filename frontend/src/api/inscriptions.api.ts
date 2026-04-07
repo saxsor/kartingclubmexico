@@ -88,7 +88,7 @@ export const inscriptionsApi = {
   list: (slug: string, params?: PaginationParams) =>
     api.get<PaginatedResponse<Inscription>>(`/events/${slug}/inscriptions${buildPaginationQuery(params ?? {})}`),
   get: (slug: string, id: string) => api.get<Inscription>(`/events/${slug}/inscriptions/${id}`),
-  create: (slug: string, data: { pilotId: string; category: Category; kartNumber?: number; notes?: string }) =>
+  create: (slug: string, data: { pilotId: string; category: Category; kartNumber?: number; notes?: string; companions?: number }) =>
     api.post<Inscription>(`/events/${slug}/inscriptions`, data),
   update: (slug: string, id: string, data: Partial<Inscription>) =>
     api.put<Inscription>(`/events/${slug}/inscriptions/${id}`, data),

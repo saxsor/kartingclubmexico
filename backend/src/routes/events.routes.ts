@@ -17,6 +17,7 @@ const createSchema = z.object({
   name: z.string().min(2),
   date: z.string(),
   description: z.string().optional(),
+  track: z.string().optional(),
   year: z.number().int().optional(),
   serviceFee: z.number().optional(),
   foodFee: z.number().optional(),

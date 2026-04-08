@@ -1,10 +1,6 @@
-import { api } from './client';
+import { api, uploadWithAuth } from './client';
 import { buildPaginationQuery, PaginatedResponse, PaginationParams } from './pagination';
 
-function getCsrfToken(): string | null {
-  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
-  return match ? match[1] : null;
-}
 
 export type EventStatus = 'DRAFT' | 'OPEN' | 'IN_PROGRESS' | 'FINISHED';
 export type Category = 'SHIFTER' | 'DOS_TIEMPOS' | 'FORMULA_MUNDIAL' | 'NUEVE_HP' | 'ROOKIES' | 'MINIS';
@@ -47,16 +43,7 @@ export const eventsApi = {
   uploadPoster: (slug: string, file: File) => {
     const fd = new FormData();
     fd.append('poster', file);
-    const csrf = getCsrfToken();
-    return fetch(`/api/events/${slug}/poster`, {
-      method: 'POST',
-      headers: csrf ? { 'X-CSRF-Token': csrf } : {},
-      credentials: 'include',
-      body: fd,
-    }).then(async (r) => {
-      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error ?? 'Error al subir poster'); }
-      return r.json() as Promise<KartEvent>;
-    });
+    return uploadWithAuth<KartEvent>(`/events/${slug}/poster`, fd);
   },
   deletePoster: (slug: string) => api.delete<KartEvent>(`/events/${slug}/poster`),
   patchStatus: (slug: string, status: EventStatus) =>

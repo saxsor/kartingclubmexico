@@ -5,7 +5,7 @@ import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import {
   listEvents, createEvent, getEvent, updateEvent, deleteEvent,
   patchEventStatus, getEventCategories, updateEventCategories,
-  uploadEventPoster, deleteEventPoster,
+  uploadEventPoster, deleteEventPoster, getPublicPilots,
 } from '../controllers/events.controller.js';
 import { uploadPoster } from '../lib/upload.js';
 
@@ -15,7 +15,9 @@ const categoryEnum = z.enum(['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE
 
 const createSchema = z.object({
   name: z.string().min(2),
-  date: z.string(),
+  date: z.string()
+    .refine((d) => !isNaN(Date.parse(d)), { message: 'Fecha inválida' })
+    .refine((d) => new Date(d) >= new Date(new Date().toDateString()), { message: 'La fecha del evento no puede ser en el pasado' }),
   description: z.string().optional(),
   track: z.string().optional(),
   year: z.number().int().optional(),
@@ -40,6 +42,7 @@ const categoriesSchema = z.object({
 router.get('/', listEvents);
 router.get('/:slug', getEvent);
 router.get('/:slug/categories', getEventCategories);
+router.get('/:slug/pilots-public', getPublicPilots);
 
 router.post('/', authenticate, requireRole('ADMIN'), validate(createSchema), createEvent);
 router.put('/:slug', authenticate, requireRole('ADMIN'), validate(updateSchema), updateEvent);

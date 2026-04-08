@@ -15,13 +15,16 @@ const router = Router({ mergeParams: true });
 const categoryEnum = z.enum(['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS']);
 
 const registerSchema = z.object({
-  name: z.string().min(2),
+  pilotId: z.string().uuid().optional(),
+  name: z.string().min(2).optional(),
   alias: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
   kartNumber: z.string().optional(),
   category: categoryEnum,
   notes: z.string().optional(),
+}).refine((d) => d.pilotId || (d.name && d.name.length >= 2), {
+  message: 'Se requiere pilotId o nombre',
 });
 
 router.post('/self-register', validate(registerSchema), selfRegister);

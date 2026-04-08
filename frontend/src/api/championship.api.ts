@@ -1,23 +1,6 @@
 import { api } from './client';
 import { Category } from './events.api';
 
-export interface Standing {
-  id: string;
-  year: number;
-  pilotId: string;
-  category: Category;
-  totalPoints: number;
-  position: number | null;
-  eventsCount: number;
-  gap: number;
-  pilot: { id: string; name: string; alias: string | null; kartNumber: number | null; photoUrl: string | null };
-}
-
-export interface ChampionshipData {
-  year: number;
-  standings: Record<string, Standing[]>;
-}
-
 export interface Championship {
   id: string;
   name: string;
@@ -62,14 +45,6 @@ export interface ChampionshipStandingsData {
 }
 
 export const championshipApi = {
-  // Legacy year-based (backward compat)
-  get: () => api.get<ChampionshipData>('/championship'),
-  getByYearCategory: (year: number, category: Category) =>
-    api.get<{ year: number; category: Category; standings: Standing[] }>(
-      `/championship/${year}/${category}`,
-    ),
-
-  // New championship CRUD
   list: () => api.get<Championship[]>('/championships'),
   create: (data: { name: string; year?: number }) => api.post<Championship>('/championships', data),
   getById: (id: string) => api.get<ChampionshipDetail>(`/championships/${id}`),

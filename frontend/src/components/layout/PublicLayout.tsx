@@ -5,7 +5,7 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen bg-[#15151e] text-white flex flex-col">
       <Navbar />
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 pt-8 pb-24 sm:px-6 lg:px-8">
         <Outlet />
       </main>
       <footer className="border-t border-[#38383f] bg-[#15151e]">

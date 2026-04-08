@@ -53,10 +53,6 @@ export const queryKeys = {
   results: {
     byCategory: (slug: string, category: string) => ['results', 'by-category', slug, category] as const,
   },
-  championship: {
-    all: ['championship'] as const,
-    current: () => ['championship', 'current'] as const,
-  },
   championships: {
     all: ['championships'] as const,
     list: () => ['championships', 'list'] as const,

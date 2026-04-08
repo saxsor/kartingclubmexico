@@ -5,7 +5,7 @@ import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import {
   listEvents, createEvent, getEvent, updateEvent, deleteEvent,
   patchEventStatus, getEventCategories, updateEventCategories,
-  uploadEventPoster, deleteEventPoster,
+  uploadEventPoster, deleteEventPoster, getPublicPilots,
 } from '../controllers/events.controller.js';
 import { uploadPoster } from '../lib/upload.js';
 
@@ -15,7 +15,9 @@ const categoryEnum = z.enum(['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE
 
 const createSchema = z.object({
   name: z.string().min(2),
-  date: z.string(),
+  date: z.string()
+    .refine((d) => !isNaN(Date.parse(d)), { message: 'Fecha inválida' })
+    .refine((d) => new Date(d) >= new Date(new Date().toDateString()), { message: 'La fecha del evento no puede ser en el pasado' }),
   description: z.string().optional(),
   track: z.string().optional(),
   year: z.number().int().optional(),
@@ -27,7 +29,19 @@ const createSchema = z.object({
   championshipId: z.string().optional().nullable(),
 });
 
-const updateSchema = createSchema.partial();
+const updateSchema = z.object({
+  name: z.string().min(2).optional(),
+  date: z.string().refine((d) => !isNaN(Date.parse(d)), { message: 'Fecha inválida' }).optional(),
+  description: z.string().optional(),
+  track: z.string().optional(),
+  year: z.number().int().optional(),
+  serviceFee: z.number().optional(),
+  foodFee: z.number().optional(),
+  blockCheckInOnDebt: z.boolean().optional(),
+  transferInfo: z.string().optional(),
+  categories: z.array(categoryEnum).optional(),
+  championshipId: z.string().optional().nullable(),
+});
 
 const statusSchema = z.object({
   status: z.enum(['DRAFT', 'OPEN', 'IN_PROGRESS', 'FINISHED']),
@@ -40,13 +54,14 @@ const categoriesSchema = z.object({
 router.get('/', listEvents);
 router.get('/:slug', getEvent);
 router.get('/:slug/categories', getEventCategories);
+router.get('/:slug/pilots-public', getPublicPilots);
 
 router.post('/', authenticate, requireRole('ADMIN'), validate(createSchema), createEvent);
 router.put('/:slug', authenticate, requireRole('ADMIN'), validate(updateSchema), updateEvent);
 router.delete('/:slug', authenticate, requireRole('ADMIN'), deleteEvent);
 router.patch('/:slug/status', authenticate, requireRole('ADMIN', 'ORGANIZER'), validate(statusSchema), patchEventStatus);
 router.put('/:slug/categories', authenticate, requireRole('ADMIN'), validate(categoriesSchema), updateEventCategories);
-router.post('/:slug/poster', authenticate, requireRole('ADMIN'), uploadPoster.single('poster'), uploadEventPoster);
-router.delete('/:slug/poster', authenticate, requireRole('ADMIN'), deleteEventPoster);
+router.post('/:slug/poster', authenticate, requireRole('ADMIN', 'ORGANIZER'), uploadPoster.single('poster'), uploadEventPoster);
+router.delete('/:slug/poster', authenticate, requireRole('ADMIN', 'ORGANIZER'), deleteEventPoster);
 
 export default router;

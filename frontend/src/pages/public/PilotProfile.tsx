@@ -5,6 +5,7 @@ import { pilotsApi, Pilot } from '../../api/pilots.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { queryKeys } from '../../lib/react-query';
+import { SEO } from '../../components/shared/SEO';
 
 interface History {
   pilot: Pilot;
@@ -35,6 +36,12 @@ export function PilotProfile() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <SEO
+        title={pilot.alias ? `${pilot.name} "${pilot.alias}"` : pilot.name}
+        description={`Perfil de ${pilot.name} en Karting Club México. Historial de eventos, resultados y puntos del campeonato.`}
+        image={pilot.photoUrl ? resolveMediaUrl(pilot.photoUrl) ?? undefined : undefined}
+        url={`/pilotos/${id}`}
+      />
       <Link to="/" className="text-sm text-white/50 hover:text-white mb-6 block">
         ← Inicio
       </Link>

@@ -46,7 +46,8 @@ export interface CheckIn {
 }
 
 export interface SelfRegisterData {
-  name: string;
+  pilotId?: string;
+  name?: string;
   alias?: string;
   email?: string;
   phone?: string;

@@ -97,14 +97,51 @@ export async function addPenalty(req: Request, res: Response): Promise<void> {
     });
 
     if (raceResult) {
-      const penaltyPoints = raceResult.penalties
-        .filter((p) => p.type === 'POINTS')
-        .reduce((s, p) => s + p.amount, 0);
-      const finalPoints = Math.max(0, raceResult.basePoints - penaltyPoints);
-      await tx.raceResult.update({
-        where: { id: raceResult.id },
-        data: { penaltyPoints, finalPoints },
-      });
+      if (type === 'POINTS') {
+        const penaltyPoints = raceResult.penalties
+          .filter((p) => p.type === 'POINTS')
+          .reduce((s, p) => s + p.amount, 0);
+        const finalPoints = Math.max(0, raceResult.basePoints - penaltyPoints);
+        await tx.raceResult.update({
+          where: { id: raceResult.id },
+          data: { penaltyPoints, finalPoints },
+        });
+      } else if (type === 'POSITIONS' && raceResult.position !== null) {
+        // Get all FINISHED results for this race ordered by current position
+        const raceResults = await tx.raceResult.findMany({
+          where: { raceId: raceResult.raceId, status: 'FINISHED', position: { not: null } },
+          orderBy: { position: 'asc' },
+        });
+
+        const currentPos = raceResult.position;
+        const maxPos = raceResults.length;
+        const newPos = Math.min(currentPos + amount, maxPos);
+
+        if (newPos !== currentPos) {
+          // Shift pilots in range (currentPos+1 .. newPos) up by 1 position
+          for (const r of raceResults) {
+            if (r.position === null) continue;
+            if (r.id === raceResult.id) {
+              const newBase = calculatePoints(newPos, r.status);
+              await tx.raceResult.update({
+                where: { id: r.id },
+                data: { position: newPos, basePoints: newBase, finalPoints: newBase },
+              });
+            } else if (r.position > currentPos && r.position <= newPos) {
+              const shiftedPos = r.position - 1;
+              const newBase = calculatePoints(shiftedPos, r.status);
+              await tx.raceResult.update({
+                where: { id: r.id },
+                data: {
+                  position: shiftedPos,
+                  basePoints: newBase,
+                  finalPoints: Math.max(0, newBase - r.penaltyPoints),
+                },
+              });
+            }
+          }
+        }
+      }
     }
 
     return { penalty, raceResult };
@@ -122,22 +159,58 @@ export async function deletePenalty(req: Request, res: Response): Promise<void> 
   if (!penalty) { res.status(404).json({ error: 'Penalización no encontrada' }); return; }
 
   const raceResult = await prisma.$transaction(async (tx) => {
-    await tx.penalty.delete({ where: { id: penalty.id } });
-
     const raceResult = await tx.raceResult.findUnique({
       where: { id: penalty.raceResultId },
       include: { penalties: true, race: { include: { event: true } } },
     });
 
+    await tx.penalty.delete({ where: { id: penalty.id } });
+
     if (raceResult) {
-      const penaltyPoints = raceResult.penalties
-        .filter((p) => p.type === 'POINTS')
-        .reduce((s, p) => s + p.amount, 0);
-      const finalPoints = Math.max(0, raceResult.basePoints - penaltyPoints);
-      await tx.raceResult.update({
-        where: { id: raceResult.id },
-        data: { penaltyPoints, finalPoints },
-      });
+      if (penalty.type === 'POINTS') {
+        const remainingPenaltyPoints = raceResult.penalties
+          .filter((p) => p.id !== penalty.id && p.type === 'POINTS')
+          .reduce((s, p) => s + p.amount, 0);
+        const finalPoints = Math.max(0, raceResult.basePoints - remainingPenaltyPoints);
+        await tx.raceResult.update({
+          where: { id: raceResult.id },
+          data: { penaltyPoints: remainingPenaltyPoints, finalPoints },
+        });
+      } else if (penalty.type === 'POSITIONS' && raceResult.position !== null) {
+        // Reverse the position penalty: move the pilot back up by `amount` positions
+        const raceResults = await tx.raceResult.findMany({
+          where: { raceId: raceResult.raceId, status: 'FINISHED', position: { not: null } },
+          orderBy: { position: 'asc' },
+        });
+
+        const currentPos = raceResult.position;
+        const originalPos = Math.max(1, currentPos - penalty.amount);
+
+        if (originalPos !== currentPos) {
+          // Shift pilots in range (originalPos .. currentPos-1) down by 1 position
+          for (const r of raceResults) {
+            if (r.position === null) continue;
+            if (r.id === raceResult.id) {
+              const restoredBase = calculatePoints(originalPos, r.status);
+              await tx.raceResult.update({
+                where: { id: r.id },
+                data: { position: originalPos, basePoints: restoredBase, finalPoints: restoredBase },
+              });
+            } else if (r.position >= originalPos && r.position < currentPos) {
+              const shiftedPos = r.position + 1;
+              const newBase = calculatePoints(shiftedPos, r.status);
+              await tx.raceResult.update({
+                where: { id: r.id },
+                data: {
+                  position: shiftedPos,
+                  basePoints: newBase,
+                  finalPoints: Math.max(0, newBase - r.penaltyPoints),
+                },
+              });
+            }
+          }
+        }
+      }
     }
 
     return raceResult;

@@ -7,6 +7,7 @@ import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { PaginationMeta } from '../../api/pagination';
 import { PaginationControls } from '../../components/shared/PaginationControls';
+import { SEO } from '../../components/shared/SEO';
 
 export function Events() {
   const [events, setEvents] = useState<KartEvent[]>([]);
@@ -28,6 +29,7 @@ export function Events() {
 
   return (
     <div>
+      <SEO title="Eventos" description="Calendario de eventos de karting en México. Inscríbete, consulta resultados y parrillas de salida." url="/eventos" />
       {/* Page header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

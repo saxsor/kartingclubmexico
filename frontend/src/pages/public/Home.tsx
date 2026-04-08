@@ -5,6 +5,7 @@ import { eventsApi, KartEvent } from '../../api/events.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
+import { SEO } from '../../components/shared/SEO';
 
 export function Home() {
   const [events, setEvents] = useState<KartEvent[]>([]);
@@ -24,6 +25,10 @@ export function Home() {
 
   return (
     <div className="space-y-16">
+      <SEO
+        description="Resultados en tiempo real, parrillas de salida y campeonato de karting en México. Inscríbete a los próximos eventos."
+        url="/"
+      />
       {/* Hero */}
       <section className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-20 bg-[#15151e]">
         {/* Checkered stripe overlay */}

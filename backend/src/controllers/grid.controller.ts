@@ -69,8 +69,12 @@ export async function drawGrid(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  // Shuffle
-  const shuffled = [...inscriptions].sort(() => Math.random() - 0.5);
+  // Shuffle using Fisher-Yates (unbiased)
+  const shuffled = [...inscriptions];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
 
   const grid = await prisma.$transaction(async (tx) => {
     const existing = await tx.startGrid.findUnique({

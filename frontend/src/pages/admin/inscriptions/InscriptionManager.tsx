@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Plus, X, Search, ClipboardList, Download } from 'lucide-react';
+import { Plus, X, Search, ClipboardList, Download, Trash2 } from 'lucide-react';
 import { downloadCsv } from '../../../lib/download';
 import { inscriptionsApi, InscriptionStatus } from '../../../api/inscriptions.api';
 import { pilotsApi } from '../../../api/pilots.api';
@@ -84,6 +84,15 @@ export function InscriptionManager() {
       inscriptionsApi.create(slug!, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => inscriptionsApi.delete(slug!, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+    onError: (err) => {
+      alert(err instanceof Error ? err.message : 'Error al eliminar la inscripción');
     },
   });
 
@@ -274,6 +283,7 @@ export function InscriptionManager() {
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Kart</th>
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Pago</th>
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Check-in</th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
@@ -294,6 +304,19 @@ export function InscriptionManager() {
                   ) : (
                     <span className="text-xs text-white/30">No</span>
                   )}
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <button
+                    onClick={() => {
+                      if (!confirm(`¿Eliminar la inscripción de ${i.pilot.name}? Esta acción no se puede deshacer.`)) return;
+                      deleteMutation.mutate(i.id);
+                    }}
+                    disabled={deleteMutation.isPending}
+                    className="text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
+                    title="Eliminar inscripción"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </td>
               </tr>
             ))}

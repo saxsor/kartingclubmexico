@@ -6,7 +6,7 @@ import { CATEGORY_LABELS } from '../lib/category-labels.js';
 
 export async function selfRegister(req: Request, res: Response): Promise<void> {
   const { slug } = req.params;
-  const { name, alias, email, phone, kartNumber, category, notes, companions } = req.body;
+  const { pilotId, name, alias, email, phone, kartNumber, category, notes, companions } = req.body;
 
   // Find event
   const event = await prisma.event.findUnique({ where: { slug } });
@@ -21,28 +21,42 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
 
   const parsedKartNumber = kartNumber ? parseInt(kartNumber) : null;
 
+  // If pilotId provided, verify it exists before transaction
+  if (pilotId) {
+    const exists = await prisma.pilot.findUnique({ where: { id: pilotId } });
+    if (!exists) { res.status(404).json({ error: 'Piloto no encontrado' }); return; }
+  }
+
   const registration = await prisma.$transaction(async (tx) => {
-    let pilot = email ? await tx.pilot.findFirst({ where: { email } }) : null;
-    if (!pilot) {
-      pilot = await tx.pilot.create({
-        data: {
-          name,
-          alias: alias || null,
-          email: email || null,
-          phone: phone || null,
-          kartNumber: parsedKartNumber,
-        },
-      });
+    let pilot;
+
+    if (pilotId) {
+      pilot = await tx.pilot.findUnique({ where: { id: pilotId } });
+      if (!pilot) return null;
     } else {
-      pilot = await tx.pilot.update({
-        where: { id: pilot.id },
-        data: {
-          name,
-          alias: alias || pilot.alias,
-          phone: phone || pilot.phone,
-          kartNumber: parsedKartNumber ?? pilot.kartNumber,
-        },
-      });
+      // New registration — find by email or create
+      pilot = email ? await tx.pilot.findFirst({ where: { email } }) : null;
+      if (!pilot) {
+        pilot = await tx.pilot.create({
+          data: {
+            name,
+            alias: alias || null,
+            email: email || null,
+            phone: phone || null,
+            kartNumber: parsedKartNumber,
+          },
+        });
+      } else {
+        pilot = await tx.pilot.update({
+          where: { id: pilot.id },
+          data: {
+            name,
+            alias: alias || pilot.alias,
+            phone: phone || pilot.phone,
+            kartNumber: parsedKartNumber ?? pilot.kartNumber,
+          },
+        });
+      }
     }
 
     const existing = await tx.inscription.findUnique({
@@ -69,7 +83,9 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
     return inscription;
   });
 
-  if (!registration) { res.status(409).json({ error: 'Ya estás inscrito en esta categoría para este evento' }); return; }
+  if (!registration) {
+    res.status(409).json({ error: 'Ya estás inscrito en esta categoría para este evento' }); return;
+  }
 
   // Send confirmation email (fire-and-forget)
   if (registration.pilot.email) {

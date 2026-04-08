@@ -147,14 +147,27 @@ export function RaceCapture() {
 
     if (r.results.length > 0) {
       const sorted = [...r.results].sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
-      setEntries(sorted.map((res) => ({
+      const existingIds = new Set(sorted.map((res) => res.inscriptionId));
+      const existingEntries = sorted.map((res) => ({
         inscriptionId: res.inscriptionId,
         pilotName: res.inscription.pilot.name,
         alias: res.inscription.pilot.alias,
         kartNumber: res.inscription.kartNumber,
         status: res.status,
         lapsCompleted: res.lapsCompleted,
-      })));
+      }));
+      // Incluir pilotos de la categoría que se agregaron después de capturar resultados
+      const lateEntries = categoryInscriptions
+        .filter((i) => !existingIds.has(i.id))
+        .map((i) => ({
+          inscriptionId: i.id,
+          pilotName: i.pilot.name,
+          alias: i.pilot.alias,
+          kartNumber: i.kartNumber,
+          status: 'FINISHED' as ResultStatus,
+          lapsCompleted: r.laps,
+        }));
+      setEntries([...existingEntries, ...lateEntries]);
     } else {
       setEntries(categoryInscriptions.map((i) => ({
         inscriptionId: i.id,

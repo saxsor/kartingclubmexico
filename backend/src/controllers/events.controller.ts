@@ -249,3 +249,33 @@ export async function updateEventCategories(req: Request, res: Response): Promis
   const cats = await prisma.eventCategory.findMany({ where: { eventId: event.id } });
   res.json(cats);
 }
+
+export async function getPublicPilots(req: Request, res: Response): Promise<void> {
+  const event = await prisma.event.findUnique({
+    where: { slug: req.params.slug },
+    include: { eventCategories: { where: { active: true } } },
+  });
+  if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+
+  const inscriptions = await prisma.inscription.findMany({
+    where: { eventId: event.id },
+    include: { pilot: { select: { id: true, name: true, alias: true, photoUrl: true } } },
+    orderBy: [{ category: 'asc' }, { createdAt: 'asc' }],
+  });
+
+  // Group by category
+  const grouped: Record<string, { pilotId: string; name: string; alias: string | null; photoUrl: string | null; kartNumber: number | null }[]> = {};
+  for (const insc of inscriptions) {
+    if (!grouped[insc.category]) grouped[insc.category] = [];
+    grouped[insc.category].push({
+      pilotId: insc.pilot.id,
+      name: insc.pilot.name,
+      alias: insc.pilot.alias,
+      photoUrl: insc.pilot.photoUrl,
+      kartNumber: insc.kartNumber,
+    });
+  }
+
+  const activeCategories = event.eventCategories.map((c) => c.category);
+  res.json({ eventName: event.name, status: event.status, activeCategories, pilots: grouped });
+}

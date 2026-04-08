@@ -20,13 +20,26 @@ function getTransporter(): nodemailer.Transporter | null {
 async function send(to: string, subject: string, html: string): Promise<void> {
   const t = getTransporter();
   if (!t) {
-    // SMTP not configured — log to console in dev
     if (config.NODE_ENV !== 'production') {
       console.log(`[EMAIL] To: ${to} | Subject: ${subject}`);
     }
     return;
   }
-  await t.sendMail({ from: config.SMTP_FROM, to, subject, html });
+
+  const MAX_ATTEMPTS = 3;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      await t.sendMail({ from: config.SMTP_FROM, to, subject, html });
+      return;
+    } catch (err) {
+      lastError = err;
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** (attempt - 1)));
+      }
+    }
+  }
+  throw lastError;
 }
 
 // ─── Email templates ──────────────────────────────────────────────────────────

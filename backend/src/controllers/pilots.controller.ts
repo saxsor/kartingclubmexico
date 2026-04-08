@@ -66,7 +66,10 @@ export async function deletePilot(req: Request, res: Response): Promise<void> {
     res.status(409).json({ error: `No se puede eliminar: el piloto tiene ${count} inscripción(es) en eventos. Elimina primero sus inscripciones.` });
     return;
   }
-  await prisma.pilot.delete({ where: { id: req.params.id } });
+  await prisma.$transaction(async (tx) => {
+    await tx.championshipStanding.deleteMany({ where: { pilotId: req.params.id } });
+    await tx.pilot.delete({ where: { id: req.params.id } });
+  });
   res.status(204).send();
 }
 

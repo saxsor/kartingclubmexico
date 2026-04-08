@@ -124,3 +124,35 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, body),
   delete: <T>(path: string) => request<T>('DELETE', path),
 };
+
+// Upload helper for multipart/form-data — handles token refresh like the api client
+export async function uploadWithAuth<T>(path: string, formData: FormData): Promise<T> {
+  const doFetch = () => {
+    const csrf = getCsrfToken();
+    return fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: csrf ? { 'X-CSRF-Token': csrf } : {},
+      credentials: 'include',
+      body: formData,
+    });
+  };
+
+  let res = await doFetch();
+
+  // On 401, try silent token refresh then retry once
+  if (res.status === 401) {
+    const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, { method: 'POST', credentials: 'include' });
+    if (refreshRes.ok) {
+      res = await doFetch();
+    } else {
+      useAuthStore.getState().logout();
+      throw new Error('Sesión expirada');
+    }
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Error desconocido' }));
+    throw new Error(err.error ?? `HTTP ${res.status}`);
+  }
+  return res.json();
+}

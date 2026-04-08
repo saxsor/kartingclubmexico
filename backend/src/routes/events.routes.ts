@@ -29,7 +29,19 @@ const createSchema = z.object({
   championshipId: z.string().optional().nullable(),
 });
 
-const updateSchema = createSchema.partial();
+const updateSchema = z.object({
+  name: z.string().min(2).optional(),
+  date: z.string().refine((d) => !isNaN(Date.parse(d)), { message: 'Fecha inválida' }).optional(),
+  description: z.string().optional(),
+  track: z.string().optional(),
+  year: z.number().int().optional(),
+  serviceFee: z.number().optional(),
+  foodFee: z.number().optional(),
+  blockCheckInOnDebt: z.boolean().optional(),
+  transferInfo: z.string().optional(),
+  categories: z.array(categoryEnum).optional(),
+  championshipId: z.string().optional().nullable(),
+});
 
 const statusSchema = z.object({
   status: z.enum(['DRAFT', 'OPEN', 'IN_PROGRESS', 'FINISHED']),

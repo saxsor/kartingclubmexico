@@ -8,6 +8,7 @@ import { useSSE } from '../../hooks/useSSE';
 import { CATEGORY_LABELS } from '../../lib/utils';
 import { PointsTable } from '../../components/shared/PointsTable';
 import { queryKeys } from '../../lib/react-query';
+import { SEO } from '../../components/shared/SEO';
 
 export function EventResults() {
   const { slug } = useParams<{ slug: string }>();
@@ -47,6 +48,11 @@ export function EventResults() {
 
   return (
     <div>
+      <SEO
+        title={event ? `Resultados — ${event.name}` : 'Resultados'}
+        description={event ? `Resultados y clasificación de ${event.name}. Puntos por categoría y posiciones finales.` : undefined}
+        url={`/eventos/${slug}/resultados`}
+      />
       <div className="mb-6">
         <Link to={`/eventos/${slug}`} className="text-sm text-white/50 hover:text-white">
           ← {event?.name}

@@ -71,4 +71,55 @@ router.get('/events/:slug/stream', (req: Request, res: Response) => {
 // Config (stub)
 router.get('/config', (_req, res) => res.json({ version: '1.0.0' }));
 
+// Sitemap
+router.get('/sitemap', async (_req, res) => {
+  const { prisma } = await import('../lib/prisma.js');
+  const baseUrl = process.env.APP_URL ?? 'https://kartingclubmexico.com';
+
+  const [events, pilots, championships] = await Promise.all([
+    prisma.event.findMany({ where: { status: { not: 'DRAFT' } }, select: { slug: true, updatedAt: true }, orderBy: { date: 'desc' } }),
+    prisma.pilot.findMany({ where: { active: true }, select: { id: true, updatedAt: true } }),
+    prisma.championship.findMany({ select: { id: true, updatedAt: true } }),
+  ]);
+
+  const staticUrls: Array<{ loc: string; priority: string; lastmod?: string }> = [
+    { loc: baseUrl, priority: '1.0' },
+    { loc: `${baseUrl}/eventos`, priority: '0.9' },
+    { loc: `${baseUrl}/campeonato`, priority: '0.8' },
+  ];
+
+  const eventUrls = events.map((e) => ({
+    loc: `${baseUrl}/eventos/${e.slug}`,
+    lastmod: e.updatedAt.toISOString().split('T')[0],
+    priority: '0.8',
+  }));
+
+  const pilotUrls = pilots.map((p) => ({
+    loc: `${baseUrl}/pilotos/${p.id}`,
+    lastmod: p.updatedAt.toISOString().split('T')[0],
+    priority: '0.5',
+  }));
+
+  const championshipUrls = championships.map((c) => ({
+    loc: `${baseUrl}/campeonato/${c.id}`,
+    lastmod: c.updatedAt.toISOString().split('T')[0],
+    priority: '0.7',
+  }));
+
+  const allUrls = [...staticUrls, ...eventUrls, ...pilotUrls, ...championshipUrls];
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls.map((u) => `  <url>
+    <loc>${u.loc}</loc>
+    ${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}
+    <priority>${u.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+
+  res.setHeader('Content-Type', 'application/xml');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(xml);
+});
+
 export default router;

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight, MapPin, Users } from 'lucide-react';
+import { SEO } from '../../components/shared/SEO';
 import { eventsApi } from '../../api/events.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -32,8 +33,28 @@ export function EventDetail() {
     { label: 'Resultados', to: `/eventos/${slug}/resultados`, icon: BarChart2, show: event.status === 'FINISHED' || event.status === 'IN_PROGRESS', highlight: false },
   ].filter((a) => a.show);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SportsEvent',
+    name: event.name,
+    description: event.description ?? `Evento de karting: ${event.name}`,
+    startDate: event.date,
+    location: { '@type': 'Place', name: event.track ?? 'Karting Club México' },
+    organizer: { '@type': 'Organization', name: 'Karting Club México' },
+    url: `${window.location.origin}/eventos/${slug}`,
+    ...(event.posterUrl && { image: resolveMediaUrl(event.posterUrl) }),
+  };
+
   return (
     <div className="max-w-3xl mx-auto pb-24 md:pb-0">
+      <SEO
+        title={event.name}
+        description={event.description ?? `Evento de karting el ${new Date(event.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}${event.track ? ` en ${event.track}` : ''}.`}
+        image={event.posterUrl ? resolveMediaUrl(event.posterUrl) ?? undefined : undefined}
+        url={`/eventos/${slug}`}
+        type="article"
+        jsonLd={jsonLd}
+      />
       {/* Breadcrumb */}
       <div className="mb-6">
         <Link

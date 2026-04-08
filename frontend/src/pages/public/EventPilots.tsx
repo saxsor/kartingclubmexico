@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, User, Users, ClipboardList } from 'lucide-react';
 import { api } from '../../api/client';
 import { CATEGORY_LABELS, resolveMediaUrl } from '../../lib/utils';
+import { SEO } from '../../components/shared/SEO';
 
 const ALL_CATEGORY_ORDER = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
 
@@ -46,6 +47,11 @@ export function EventPilots() {
 
   return (
     <div className="max-w-3xl mx-auto pb-20">
+      <SEO
+        title={`Pilotos inscritos — ${data.eventName}`}
+        description={`${totalPilots} piloto${totalPilots !== 1 ? 's' : ''} inscritos en ${data.eventName}. Consulta quién participa por categoría.`}
+        url={`/eventos/${slug}/pilotos`}
+      />
       {/* Breadcrumb */}
       <div className="mb-6">
         <Link

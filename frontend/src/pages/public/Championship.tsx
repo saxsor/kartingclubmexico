@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Trophy, User, ChevronRight } from 'lucide-react';
+import { SEO } from '../../components/shared/SEO';
 import { championshipApi, ChampionshipStandingsData } from '../../api/championship.api';
 import { CATEGORY_LABELS, getPositionClass, cn, resolveMediaUrl } from '../../lib/utils';
 import { queryKeys } from '../../lib/react-query';
@@ -31,6 +32,7 @@ export function Championship() {
 
   return (
     <div>
+      <SEO title="Campeonatos" description="Clasificación del campeonato de karting en México. Puntos, posiciones y estadísticas por categoría." url="/campeonato" />
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-1 h-6 bg-[#e10600]" />

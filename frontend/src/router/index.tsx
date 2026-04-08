@@ -7,6 +7,7 @@ import { Events } from '../pages/public/Events';
 import { EventDetail } from '../pages/public/EventDetail';
 import { EventRegister } from '../pages/public/EventRegister';
 import { EventGrid } from '../pages/public/EventGrid';
+import { EventPilots } from '../pages/public/EventPilots';
 import { EventResults } from '../pages/public/EventResults';
 import { Championship, ChampionshipDetailPublic } from '../pages/public/Championship';
 import { PilotProfile } from '../pages/public/PilotProfile';
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
       { path: 'eventos', element: <Events /> },
       { path: 'eventos/:slug', element: <EventDetail /> },
       { path: 'eventos/:slug/inscribirse', element: <EventRegister /> },
+      { path: 'eventos/:slug/pilotos', element: <EventPilots /> },
       { path: 'eventos/:slug/parrilla', element: <EventGrid /> },
       { path: 'eventos/:slug/resultados', element: <EventResults /> },
       { path: 'campeonato', element: <Championship /> },

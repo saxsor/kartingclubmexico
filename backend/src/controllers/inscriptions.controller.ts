@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 import { Category, InscriptionStatus } from '@prisma/client';
+import { recalculateChampionship } from '../services/championship.service.js';
 
 async function getEventOrFail(slug: string, res: Response) {
   const event = await prisma.event.findUnique({ where: { slug } });
@@ -102,7 +103,35 @@ export async function updateInscription(req: Request, res: Response): Promise<vo
 }
 
 export async function deleteInscription(req: Request, res: Response): Promise<void> {
-  await prisma.inscription.delete({ where: { id: req.params.id } });
+  const inscription = await prisma.inscription.findUnique({
+    where: { id: req.params.id },
+    include: {
+      raceResults: { include: { race: { include: { event: true } } } },
+    },
+  });
+  if (!inscription) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
+
+  // Collect affected category/year pairs for championship recalculation
+  const affected = new Set<string>();
+  for (const r of inscription.raceResults) {
+    affected.add(`${r.race.event.year}:${r.race.category}`);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // Delete grid positions (no cascade in schema)
+    await tx.startGridPosition.deleteMany({ where: { inscriptionId: inscription.id } });
+    // Delete race results and their penalties (penalties cascade from RaceResult)
+    await tx.raceResult.deleteMany({ where: { inscriptionId: inscription.id } });
+    // Delete the inscription (check-in and payments cascade automatically)
+    await tx.inscription.delete({ where: { id: inscription.id } });
+  });
+
+  // Recalculate championship for any affected category/year
+  for (const key of affected) {
+    const [year, category] = key.split(':');
+    await recalculateChampionship(parseInt(year), category as Category);
+  }
+
   res.status(204).send();
 }
 

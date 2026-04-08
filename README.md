@@ -1,6 +1,6 @@
 # Edel Racing — Karting Club México
 
-Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in y campeonato acumulado.
+Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in, campeonato acumulado y SEO optimizado.
 
 ## Stack
 
@@ -8,6 +8,7 @@ Sistema completo de gestión de carreras de karting con resultados en tiempo rea
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS + PWA
 - **Auth**: JWT con roles ADMIN / ORGANIZER / VALIDATOR, doble cookie (access + refresh)
 - **Realtime**: Server-Sent Events (SSE)
+- **SEO**: react-helmet-async, sitemap dinámico, JSON-LD (SportsEvent), robots.txt
 - **Deploy**: Docker + docker-compose + Nginx
 
 ---
@@ -28,7 +29,7 @@ Sistema completo de gestión de carreras de karting con resultados en tiempo rea
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/edel-racing.git
+git clone https://github.com/saxsor/kartingclubmexico.git
 cd edel-racing
 ```
 
@@ -43,6 +44,7 @@ Variables obligatorias:
 - `JWT_SECRET` — genera uno seguro: `openssl rand -base64 32`
 - `JWT_REFRESH_SECRET` — genera uno distinto: `openssl rand -base64 32`
 - `CORS_ORIGIN` — tu dominio: `https://tudominio.com`
+- `APP_URL` — URL base del sitio (para sitemap y SEO): `https://tudominio.com`
 - `DATABASE_URL` — se configura automáticamente con Docker Compose
 
 ### 3. Construir y levantar servicios
@@ -84,13 +86,20 @@ docker compose exec nginx nginx -s reload
 | URL | Descripción |
 |-----|-------------|
 | `/` | Sitio público — eventos, parrillas, resultados |
+| `/eventos` | Listado de eventos públicos |
+| `/eventos/:slug` | Detalle del evento (parrilla, resultados, pilotos inscritos) |
+| `/eventos/:slug/pilotos` | Pilotos inscritos por categoría (público) |
+| `/eventos/:slug/resultados` | Resultados y puntos por categoría (público) |
 | `/eventos/:slug/inscribirse` | Formulario de auto-inscripción para pilotos |
 | `/campeonato` | Tabla de campeonato acumulado |
+| `/pilotos/:id` | Perfil público de piloto |
+| `/sitemap.xml` | Sitemap XML (generado dinámicamente) |
+| `/robots.txt` | Reglas para crawlers |
 | `/login` | Login administradores |
 | `/app/dashboard` | Panel de administración (ADMIN / ORGANIZER) |
 | `/app/eventos` | Listado de eventos (todos los roles) |
 | `/api/` | API REST |
-| `/uploads/receipts/` | Comprobantes de pago subidos |
+| `/uploads/` | Archivos subidos (comprobantes, fotos, posters) |
 
 ---
 
@@ -122,9 +131,11 @@ docker compose exec nginx nginx -s reload
 ### Flujo de auto-inscripción (pilotos sin login)
 
 1. El piloto entra al evento público → botón **"Inscribirme"** (visible solo si el evento está `OPEN`)
-2. Llena el formulario: nombre, alias, email, teléfono, número de kart preferido, categoría, número de acompañantes (para cuota de alimentos)
-3. El sistema crea o actualiza su perfil de piloto (identificado por email) y genera la inscripción
-4. Se muestran los **datos bancarios** para hacer la transferencia y el monto a pagar (cuota de servicio + cuota de alimentos × (piloto + acompañantes))
+2. **Búsqueda**: el piloto busca su nombre en la base de pilotos registrados
+   - **Piloto existente**: selecciona su nombre → solo llena datos de carrera (categoría, kart, acompañantes)
+   - **Piloto nuevo**: llena el formulario completo (nombre, alias, email, teléfono, etc.)
+3. El sistema crea o asocia su perfil de piloto y genera la inscripción
+4. Se muestran los **datos bancarios** para hacer la transferencia y el monto a pagar
 5. El piloto **sube su comprobante** de pago (JPG, PNG o PDF, máx. 10 MB) → inscripción queda en estado *Recibo enviado*
 6. El admin/organizador ve los comprobantes pendientes en **Caja** y los **Aprueba** o **Rechaza**
 7. Al aprobar, la inscripción pasa a *Pagada* y se registran los pagos automáticamente
@@ -136,10 +147,12 @@ docker compose exec nginx nginx -s reload
 | Acción | ADMIN | ORGANIZER | VALIDATOR |
 |--------|:-----:|:---------:|:---------:|
 | Crear / editar / eliminar eventos | ✓ | — | — |
+| Subir / eliminar poster de evento | ✓ | ✓ | — |
 | Crear / editar / eliminar pilotos | ✓ | — | — |
 | Gestionar usuarios | ✓ | — | — |
 | Ver dashboard de recaudación | ✓ | ✓ | — |
 | Inscribir pilotos | ✓ | ✓ | ✓ |
+| Eliminar inscripciones | ✓ | ✓ | — |
 | Ver listado de inscripciones | ✓ | ✓ | ✓ |
 | Aprobar / rechazar comprobantes | ✓ | ✓ | — |
 | Registrar pagos manuales | ✓ | ✓ | ✓ |
@@ -160,7 +173,7 @@ docker compose exec nginx nginx -s reload
 La cuota de alimentos se calcula por persona: `foodFee × (1 piloto + N acompañantes)`.
 
 - En la auto-inscripción pública, el piloto elige cuántos acompañantes lleva
-- En inscripción manual desde el panel, el campo "Acompañantes" está en el formulario de nueva inscripción
+- En inscripción manual desde el panel, el campo "Acompañantes" está en el formulario
 - La caja muestra el desglose y el saldo correcto por piloto
 
 ---
@@ -195,6 +208,18 @@ La clasificación del evento suma las 3 carreras por piloto por categoría. Dese
 
 ---
 
+## SEO
+
+El sitio está optimizado para motores de búsqueda:
+
+- **Títulos y meta tags dinámicos** por página usando `react-helmet-async`
+- **Open Graph y Twitter Card** para previews en redes sociales
+- **JSON-LD** (schema.org `SportsEvent`) en páginas de eventos
+- **Sitemap XML dinámico** en `/sitemap.xml` — generado desde la BD con todos los eventos, pilotos y campeonatos
+- **robots.txt** — permite crawling público, bloquea rutas de administración
+
+---
+
 ## Estructura del proyecto
 
 ```
@@ -202,41 +227,51 @@ edel-racing/
 ├── backend/
 │   ├── prisma/
 │   │   ├── schema.prisma              Modelos de base de datos
-│   │   └── migrations/                Migraciones SQL (se aplican automáticamente)
+│   │   └── migrations/                Migraciones SQL (automáticas al arrancar)
 │   └── src/
 │       ├── controllers/
-│       │   ├── events.controller.ts
-│       │   ├── inscriptions.controller.ts
+│       │   ├── events.controller.ts         Eventos + pilotos públicos por categoría
+│       │   ├── inscriptions.controller.ts   Inscripciones con cascade delete
 │       │   ├── payments.controller.ts
 │       │   ├── pilots.controller.ts
-│       │   ├── races.controller.ts
-│       │   ├── self-register.controller.ts   ← Auto-inscripción pública
+│       │   ├── races.controller.ts          Resultados con pilotos de última hora
+│       │   ├── self-register.controller.ts  Auto-inscripción (piloto nuevo o existente)
 │       │   └── ...
 │       ├── lib/
-│       │   ├── upload.ts                     ← Multer para comprobantes
+│       │   ├── upload.ts              Multer para comprobantes y fotos
+│       │   ├── sse.ts                 Server-Sent Events manager
 │       │   └── ...
 │       └── routes/
-│           ├── self-register.routes.ts       ← Rutas públicas de inscripción
+│           ├── index.ts               Sitemap XML dinámico
+│           ├── self-register.routes.ts
 │           └── ...
 ├── frontend/
+│   ├── public/
+│   │   └── robots.txt
 │   └── src/
 │       ├── api/
+│       │   └── client.ts              uploadWithAuth (token refresh en multipart)
+│       ├── components/
+│       │   └── shared/
+│       │       └── SEO.tsx            Componente reutilizable de SEO
 │       ├── pages/
 │       │   ├── admin/
-│       │   │   ├── events/        Gestión de eventos (crear, editar, hub por evento)
-│       │   │   ├── pilots/        Gestión de pilotos
-│       │   │   ├── payments/      Caja + aprobación de comprobantes
-│       │   │   ├── checkin/       Check-in con búsqueda por nombre/kart
-│       │   │   ├── grid/          Sorteo de parrilla
-│       │   │   ├── races/         Control de carreras y captura de resultados
-│       │   │   ├── classification/ Clasificación y exportación
-│       │   │   └── users/         Gestión de usuarios (ADMIN only)
+│       │   │   ├── events/            Gestión de eventos
+│       │   │   ├── pilots/            Gestión de pilotos
+│       │   │   ├── payments/          Caja + comprobantes
+│       │   │   ├── checkin/           Check-in
+│       │   │   ├── grid/              Sorteo de parrilla
+│       │   │   ├── races/             Carreras y captura de resultados
+│       │   │   ├── classification/    Clasificación y exportación
+│       │   │   └── users/             Usuarios (ADMIN only)
 │       │   └── public/
-│       │       ├── EventRegister.tsx         ← Formulario auto-inscripción
+│       │       ├── EventRegister.tsx  Auto-inscripción con búsqueda de piloto
+│       │       ├── EventPilots.tsx    Lista pública de pilotos por categoría
+│       │       ├── EventResults.tsx   Resultados públicos con SSE
+│       │       ├── Championship.tsx   Campeonato acumulado
 │       │       └── ...
 │       └── router/
-├── seed/                          Datos de prueba
-├── nginx.conf                     Proxy para /api/ y /uploads/
+├── nginx.conf                         Proxy /api/, /uploads/, /sitemap.xml; CSP headers
 ├── docker-compose.yml
 └── .env.example
 ```
@@ -256,14 +291,14 @@ docker compose restart backend
 # Recargar nginx (sin downtime)
 docker compose exec nginx nginx -s reload
 
+# Rebuild y redeploy
+docker compose build backend frontend && docker compose up -d
+
 # Backup de base de datos
 docker compose exec postgres pg_dump -U postgres edel_racing > backup_$(date +%Y%m%d).sql
 
 # Restaurar backup
 cat backup.sql | docker compose exec -T postgres psql -U postgres edel_racing
-
-# Acceder a Prisma Studio (explorador visual de BD)
-docker compose exec -p 5555:5555 backend npx prisma studio --port 5555
 
 # Aplicar migraciones manualmente (normalmente automático al arrancar)
 docker compose exec backend npx prisma migrate deploy
@@ -289,4 +324,7 @@ NODE_ENV=production
 
 # CORS — tu dominio en producción
 CORS_ORIGIN=https://tudominio.com
+
+# URL base del sitio (para sitemap y links en emails)
+APP_URL=https://tudominio.com
 ```

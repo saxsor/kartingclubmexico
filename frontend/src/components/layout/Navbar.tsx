@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, Settings } from 'lucide-react';
+import { Menu, X, LogOut, Settings, User } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../lib/utils';
@@ -64,7 +64,25 @@ export function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
+            {isAuthenticated && user?.role === 'PILOT' ? (
+              <>
+                <Link
+                  to="/piloto/perfil"
+                  className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-white/60 hover:text-white font-bold"
+                >
+                  <User className="h-4 w-4" />
+                  Mi perfil
+                </Link>
+                <span className="text-white/20">|</span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-white/60 hover:text-[#e10600] transition-colors font-bold"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Salir
+                </button>
+              </>
+            ) : isAuthenticated ? (
               <>
                 <Link
                   to="/app/dashboard"
@@ -84,12 +102,21 @@ export function Navbar() {
                 </button>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors"
-              >
-                Ingresar
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/piloto"
+                  className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+                >
+                  <User className="h-3.5 w-3.5" />
+                  Soy piloto
+                </Link>
+                <Link
+                  to="/login"
+                  className="bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors"
+                >
+                  Ingresar
+                </Link>
+              </div>
             )}
           </div>
 
@@ -122,7 +149,23 @@ export function Navbar() {
               {link.label}
             </NavLink>
           ))}
-          {isAuthenticated ? (
+          {isAuthenticated && user?.role === 'PILOT' ? (
+            <>
+              <Link
+                to="/piloto/perfil"
+                className="block text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white py-1"
+                onClick={() => setMobileOpen(false)}
+              >
+                Mi perfil
+              </Link>
+              <button
+                onClick={() => { handleLogout(); setMobileOpen(false); }}
+                className="block text-xs font-bold uppercase tracking-widest text-[#e10600] py-1"
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : isAuthenticated ? (
             <>
               <Link
                 to="/app/dashboard"
@@ -139,13 +182,22 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <Link
-              to="/login"
-              className="inline-block bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
-              Ingresar
-            </Link>
+            <div className="space-y-2">
+              <Link
+                to="/piloto"
+                className="block text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white py-1"
+                onClick={() => setMobileOpen(false)}
+              >
+                Soy piloto
+              </Link>
+              <Link
+                to="/login"
+                className="inline-block bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors"
+                onClick={() => setMobileOpen(false)}
+              >
+                Ingresar
+              </Link>
+            </div>
           )}
         </div>
       </div>

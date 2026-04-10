@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, ChevronRight, Flag, MapPin } from 'lucide-react';
+import { Calendar, ChevronRight, Flag, MapPin, User } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -62,6 +62,13 @@ export function Home() {
               className="border border-[#38383f] hover:border-white/40 bg-transparent px-8 py-3 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-white transition-colors"
             >
               Campeonato {new Date().getFullYear()}
+            </Link>
+            <Link
+              to="/piloto"
+              className="flex items-center gap-2 border border-white/20 hover:border-white/50 bg-transparent px-8 py-3 text-sm font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+            >
+              <User className="h-4 w-4" />
+              Soy piloto
             </Link>
           </div>
         </div>
@@ -142,6 +149,25 @@ export function Home() {
           </Link>
         </section>
       )}
+
+      {/* Pilot CTA */}
+      <section className="border border-white/10 bg-white/5 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#e10600]/20 border border-[#e10600]/30">
+            <User className="h-5 w-5 text-[#e10600]" />
+          </div>
+          <div>
+            <p className="font-black text-sm uppercase tracking-wider text-white">¿Eres piloto?</p>
+            <p className="text-xs text-white/50 mt-0.5">Accede a tu perfil, edita tus datos y revisa tu historial de eventos.</p>
+          </div>
+        </div>
+        <Link
+          to="/piloto"
+          className="flex-shrink-0 bg-[#e10600] hover:bg-[#b30500] px-6 py-2.5 text-xs font-black uppercase tracking-widest text-white transition-colors"
+        >
+          Entrar a mi perfil
+        </Link>
+      </section>
 
       {/* Recent Events */}
       {finishedEvents.length > 0 && (

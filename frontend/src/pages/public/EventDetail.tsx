@@ -198,6 +198,12 @@ export function EventDetail() {
             <ClipboardList className="h-4 w-4" />
             Inscribirme a este evento
           </Link>
+          <Link
+            to="/piloto"
+            className="flex items-center justify-center gap-2 w-full mt-2 py-2 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+          >
+            ¿Ya estás inscrito? Accede a tu perfil →
+          </Link>
         </div>
       )}
     </div>

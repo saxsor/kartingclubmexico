@@ -5,7 +5,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'ORGANIZER' | 'VALIDATOR';
+  role: 'ADMIN' | 'ORGANIZER' | 'VALIDATOR' | 'PILOT';
 }
 
 interface AuthState {

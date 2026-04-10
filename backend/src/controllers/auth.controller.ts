@@ -160,6 +160,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
     email: storedToken.user.email,
     name: storedToken.user.name,
     role: storedToken.user.role,
+    ...(storedToken.user.pilotId ? { pilotId: storedToken.user.pilotId } : {}),
   };
 
   const newAccessToken = signAccessToken(newPayload);

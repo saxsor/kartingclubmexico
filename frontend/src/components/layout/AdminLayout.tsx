@@ -20,6 +20,7 @@ export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role === 'PILOT') return <Navigate to="/piloto/perfil" replace />;
 
   const handleLogout = async () => {
     await signOut();

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useParams } from 'react-router-dom';
-import { Plus, CheckCircle, XCircle, FileText, Download, Trash2 } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, FileText, Download, Trash2, Users, Pencil, X } from 'lucide-react';
 import { downloadCsv } from '../../../lib/download';
 import { paymentsApi } from '../../../api/payments.api';
 import { eventsApi } from '../../../api/events.api';
@@ -19,6 +19,8 @@ export function CashBox() {
   const [form, setForm] = useState({ type: 'SERVICE_FEE', amount: '', notes: '' });
   const [processingReceipt, setProcessingReceipt] = useState<string | null>(null);
   const [processingCashPayment, setProcessingCashPayment] = useState<string | null>(null);
+  const [editingCompanions, setEditingCompanions] = useState<string | null>(null); // inscriptionId
+  const [companionsValue, setCompanionsValue] = useState<number>(0);
   const [inscriptionsPage, setInscriptionsPage] = useState(1);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const queryClient = useQueryClient();
@@ -64,6 +66,15 @@ export function CashBox() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+  });
+  const updateCompanionsMutation = useMutation({
+    mutationFn: ({ inscriptionId, companions }: { inscriptionId: string; companions: number }) =>
+      inscriptionsApi.update(slug!, inscriptionId, { companions }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
+      setEditingCompanions(null);
     },
   });
 
@@ -255,7 +266,7 @@ export function CashBox() {
                   <div>
                     <p className="font-medium text-white">{insc.pilot.name}</p>
                     <p className="text-xs text-white/50">
-                      {insc.category}{insc.companions > 0 ? ` · ${insc.companions} acomp.` : ''} |{' '}
+                      {insc.category} |{' '}
                       <span className={
                         insc.status === 'PAID' ? 'text-green-400' :
                         insc.status === 'RECEIPT_SUBMITTED' ? 'text-yellow-400' :
@@ -267,6 +278,45 @@ export function CashBox() {
                       </span>{' '}|{' '}
                       Total: {formatCurrency(paymentSummary.totalPaid)} / {formatCurrency(paymentSummary.required)} | Saldo: {formatCurrency(paymentSummary.outstanding)}
                     </p>
+                    {/* Comensales row */}
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <Users className="h-3.5 w-3.5 text-white/40" />
+                      {editingCompanions === insc.id ? (
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            updateCompanionsMutation.mutate({ inscriptionId: insc.id, companions: companionsValue });
+                          }}
+                          className="flex items-center gap-1.5"
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            max="20"
+                            value={companionsValue}
+                            onChange={(e) => setCompanionsValue(parseInt(e.target.value) || 0)}
+                            className="w-16 rounded border border-white/20 bg-white/10 px-2 py-0.5 text-xs text-white focus:border-racing-red focus:outline-none"
+                            autoFocus
+                          />
+                          <span className="text-xs text-white/40">acomp. ({companionsValue + 1} total)</span>
+                          <button type="submit" disabled={updateCompanionsMutation.isPending} className="text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
+                            <CheckCircle className="h-3.5 w-3.5" />
+                          </button>
+                          <button type="button" onClick={() => setEditingCompanions(null)} className="text-xs text-white/40 hover:text-white/70">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </form>
+                      ) : (
+                        <button
+                          onClick={() => { setEditingCompanions(insc.id); setCompanionsValue(insc.companions); }}
+                          className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors group"
+                          title="Editar comensales"
+                        >
+                          <span>{insc.companions} acomp. · {insc.companions + 1} comensales en total</span>
+                          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
                     {canMarkCashPaid && (

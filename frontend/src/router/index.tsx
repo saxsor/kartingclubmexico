@@ -1,4 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { PilotAccess } from '../pages/pilot/PilotAccess';
+import { PilotAccessVerify } from '../pages/pilot/PilotAccessVerify';
+import { PilotPortal } from '../pages/pilot/PilotPortal';
 import { PublicLayout } from '../components/layout/PublicLayout';
 import { NotFound } from '../pages/public/NotFound';
 import { AdminLayout } from '../components/layout/AdminLayout';
@@ -75,5 +78,8 @@ export const router = createBrowserRouter([
       { path: 'usuarios', element: <UserManager /> },
     ],
   },
+  { path: '/piloto', element: <PilotAccess /> },
+  { path: '/piloto/acceso/:token', element: <PilotAccessVerify /> },
+  { path: '/piloto/perfil', element: <PilotPortal /> },
   { path: '*', element: <NotFound /> },
 ]);

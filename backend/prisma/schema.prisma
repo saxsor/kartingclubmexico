@@ -11,6 +11,7 @@ enum Role {
   ADMIN
   ORGANIZER
   VALIDATOR
+  PILOT
 }
 
 enum Category {
@@ -66,11 +67,13 @@ model User {
   name      String
   role      Role     @default(ORGANIZER)
   active    Boolean  @default(true)
+  pilotId   String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  pilot               Pilot?               @relation(fields: [pilotId], references: [id])
 }
 
 model RefreshToken {
@@ -85,6 +88,20 @@ model RefreshToken {
 
   @@index([userId])
   @@index([tokenHash])
+}
+
+model PilotMagicToken {
+  id        String    @id @default(uuid())
+  pilotId   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  pilot Pilot @relation(fields: [pilotId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([pilotId])
 }
 
 model PasswordResetToken {
@@ -112,8 +129,10 @@ model Pilot {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  inscriptions Inscription[]
-  standings    ChampionshipStanding[]
+  inscriptions  Inscription[]
+  standings     ChampionshipStanding[]
+  user          User?
+  magicTokens   PilotMagicToken[]
 
   @@index([active])
   @@index([kartNumber])

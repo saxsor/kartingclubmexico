@@ -95,6 +95,26 @@ function divider(): string {
   return `<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:20px 0;" />`;
 }
 
+// ─── Pilot Magic Link ─────────────────────────────────────────────────────────
+
+export async function sendPilotMagicLinkEmail(to: string, name: string, token: string): Promise<void> {
+  const url = `${config.APP_URL}/piloto/acceso/${token}`;
+  const html = baseLayout('Acceso a tu perfil', `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:1px;">
+      Accede a tu perfil
+    </h2>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 20px;">
+      Hola <strong style="color:#fff;">${name}</strong>, aquí está tu enlace de acceso a tu perfil de piloto.
+    </p>
+    ${btn('Entrar a mi perfil', url)}
+    ${divider()}
+    <p style="color:rgba(255,255,255,0.3);font-size:12px;margin:0;">
+      Este enlace expira en 24 horas y solo puede usarse una vez. Si no lo solicitaste, ignora este correo.
+    </p>
+  `);
+  await send(to, 'Acceso a tu perfil — Edel Racing', html);
+}
+
 // ─── Password Reset ───────────────────────────────────────────────────────────
 
 export async function sendPasswordResetEmail(to: string, name: string, token: string): Promise<void> {

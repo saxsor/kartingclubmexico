@@ -56,8 +56,8 @@ app.use('/api', (req, res, next) => {
   const skipPaths = ['/auth/login', '/auth/refresh', '/auth/forgot-password', '/auth/reset-password'];
   if (skipPaths.some((p) => req.path.startsWith(p))) return next();
 
-  // Public self-register and receipt upload paths (no auth required by design)
-  const publicPaths = ['/self-register'];
+  // Public self-register, receipt upload, and pilot magic link paths (no auth required by design)
+  const publicPaths = ['/self-register', '/pilot/request-access', '/pilot/verify-access'];
   if (publicPaths.some((p) => req.path.includes(p))) return next();
 
   const csrfCookie = req.cookies?.csrf_token;

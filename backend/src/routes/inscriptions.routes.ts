@@ -22,6 +22,7 @@ const updateSchema = z.object({
   kartNumber: z.number().int().positive().optional(),
   notes: z.string().optional(),
   status: z.enum(['PENDING_PAYMENT', 'PAID']).optional(),
+  companions: z.number().int().min(0).optional(),
 });
 
 // VALIDATOR can list, view and create inscriptions, but not edit or delete

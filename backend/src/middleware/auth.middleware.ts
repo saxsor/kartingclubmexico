@@ -8,6 +8,7 @@ export interface JwtPayload {
   email: string;
   name: string;
   role: Role;
+  pilotId?: string;
   tokenType?: 'access' | 'refresh';
 }
 

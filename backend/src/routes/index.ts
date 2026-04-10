@@ -13,6 +13,7 @@ import { eventRouter as resultsEventRouter, raceRouter as resultsRaceRouter } fr
 import championshipsRoutes from './championships.routes.js';
 import selfRegisterRoutes from './self-register.routes.js';
 import analyticsRoutes from './analytics.routes.js';
+import pilotPortalRoutes from './pilot-portal.routes.js';
 import { sseManager } from '../lib/sse.js';
 
 const router = Router();
@@ -36,6 +37,7 @@ router.use('/races', resultsRaceRouter);
 
 router.use('/championships', championshipsRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/pilot', pilotPortalRoutes);
 
 // SSE stream endpoint
 router.get('/events/:slug/stream', (req: Request, res: Response) => {

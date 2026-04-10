@@ -36,9 +36,9 @@ export async function listPilots(req: Request, res: Response): Promise<void> {
 }
 
 export async function createPilot(req: Request, res: Response): Promise<void> {
-  const { name, alias, kartNumber, phone, email } = req.body;
+  const { name, alias, kartNumber, phone, email, engine } = req.body;
   const pilot = await prisma.pilot.create({
-    data: { name, alias, kartNumber, phone, email },
+    data: { name, alias, kartNumber, phone, email, engine },
   });
   res.status(201).json(pilot);
 }
@@ -52,10 +52,10 @@ export async function getPilot(req: Request, res: Response): Promise<void> {
 }
 
 export async function updatePilot(req: Request, res: Response): Promise<void> {
-  const { name, alias, kartNumber, phone, email, active } = req.body;
+  const { name, alias, kartNumber, phone, email, active, engine } = req.body;
   const pilot = await prisma.pilot.update({
     where: { id: req.params.id },
-    data: { name, alias, kartNumber, phone, email, active },
+    data: { name, alias, kartNumber, phone, email, active, engine },
   });
   res.json(pilot);
 }

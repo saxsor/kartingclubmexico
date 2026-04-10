@@ -27,7 +27,7 @@ export function InscriptionManager() {
   const [showForm, setShowForm] = useState(false);
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
   const debouncedSearch = useDebounce(searchInput, 300);
-  const [form, setForm] = useState({ pilotId: '', category: '' as Category | '', kartNumber: '', notes: '', companions: 0 });
+  const [form, setForm] = useState({ pilotId: '', category: '' as Category | '', kartNumber: '', notes: '', companions: 0, engine: '' });
   const [error, setError] = useState('');
   const queryClient = useQueryClient();
 
@@ -80,7 +80,7 @@ export function InscriptionManager() {
     queryFn: () => pilotsApi.list({ page: 1, pageSize: 100 }),
   });
   const createMutation = useMutation({
-    mutationFn: (payload: { pilotId: string; category: Category; kartNumber?: number; notes?: string; companions?: number }) =>
+    mutationFn: (payload: { pilotId: string; category: Category; kartNumber?: number; notes?: string; companions?: number; engine?: string }) =>
       inscriptionsApi.create(slug!, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
@@ -113,9 +113,10 @@ export function InscriptionManager() {
         kartNumber: form.kartNumber ? parseInt(form.kartNumber) : undefined,
         notes: form.notes || undefined,
         companions: form.companions,
+        engine: form.engine || undefined,
       });
       setShowForm(false);
-      setForm({ pilotId: '', category: '', kartNumber: '', notes: '', companions: 0 });
+      setForm({ pilotId: '', category: '', kartNumber: '', notes: '', companions: 0, engine: '' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear inscripción');
     }
@@ -211,6 +212,16 @@ export function InscriptionManager() {
               </div>
             </div>
             <div>
+              <label className="block text-xs font-medium text-white/70 mb-1">Motor</label>
+              <input
+                type="text"
+                value={form.engine}
+                onChange={(e) => setForm({ ...form, engine: e.target.value })}
+                placeholder="ej. TM KZ10C, Rotax Max, IAME X30"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+              />
+            </div>
+            <div>
               <label className="block text-xs font-medium text-white/70 mb-1">Notas</label>
               <input
                 type="text"
@@ -281,6 +292,7 @@ export function InscriptionManager() {
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Piloto</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Categoría</th>
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Kart</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Motor</th>
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Pago</th>
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Check-in</th>
               <th className="px-4 py-3" />
@@ -296,6 +308,9 @@ export function InscriptionManager() {
                 <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
                 <td className="px-4 py-3 text-center font-mono text-white/70">
                   {i.kartNumber ? `#${i.kartNumber}` : '-'}
+                </td>
+                <td className="px-4 py-3 text-xs text-white/60">
+                  {i.engine ?? <span className="text-white/25">—</span>}
                 </td>
                 <td className="px-4 py-3 text-center"><StatusBadge status={i.status} /></td>
                 <td className="px-4 py-3 text-center">

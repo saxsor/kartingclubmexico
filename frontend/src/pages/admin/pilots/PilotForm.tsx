@@ -13,7 +13,7 @@ export function PilotForm() {
   const isEdit = id !== 'nuevo' && id !== undefined;
 
   const [form, setForm] = useState({
-    name: '', alias: '', kartNumber: '', phone: '', email: '', active: true,
+    name: '', alias: '', kartNumber: '', phone: '', email: '', engine: '', active: true,
   });
   const [photoUploading, setPhotoUploading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,6 +52,7 @@ export function PilotForm() {
       kartNumber: pilot.kartNumber?.toString() ?? '',
       phone: pilot.phone ?? '',
       email: pilot.email ?? '',
+      engine: pilot.engine ?? '',
       active: pilot.active,
     });
   }, [pilotQuery.data]);
@@ -98,6 +99,7 @@ export function PilotForm() {
         kartNumber: form.kartNumber ? parseInt(form.kartNumber) : undefined,
         phone: form.phone || undefined,
         email: form.email || undefined,
+        engine: form.engine || undefined,
         active: form.active,
       };
       if (isEdit && id) {
@@ -203,6 +205,7 @@ export function PilotForm() {
           { key: 'kartNumber', label: 'Número de kart', type: 'number', required: false, placeholder: '1-999' },
           { key: 'phone', label: 'Teléfono', type: 'tel', required: false, placeholder: '+52 55 xxxx xxxx' },
           { key: 'email', label: 'Email', type: 'email', required: false, placeholder: 'piloto@ejemplo.com' },
+          { key: 'engine', label: 'Motor habitual', type: 'text', required: false, placeholder: 'ej. TM KZ10C, Rotax Max, IAME X30' },
         ].map((field) => (
           <div key={field.key}>
             <label className="block text-sm font-medium text-white/70 mb-1.5">{field.label}</label>

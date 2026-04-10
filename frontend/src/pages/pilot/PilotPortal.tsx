@@ -34,12 +34,12 @@ export function PilotPortal() {
 
   // Profile edit state
   const [editingProfile, setEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ name: '', alias: '', phone: '' });
+  const [profileForm, setProfileForm] = useState({ name: '', alias: '', phone: '', engine: '' });
   const photoRef = useRef<HTMLInputElement>(null);
 
   // Inscription edit state
   const [editingInsc, setEditingInsc] = useState<string | null>(null);
-  const [inscForm, setInscForm] = useState({ companions: 0, kartNumber: '' });
+  const [inscForm, setInscForm] = useState({ companions: 0, kartNumber: '', engine: '' });
 
   const profileQuery = useQuery({
     queryKey: ['pilot', 'me'],
@@ -59,7 +59,7 @@ export function PilotPortal() {
   });
 
   const updateInscMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { companions?: number; kartNumber?: number | null } }) =>
+    mutationFn: ({ id, data }: { id: string; data: { companions?: number; kartNumber?: number | null; engine?: string } }) =>
       pilotApi.updateInscription(id, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['pilot', 'me'] }); setEditingInsc(null); },
   });
@@ -71,12 +71,12 @@ export function PilotPortal() {
   };
 
   const startEditProfile = () => {
-    setProfileForm({ name: pilot?.name ?? '', alias: pilot?.alias ?? '', phone: pilot?.phone ?? '' });
+    setProfileForm({ name: pilot?.name ?? '', alias: pilot?.alias ?? '', phone: pilot?.phone ?? '', engine: pilot?.engine ?? '' });
     setEditingProfile(true);
   };
 
   const startEditInsc = (insc: PilotInscription) => {
-    setInscForm({ companions: insc.companions, kartNumber: insc.kartNumber?.toString() ?? '' });
+    setInscForm({ companions: insc.companions, kartNumber: insc.kartNumber?.toString() ?? '', engine: insc.engine ?? '' });
     setEditingInsc(insc.id);
   };
 
@@ -166,6 +166,12 @@ export function PilotPortal() {
                     placeholder="Teléfono (opcional)"
                     className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
                   />
+                  <input
+                    value={profileForm.engine}
+                    onChange={(e) => setProfileForm({ ...profileForm, engine: e.target.value })}
+                    placeholder="Motor (ej. TM KZ10C, Rotax Max...)"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
+                  />
                   <div className="flex gap-2 pt-1">
                     <button type="submit" disabled={updateProfileMutation.isPending} className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
                       <CheckCircle className="h-3.5 w-3.5" /> Guardar
@@ -186,6 +192,7 @@ export function PilotPortal() {
                   {pilot.alias && <p className="text-sm text-white/50">{pilot.alias}</p>}
                   {pilot.email && <p className="text-xs text-white/30 mt-0.5">{pilot.email}</p>}
                   {pilot.phone && <p className="text-xs text-white/30">{pilot.phone}</p>}
+                  {pilot.engine && <p className="text-xs text-white/40 mt-1">Motor: {pilot.engine}</p>}
                 </div>
               )}
             </div>
@@ -231,6 +238,7 @@ export function PilotPortal() {
                           data: {
                             companions: inscForm.companions,
                             kartNumber: inscForm.kartNumber ? parseInt(inscForm.kartNumber) : null,
+                            engine: inscForm.engine || undefined,
                           },
                         });
                       }} className="border-t border-white/10 pt-3 space-y-2">
@@ -256,6 +264,16 @@ export function PilotPortal() {
                             />
                           </div>
                         </div>
+                        <div>
+                          <label className="text-xs text-white/40 block mb-1">Motor</label>
+                          <input
+                            type="text"
+                            value={inscForm.engine}
+                            onChange={(e) => setInscForm({ ...inscForm, engine: e.target.value })}
+                            placeholder="ej. TM KZ10C, Rotax Max, IAME X30"
+                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
+                          />
+                        </div>
                         <div className="flex gap-3">
                           <button type="submit" disabled={updateInscMutation.isPending} className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
                             <CheckCircle className="h-3.5 w-3.5" /> {updateInscMutation.isPending ? 'Guardando...' : 'Guardar'}
@@ -270,6 +288,7 @@ export function PilotPortal() {
                         <div className="text-xs text-white/50 space-y-0.5">
                           <p>{insc.companions} acompañantes · {insc.companions + 1} comensales</p>
                           <p>Kart: {insc.kartNumber ?? <span className="text-white/30">Sin asignar</span>}</p>
+                          {insc.engine && <p>Motor: {insc.engine}</p>}
                         </div>
                         <button
                           onClick={() => startEditInsc(insc)}

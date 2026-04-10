@@ -8,6 +8,7 @@ export interface PilotProfile {
   phone: string | null;
   email: string | null;
   photoUrl: string | null;
+  engine: string | null;
   inscriptions: PilotInscription[];
   standings: PilotStanding[];
 }
@@ -16,6 +17,7 @@ export interface PilotInscription {
   id: string;
   category: string;
   kartNumber: number | null;
+  engine: string | null;
   companions: number;
   status: 'PENDING_PAYMENT' | 'RECEIPT_SUBMITTED' | 'PAID';
   event: {
@@ -49,7 +51,7 @@ export const pilotApi = {
 
   getProfile: () => api.get<PilotProfile>('/pilot/me'),
 
-  updateProfile: (data: { name?: string; alias?: string; phone?: string }) =>
+  updateProfile: (data: { name?: string; alias?: string; phone?: string; engine?: string }) =>
     api.put<PilotProfile>('/pilot/me', data),
 
   uploadPhoto: (file: File) => {
@@ -58,6 +60,6 @@ export const pilotApi = {
     return uploadWithAuth<PilotProfile>('/pilot/me/photo', formData);
   },
 
-  updateInscription: (id: string, data: { companions?: number; kartNumber?: number | null }) =>
+  updateInscription: (id: string, data: { companions?: number; kartNumber?: number | null; engine?: string }) =>
     api.put<PilotInscription>(`/pilot/inscriptions/${id}`, data),
 };

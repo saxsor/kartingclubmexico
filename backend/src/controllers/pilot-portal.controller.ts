@@ -145,7 +145,7 @@ export async function updateMyProfile(req: Request, res: Response): Promise<void
   const pilotId = req.user!.pilotId;
   if (!pilotId) { res.status(403).json({ error: 'No vinculado a un piloto.' }); return; }
 
-  const { name, alias, phone } = req.body;
+  const { name, alias, phone, engine } = req.body;
 
   const pilot = await prisma.pilot.update({
     where: { id: pilotId },
@@ -153,6 +153,7 @@ export async function updateMyProfile(req: Request, res: Response): Promise<void
       ...(name !== undefined && { name }),
       ...(alias !== undefined && { alias }),
       ...(phone !== undefined && { phone }),
+      ...(engine !== undefined && { engine }),
     },
   });
 
@@ -194,13 +195,14 @@ export async function updateMyInscription(req: Request, res: Response): Promise<
     return;
   }
 
-  const { companions, kartNumber } = req.body;
+  const { companions, kartNumber, engine } = req.body;
 
   const updated = await prisma.inscription.update({
     where: { id: req.params.id },
     data: {
       ...(companions !== undefined && { companions }),
       ...(kartNumber !== undefined && { kartNumber }),
+      ...(engine !== undefined && { engine }),
     },
     include: { event: { select: { id: true, name: true, slug: true, date: true, status: true, serviceFee: true, foodFee: true } }, payments: true, checkIn: true },
   });

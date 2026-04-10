@@ -68,10 +68,10 @@ export async function createInscription(req: Request, res: Response): Promise<vo
   const event = await getEventOrFail(req.params.slug, res);
   if (!event) return;
 
-  const { pilotId, category, kartNumber, notes, companions } = req.body;
+  const { pilotId, category, kartNumber, notes, companions, engine } = req.body;
 
   const inscription = await prisma.inscription.create({
-    data: { eventId: event.id, pilotId, category, kartNumber, notes, companions: companions ?? 0 },
+    data: { eventId: event.id, pilotId, category, kartNumber, notes, companions: companions ?? 0, engine },
     include: { pilot: true, payments: true, checkIn: true },
   });
   res.status(201).json(inscription);
@@ -87,7 +87,7 @@ export async function getInscription(req: Request, res: Response): Promise<void>
 }
 
 export async function updateInscription(req: Request, res: Response): Promise<void> {
-  const { category, kartNumber, notes, status, companions } = req.body;
+  const { category, kartNumber, notes, status, companions, engine } = req.body;
   const inscription = await prisma.inscription.update({
     where: { id: req.params.id },
     data: {
@@ -96,6 +96,7 @@ export async function updateInscription(req: Request, res: Response): Promise<vo
       ...(notes !== undefined && { notes }),
       ...(status !== undefined && { status }),
       ...(companions !== undefined && { companions }),
+      ...(engine !== undefined && { engine }),
     },
     include: { pilot: true, payments: true, checkIn: true },
   });
@@ -146,7 +147,7 @@ export async function exportInscriptions(req: Request, res: Response): Promise<v
   });
 
   const rows = [
-    '"Nombre","Alias","Email","Teléfono","Categoría","Kart","Estado","Pago Total","Check-in","Auto-registro","Fecha inscripción"',
+    '"Nombre","Alias","Email","Teléfono","Categoría","Kart","Motor","Estado","Pago Total","Check-in","Auto-registro","Fecha inscripción"',
     ...inscriptions.map((i) => {
       const totalPaid = i.payments.reduce((s, p) => s + Number(p.amount), 0);
       const fmtMXN = (n: number) => n.toFixed(2);
@@ -157,6 +158,7 @@ export async function exportInscriptions(req: Request, res: Response): Promise<v
         `"${i.pilot.phone ?? ''}"`,
         `"${i.category}"`,
         `"${i.kartNumber ?? ''}"`,
+        `"${i.engine ?? ''}"`,
         `"${i.status}"`,
         `"${fmtMXN(totalPaid)}"`,
         `"${i.checkIn ? 'Sí' : 'No'}"`,

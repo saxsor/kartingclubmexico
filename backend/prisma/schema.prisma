@@ -125,6 +125,7 @@ model Pilot {
   phone        String?
   email        String?
   photoUrl     String?
+  engine       String?
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -193,6 +194,7 @@ model Inscription {
   pilotId    String
   category   Category
   kartNumber Int?
+  engine         String?
   companions     Int               @default(0)
   status         InscriptionStatus @default(PENDING_PAYMENT)
   notes          String?

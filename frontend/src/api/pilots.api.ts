@@ -10,6 +10,7 @@ export interface Pilot {
   phone: string | null;
   email: string | null;
   photoUrl: string | null;
+  engine: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;

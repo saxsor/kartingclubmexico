@@ -20,10 +20,12 @@ const updateProfileSchema = z.object({
   name: z.string().min(1).optional(),
   alias: z.string().optional(),
   phone: z.string().optional(),
+  engine: z.string().optional(),
 });
 const updateInscriptionSchema = z.object({
   companions: z.number().int().min(0).optional(),
   kartNumber: z.number().int().positive().optional(),
+  engine: z.string().optional(),
 });
 
 // Public — no auth required

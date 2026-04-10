@@ -16,6 +16,7 @@ const pilotSchema = z.object({
   kartNumber: z.number().int().positive().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional(),
+  engine: z.string().optional(),
   active: z.boolean().optional(),
 });
 

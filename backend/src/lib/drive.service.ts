@@ -3,21 +3,22 @@ import { Readable } from 'stream';
 import path from 'path';
 
 const FOLDER_IDS = {
-  posters: '1ENaBUFRPAVPVL18leMP3_JuTVoXOkZPB',
-  pilots: '1OmeK8vzkG8klZLahzwFEpPrAkLEZC6bt',
+  posters:  '1ENaBUFRPAVPVL18leMP3_JuTVoXOkZPB',
+  pilots:   '1OmeK8vzkG8klZLahzwFEpPrAkLEZC6bt',
   receipts: '1VvwJxUTdUooAz5d8Knxl0gt8PoAOB1eL',
 } as const;
 
 export type DriveFolder = keyof typeof FOLDER_IDS;
 
-// Prefix stored in DB to distinguish Drive IDs from legacy local paths
 export const DRIVE_PREFIX = 'drive:';
 
 function getAuth() {
-  return new google.auth.GoogleAuth({
-    keyFile: process.env.GOOGLE_SERVICE_ACCOUNT_PATH ?? '/app/google-service-account.json',
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  });
+  const oauth2 = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+  );
+  oauth2.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
+  return oauth2;
 }
 
 export async function uploadToDrive(
@@ -32,14 +33,8 @@ export async function uploadToDrive(
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
 
   const res = await drive.files.create({
-    requestBody: {
-      name: filename,
-      parents: [FOLDER_IDS[folder]],
-    },
-    media: {
-      mimeType: mimetype,
-      body: Readable.from(buffer),
-    },
+    requestBody: { name: filename, parents: [FOLDER_IDS[folder]] },
+    media: { mimeType: mimetype, body: Readable.from(buffer) },
     fields: 'id',
   });
 
@@ -62,7 +57,7 @@ export async function deleteFromDrive(storedValue: string): Promise<void> {
     const drive = google.drive({ version: 'v3', auth: getAuth() });
     await drive.files.delete({ fileId });
   } catch {
-    // Ignore — file may already be deleted
+    // Ignore
   }
 }
 
@@ -72,23 +67,11 @@ export async function streamFromDrive(storedValue: string): Promise<{ stream: No
     : storedValue;
 
   const drive = google.drive({ version: 'v3', auth: getAuth() });
-
   const meta = await drive.files.get({ fileId, fields: 'mimeType' });
   const mimeType = meta.data.mimeType ?? 'application/octet-stream';
-
-  const fileRes = await drive.files.get(
-    { fileId, alt: 'media' },
-    { responseType: 'stream' },
-  );
+  const fileRes = await drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' });
 
   return { stream: fileRes.data as NodeJS.ReadableStream, mimeType };
-}
-
-export function drivePublicUrl(storedValue: string): string {
-  const fileId = storedValue.startsWith(DRIVE_PREFIX)
-    ? storedValue.slice(DRIVE_PREFIX.length)
-    : storedValue;
-  return `https://drive.google.com/uc?export=view&id=${fileId}`;
 }
 
 export function isDriveValue(value: string | null | undefined): boolean {

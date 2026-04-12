@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Trophy, Edit2, Check, X, Plus, Trash2, User } from 'lucide-react';
-import { championshipApi, ChampionshipEvent, ChampionshipStandingsData } from '../../../api/championship.api';
+import { Trophy, Edit2, Check, X, Plus, Trash2, User, ShieldCheck } from 'lucide-react';
+import { championshipApi, ChampionshipEvent, ChampionshipStandingsData, ConstructorStandingsData } from '../../../api/championship.api';
 import { eventsApi } from '../../../api/events.api';
 import { CATEGORY_LABELS, cn, getPositionClass, resolveMediaUrl } from '../../../lib/utils';
 import { queryKeys } from '../../../lib/react-query';
 import { toast } from '../../../store/toast.store';
 import { Category } from '../../../api/events.api';
+
+type ViewMode = 'pilotos' | 'constructores';
 
 const ALL_CATEGORIES: Category[] = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
 
@@ -19,6 +21,7 @@ export function ChampionshipDetail() {
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [selectedCat, setSelectedCat] = useState<Category | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('pilotos');
   const [showAddEvent, setShowAddEvent] = useState(false);
 
   const detailQuery = useQuery({
@@ -30,7 +33,13 @@ export function ChampionshipDetail() {
   const standingsQuery = useQuery({
     queryKey: id && selectedCat ? queryKeys.championships.standings(id, selectedCat) : ['championships', 'standings', 'missing'],
     queryFn: () => championshipApi.getStandings(id!, selectedCat!),
-    enabled: !!id && !!selectedCat,
+    enabled: !!id && !!selectedCat && viewMode === 'pilotos',
+  });
+
+  const constructorQuery = useQuery({
+    queryKey: id && selectedCat ? ['championships', 'constructors', id, selectedCat] : ['championships', 'constructors', 'missing'],
+    queryFn: () => championshipApi.getConstructorStandings(id!, selectedCat!),
+    enabled: !!id && !!selectedCat && viewMode === 'constructores',
   });
 
   const allEventsQuery = useQuery({
@@ -240,9 +249,34 @@ export function ChampionshipDetail() {
 
       {/* Standings section */}
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-1 h-5 bg-[#e10600]" />
-          <h2 className="text-xs font-bold uppercase tracking-widest text-white/50">Clasificación del campeonato</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-5 bg-[#e10600]" />
+            <h2 className="text-xs font-bold uppercase tracking-widest text-white/50">Clasificación del campeonato</h2>
+          </div>
+          {/* View mode toggle */}
+          <div className="flex gap-px bg-[#38383f]">
+            <button
+              onClick={() => setViewMode('pilotos')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors',
+                viewMode === 'pilotos' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+              )}
+            >
+              <User className="h-3 w-3" />
+              Pilotos
+            </button>
+            <button
+              onClick={() => setViewMode('constructores')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors',
+                viewMode === 'constructores' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+              )}
+            >
+              <ShieldCheck className="h-3 w-3" />
+              Constructores
+            </button>
+          </div>
         </div>
 
         {/* Category tabs */}
@@ -263,15 +297,98 @@ export function ChampionshipDetail() {
           ))}
         </div>
 
-        {standingsQuery.isLoading ? (
-          <div className="text-center py-10 text-white/40 text-sm">Cargando clasificación...</div>
-        ) : !standings || standings.standings.length === 0 ? (
-          <div className="text-center py-10 text-white/40 text-sm border border-dashed border-white/10">
-            No hay resultados para esta categoría en el campeonato
-          </div>
+        {viewMode === 'pilotos' ? (
+          standingsQuery.isLoading ? (
+            <div className="text-center py-10 text-white/40 text-sm">Cargando clasificación...</div>
+          ) : !standings || standings.standings.length === 0 ? (
+            <div className="text-center py-10 text-white/40 text-sm border border-dashed border-white/10">
+              No hay resultados para esta categoría en el campeonato
+            </div>
+          ) : (
+            <ChampionshipStandingsTable standings={standings} />
+          )
         ) : (
-          <ChampionshipStandingsTable standings={standings} />
+          constructorQuery.isLoading ? (
+            <div className="text-center py-10 text-white/40 text-sm">Cargando constructores...</div>
+          ) : !constructorQuery.data || constructorQuery.data.standings.length === 0 ? (
+            <div className="text-center py-10 text-white/40 text-sm border border-dashed border-white/10">
+              No hay datos de constructores para esta categoría
+            </div>
+          ) : (
+            <ConstructorStandingsTable standings={constructorQuery.data} />
+          )
         )}
+      </div>
+    </div>
+  );
+}
+
+function ConstructorStandingsTable({ standings }: { standings: ConstructorStandingsData }) {
+  const events = standings.events;
+
+  return (
+    <div className="border border-[#38383f] overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#38383f] bg-[#1f1f27]">
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40 w-12">Pos</th>
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Equipo</th>
+              {events.map((e) => (
+                <th key={e.id} className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40 whitespace-nowrap max-w-[90px]">
+                  <span className="block truncate" title={e.name}>{e.name.length > 12 ? e.name.slice(0, 10) + '…' : e.name}</span>
+                </th>
+              ))}
+              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Total</th>
+              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Gap</th>
+            </tr>
+          </thead>
+          <tbody>
+            {standings.standings.map((row, idx) => (
+              <tr
+                key={row.teamId}
+                className={cn(
+                  'border-b border-[#38383f]/50 transition-colors hover:bg-[#2a2a35]',
+                  idx === 0 && 'bg-yellow-500/5',
+                  idx === 0 ? 'border-l-[3px] border-l-yellow-500' :
+                  idx === 1 ? 'border-l-[3px] border-l-white/20' :
+                  idx === 2 ? 'border-l-[3px] border-l-orange-400/40' :
+                  'border-l-[3px] border-l-transparent',
+                )}
+              >
+                <td className="px-4 py-2.5">
+                  <span
+                    className={cn('font-black text-xl', getPositionClass(row.position))}
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+                  >
+                    {row.position}
+                  </span>
+                </td>
+                <td className="px-4 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-purple-400/60 flex-shrink-0" />
+                    <span className="font-bold text-white uppercase text-sm"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+                      {row.teamName}
+                    </span>
+                  </div>
+                </td>
+                {events.map((e) => (
+                  <td key={e.id} className="px-3 py-2.5 text-center text-white/70 text-sm">
+                    {row.eventPoints[e.id] ?? '—'}
+                  </td>
+                ))}
+                <td className="px-4 py-2.5 text-center font-black text-white text-lg"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                  {row.totalPoints}
+                </td>
+                <td className="px-4 py-2.5 text-center text-white/40 text-xs font-bold">
+                  {row.gap === 0 ? '—' : `-${row.gap}`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

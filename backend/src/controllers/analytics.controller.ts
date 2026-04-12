@@ -64,11 +64,10 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
       include: { team: { select: { name: true } } },
     }),
 
-    // Distinct teams per event (via race results)
+    // Teams per event (via race results — dedup done in JS with Set)
     prisma.raceResult.findMany({
       where: { teamId: { not: null }, race: { status: 'FINISHED' } },
       select: { teamId: true, race: { select: { eventId: true } } },
-      distinct: ['teamId', 'raceId'],
     }),
   ]);
 
@@ -166,6 +165,17 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     ? Math.round(teamsPerEventCounts.reduce((a, b) => a + b, 0) / teamsPerEventCounts.length)
     : 0;
 
+  // Build teams-per-event array aligned with events list (oldest first)
+  const teamsPerEvent = events
+    .slice()
+    .reverse()
+    .map((e) => ({
+      name: e.name,
+      slug: e.slug,
+      equipos: teamsPerEventMap[e.id]?.size ?? 0,
+    }))
+    .filter((e) => e.equipos > 0);
+
   res.json({
     revenueByEvent: revenueByEvent.slice().reverse(),
     participationByEvent: participationByEvent.slice().reverse(),
@@ -173,6 +183,7 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     constructorsByCategory,
     totalTeams,
     avgTeamsPerEvent,
+    teamsPerEvent,
     year: currentYear,
   });
 }

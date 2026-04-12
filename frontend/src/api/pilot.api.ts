@@ -9,6 +9,7 @@ export interface PilotProfile {
   email: string | null;
   photoUrl: string | null;
   engine: string | null;
+  team: { id: string; name: string } | null;
   inscriptions: PilotInscription[];
   standings: PilotStanding[];
 }
@@ -51,7 +52,7 @@ export const pilotApi = {
 
   getProfile: () => api.get<PilotProfile>('/pilot/me'),
 
-  updateProfile: (data: { name?: string; alias?: string; phone?: string; engine?: string }) =>
+  updateProfile: (data: { name?: string; alias?: string; phone?: string; engine?: string; kartNumber?: number | null; teamId?: string | null }) =>
     api.put<PilotProfile>('/pilot/me', data),
 
   uploadPhoto: (file: File) => {

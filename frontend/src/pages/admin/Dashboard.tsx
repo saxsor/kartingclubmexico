@@ -299,6 +299,44 @@ export function Dashboard() {
         </div>
       )}
 
+      {/* Teams per event chart */}
+      {(analytics?.teamsPerEvent ?? []).length > 0 && (
+        <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-purple-400" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60">Equipos por evento</h2>
+          </div>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={analytics!.teamsPerEvent} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+                <XAxis
+                  dataKey="name"
+                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: string) => shortName(v)}
+                />
+                <YAxis
+                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                  width={28}
+                />
+                <Tooltip
+                  cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                  contentStyle={{ background: '#1a1a24', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 12 }}
+                  labelStyle={{ color: 'white', fontWeight: 700, marginBottom: 4 }}
+                  itemStyle={{ color: '#a78bfa' }}
+                  formatter={(v) => [v, 'Equipos']}
+                />
+                <Bar dataKey="equipos" fill="#8b5cf6" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
       {/* Championship standings — Pilots */}
       {standingCategories.length > 0 && (
         <div className="space-y-3">

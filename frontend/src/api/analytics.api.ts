@@ -34,6 +34,12 @@ export interface ConstructorEntry {
   eventsCount: number;
 }
 
+export interface TeamsPerEvent {
+  name: string;
+  slug: string;
+  equipos: number;
+}
+
 export interface DashboardAnalytics {
   revenueByEvent: RevenueByEvent[];
   participationByEvent: ParticipationByEvent[];
@@ -41,6 +47,7 @@ export interface DashboardAnalytics {
   constructorsByCategory: Record<string, ConstructorEntry[]>;
   totalTeams: number;
   avgTeamsPerEvent: number;
+  teamsPerEvent: TeamsPerEvent[];
   year: number;
 }
 

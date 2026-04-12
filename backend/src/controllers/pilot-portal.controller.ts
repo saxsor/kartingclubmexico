@@ -122,6 +122,7 @@ export async function getMyProfile(req: Request, res: Response): Promise<void> {
   const pilot = await prisma.pilot.findUnique({
     where: { id: pilotId },
     include: {
+      team: { select: { id: true, name: true } },
       inscriptions: {
         include: {
           event: { select: { id: true, name: true, slug: true, date: true, status: true, serviceFee: true, foodFee: true } },
@@ -145,7 +146,7 @@ export async function updateMyProfile(req: Request, res: Response): Promise<void
   const pilotId = req.user!.pilotId;
   if (!pilotId) { res.status(403).json({ error: 'No vinculado a un piloto.' }); return; }
 
-  const { name, alias, phone, engine } = req.body;
+  const { name, alias, phone, engine, kartNumber, teamId } = req.body;
 
   const pilot = await prisma.pilot.update({
     where: { id: pilotId },
@@ -154,7 +155,10 @@ export async function updateMyProfile(req: Request, res: Response): Promise<void
       ...(alias !== undefined && { alias }),
       ...(phone !== undefined && { phone }),
       ...(engine !== undefined && { engine }),
+      ...(kartNumber !== undefined && { kartNumber: kartNumber === null ? null : Number(kartNumber) }),
+      ...(teamId !== undefined && { teamId: teamId || null }),
     },
+    include: { team: { select: { id: true, name: true } } },
   });
 
   // Keep User name in sync

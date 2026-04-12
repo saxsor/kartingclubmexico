@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { pilotApi, PilotInscription } from '../../api/pilot.api';
 import { useAuthStore } from '../../store/auth.store';
 import { authApi } from '../../api/auth.api';
+import { teamsApi } from '../../api/teams.api';
 import { formatCurrency, formatDate, resolveMediaUrl } from '../../lib/utils';
-import { Flag, User, Camera, LogOut, Pencil, CheckCircle, X, Trophy, Calendar } from 'lucide-react';
+import { Flag, User, Camera, LogOut, Pencil, CheckCircle, X, Trophy, Calendar, Users } from 'lucide-react';
+import { TeamAutocomplete } from '../../components/shared/TeamAutocomplete';
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   PENDING_PAYMENT: { label: 'Pago pendiente', color: 'text-orange-400' },
@@ -34,7 +36,9 @@ export function PilotPortal() {
 
   // Profile edit state
   const [editingProfile, setEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ name: '', alias: '', phone: '', engine: '' });
+  const [profileForm, setProfileForm] = useState({ name: '', alias: '', phone: '', engine: '', kartNumber: '' });
+  const [profileTeamName, setProfileTeamName] = useState('');
+  const [profileTeamId, setProfileTeamId] = useState<string | null>(null);
   const photoRef = useRef<HTMLInputElement>(null);
 
   // Inscription edit state
@@ -71,7 +75,9 @@ export function PilotPortal() {
   };
 
   const startEditProfile = () => {
-    setProfileForm({ name: pilot?.name ?? '', alias: pilot?.alias ?? '', phone: pilot?.phone ?? '', engine: pilot?.engine ?? '' });
+    setProfileForm({ name: pilot?.name ?? '', alias: pilot?.alias ?? '', phone: pilot?.phone ?? '', engine: pilot?.engine ?? '', kartNumber: pilot?.kartNumber?.toString() ?? '' });
+    setProfileTeamName(pilot?.team?.name ?? '');
+    setProfileTeamId(pilot?.team?.id ?? null);
     setEditingProfile(true);
   };
 
@@ -146,7 +152,24 @@ export function PilotPortal() {
             {/* Info */}
             <div className="flex-1 min-w-0">
               {editingProfile ? (
-                <form onSubmit={(e) => { e.preventDefault(); updateProfileMutation.mutate(profileForm); }} className="space-y-2">
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  let resolvedTeamId: string | null = profileTeamId;
+                  if (profileTeamName.trim() && !resolvedTeamId) {
+                    try {
+                      const created = await teamsApi.create(profileTeamName.trim());
+                      resolvedTeamId = created.id;
+                    } catch (err: unknown) {
+                      const e = err as { team?: { id: string } };
+                      if (e?.team?.id) resolvedTeamId = e.team.id;
+                    }
+                  }
+                  updateProfileMutation.mutate({
+                    ...profileForm,
+                    kartNumber: profileForm.kartNumber ? parseInt(profileForm.kartNumber) : null,
+                    teamId: profileTeamName.trim() ? resolvedTeamId ?? null : null,
+                  });
+                }} className="space-y-2">
                   <input
                     value={profileForm.name}
                     onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
@@ -166,15 +189,30 @@ export function PilotPortal() {
                     placeholder="Teléfono (opcional)"
                     className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
                   />
-                  <input
-                    value={profileForm.engine}
-                    onChange={(e) => setProfileForm({ ...profileForm, engine: e.target.value })}
-                    placeholder="Motor (ej. TM KZ10C, Rotax Max...)"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
+                  <div className="flex gap-2">
+                    <input
+                      value={profileForm.engine}
+                      onChange={(e) => setProfileForm({ ...profileForm, engine: e.target.value })}
+                      placeholder="Motor (ej. TM KZ10C...)"
+                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
+                    />
+                    <input
+                      type="number" min="1"
+                      value={profileForm.kartNumber}
+                      onChange={(e) => setProfileForm({ ...profileForm, kartNumber: e.target.value })}
+                      placeholder="# Kart"
+                      className="w-20 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
+                    />
+                  </div>
+                  <TeamAutocomplete
+                    value={profileTeamName}
+                    teamId={profileTeamId}
+                    onChange={(name, id) => { setProfileTeamName(name); setProfileTeamId(id); }}
+                    placeholder="Equipo (opcional)"
                   />
                   <div className="flex gap-2 pt-1">
                     <button type="submit" disabled={updateProfileMutation.isPending} className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
-                      <CheckCircle className="h-3.5 w-3.5" /> Guardar
+                      <CheckCircle className="h-3.5 w-3.5" /> {updateProfileMutation.isPending ? 'Guardando...' : 'Guardar'}
                     </button>
                     <button type="button" onClick={() => setEditingProfile(false)} className="flex items-center gap-1 text-xs text-white/40 hover:text-white/70">
                       <X className="h-3.5 w-3.5" /> Cancelar
@@ -193,6 +231,12 @@ export function PilotPortal() {
                   {pilot.email && <p className="text-xs text-white/30 mt-0.5">{pilot.email}</p>}
                   {pilot.phone && <p className="text-xs text-white/30">{pilot.phone}</p>}
                   {pilot.engine && <p className="text-xs text-white/40 mt-1">Motor: {pilot.engine}</p>}
+                  {pilot.kartNumber && <p className="text-xs text-white/40">Kart: #{pilot.kartNumber}</p>}
+                  {pilot.team && (
+                    <p className="text-xs text-purple-400/80 mt-0.5 flex items-center gap-1">
+                      <Users className="h-3 w-3" />{pilot.team.name}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

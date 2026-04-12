@@ -11,7 +11,7 @@ import { prisma } from '../lib/prisma.js';
 export async function getDashboardAnalytics(_req: Request, res: Response): Promise<void> {
   const currentYear = new Date().getFullYear();
 
-  const [events, payments, inscriptions, standings] = await prisma.$transaction([
+  const [events, payments, inscriptions, standings, totalTeams, constructorStandings, teamResultRows] = await prisma.$transaction([
     // Last 10 events ordered by date descending
     prisma.event.findMany({
       orderBy: { date: 'desc' },
@@ -35,7 +35,7 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
       },
     }),
 
-    // Inscription counts per event + category (raw select to avoid groupBy typing issues)
+    // Inscription counts per event + category
     prisma.inscription.findMany({
       where: {
         event: {
@@ -52,6 +52,23 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
       include: {
         pilot: { select: { name: true, alias: true } },
       },
+    }),
+
+    // Total registered teams
+    prisma.team.count({ where: { active: true } }),
+
+    // Constructor standings for current year — top 5 per category
+    prisma.constructorStanding.findMany({
+      where: { year: currentYear },
+      orderBy: [{ category: 'asc' }, { totalPoints: 'desc' }],
+      include: { team: { select: { name: true } } },
+    }),
+
+    // Distinct teams per event (via race results)
+    prisma.raceResult.findMany({
+      where: { teamId: { not: null }, race: { status: 'FINISHED' } },
+      select: { teamId: true, race: { select: { eventId: true } } },
+      distinct: ['teamId', 'raceId'],
     }),
   ]);
 
@@ -96,7 +113,7 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     total: Object.values(participationMap[e.id] ?? {}).reduce((s, n) => s + n, 0),
   }));
 
-  // Group standings by category — take top 5
+  // Group pilot standings by category — top 5
   const standingsByCategory: Record<string, Array<{
     position: number | null;
     pilotName: string;
@@ -117,10 +134,45 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     }
   }
 
+  // Group constructor standings by category — top 5
+  const constructorsByCategory: Record<string, Array<{
+    position: number | null;
+    teamName: string;
+    totalPoints: number;
+    eventsCount: number;
+  }>> = {};
+  for (const s of constructorStandings) {
+    if (!constructorsByCategory[s.category]) constructorsByCategory[s.category] = [];
+    if (constructorsByCategory[s.category].length < 5) {
+      constructorsByCategory[s.category].push({
+        position: s.position,
+        teamName: s.team.name,
+        totalPoints: s.totalPoints,
+        eventsCount: s.eventsCount,
+      });
+    }
+  }
+
+  // Teams per event: count distinct teamIds in race results per event
+  const teamsPerEventMap: Record<string, Set<string>> = {};
+  for (const r of teamResultRows) {
+    if (!r.teamId) continue;
+    const eid = r.race.eventId;
+    if (!teamsPerEventMap[eid]) teamsPerEventMap[eid] = new Set();
+    teamsPerEventMap[eid].add(r.teamId);
+  }
+  const teamsPerEventCounts = Object.values(teamsPerEventMap).map((s) => s.size);
+  const avgTeamsPerEvent = teamsPerEventCounts.length > 0
+    ? Math.round(teamsPerEventCounts.reduce((a, b) => a + b, 0) / teamsPerEventCounts.length)
+    : 0;
+
   res.json({
-    revenueByEvent: revenueByEvent.slice().reverse(), // oldest first for charts
+    revenueByEvent: revenueByEvent.slice().reverse(),
     participationByEvent: participationByEvent.slice().reverse(),
     standingsByCategory,
+    constructorsByCategory,
+    totalTeams,
+    avgTeamsPerEvent,
     year: currentYear,
   });
 }

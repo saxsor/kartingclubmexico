@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Calendar, Users, Trophy, Flag, TrendingUp, DollarSign } from 'lucide-react';
+import { Calendar, Users, Trophy, Flag, TrendingUp, DollarSign, ShieldCheck } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { eventsApi } from '../../api/events.api';
 import { pilotsApi } from '../../api/pilots.api';
-import { analyticsApi, StandingEntry } from '../../api/analytics.api';
+import { analyticsApi, StandingEntry, ConstructorEntry } from '../../api/analytics.api';
 import { formatDate, CATEGORY_LABELS } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { queryKeys } from '../../lib/react-query';
@@ -75,6 +75,27 @@ function ParticipationTooltip({ active, payload, label }: { active?: boolean; pa
   );
 }
 
+function ConstructorsTable({ entries, category }: { entries: ConstructorEntry[]; category: string }) {
+  const color = CATEGORY_COLORS[category] ?? '#e10600';
+  return (
+    <div className="border border-white/10 bg-white/5 p-4 space-y-3">
+      <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color }}>
+        {CATEGORY_LABELS[category] ?? category}
+      </h3>
+      <ol className="space-y-1.5">
+        {entries.map((e, i) => (
+          <li key={i} className="flex items-center gap-3">
+            <span className="w-5 text-right font-mono text-xs text-white/40">{e.position ?? i + 1}</span>
+            <span className="flex-1 text-sm text-white font-medium truncate">{e.teamName}</span>
+            <span className="font-mono text-sm font-bold text-white">{e.totalPoints}</span>
+            <span className="text-[10px] text-white/40 hidden sm:block">{e.eventsCount}ev</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function StandingsTable({ entries, category }: { entries: StandingEntry[]; category: string }) {
   const color = CATEGORY_COLORS[category] ?? '#e10600';
   return (
@@ -127,6 +148,8 @@ export function Dashboard() {
     { label: 'Eventos totales', value: events.length, icon: Calendar, color: 'text-green-400' },
     { label: 'Eventos abiertos', value: openEvents.length, icon: Flag, color: 'text-yellow-400' },
     { label: 'En curso', value: activeEvent ? 1 : 0, icon: Trophy, color: 'text-racing-red' },
+    { label: 'Equipos registrados', value: analytics?.totalTeams ?? 0, icon: ShieldCheck, color: 'text-purple-400' },
+    { label: 'Equipos prom. por evento', value: analytics?.avgTeamsPerEvent ?? 0, icon: ShieldCheck, color: 'text-pink-400' },
   ];
 
   // Build chart data
@@ -152,6 +175,9 @@ export function Dashboard() {
   const standingsByCategory = analytics?.standingsByCategory ?? {};
   const standingCategories = Object.keys(standingsByCategory).filter((c) => standingsByCategory[c].length > 0);
 
+  const constructorsByCategory = analytics?.constructorsByCategory ?? {};
+  const constructorCategories = Object.keys(constructorsByCategory).filter((c) => constructorsByCategory[c].length > 0);
+
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
 
   return (
@@ -162,7 +188,7 @@ export function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {stats.map((stat) => (
           <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-5">
             <div className="flex items-center justify-between mb-3">
@@ -273,18 +299,35 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Championship standings */}
+      {/* Championship standings — Pilots */}
       {standingCategories.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-yellow-400" />
             <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60">
-              Campeonato {analytics?.year} — Top 5 por categoría
+              Campeonato {analytics?.year} — Top 5 pilotos
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {standingCategories.map((cat) => (
               <StandingsTable key={cat} category={cat} entries={standingsByCategory[cat]} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Constructor standings */}
+      {constructorCategories.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-purple-400" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60">
+              Constructores {analytics?.year} — Top 5 por categoría
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {constructorCategories.map((cat) => (
+              <ConstructorsTable key={cat} category={cat} entries={constructorsByCategory[cat]} />
             ))}
           </div>
         </div>

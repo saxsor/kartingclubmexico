@@ -27,10 +27,20 @@ export interface StandingEntry {
   eventsCount: number;
 }
 
+export interface ConstructorEntry {
+  position: number | null;
+  teamName: string;
+  totalPoints: number;
+  eventsCount: number;
+}
+
 export interface DashboardAnalytics {
   revenueByEvent: RevenueByEvent[];
   participationByEvent: ParticipationByEvent[];
   standingsByCategory: Record<string, StandingEntry[]>;
+  constructorsByCategory: Record<string, ConstructorEntry[]>;
+  totalTeams: number;
+  avgTeamsPerEvent: number;
   year: number;
 }
 

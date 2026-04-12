@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Camera, Trash2, User } from 'lucide-react';
 import { pilotsApi } from '../../../api/pilots.api';
+import { teamsApi } from '../../../api/teams.api';
+import { TeamAutocomplete } from '../../../components/shared/TeamAutocomplete';
 import { toast } from '../../../store/toast.store';
 import { queryKeys } from '../../../lib/react-query';
 import { resolveMediaUrl } from '../../../lib/utils';
@@ -15,6 +17,8 @@ export function PilotForm() {
   const [form, setForm] = useState({
     name: '', alias: '', kartNumber: '', phone: '', email: '', engine: '', active: true,
   });
+  const [teamName, setTeamName] = useState('');
+  const [teamId, setTeamId] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,7 +48,7 @@ export function PilotForm() {
   });
 
   useEffect(() => {
-    const pilot = pilotQuery.data;
+    const pilot = pilotQuery.data as (typeof pilotQuery.data & { team?: { id: string; name: string } | null });
     if (!pilot) return;
     setForm({
       name: pilot.name,
@@ -55,6 +59,10 @@ export function PilotForm() {
       engine: pilot.engine ?? '',
       active: pilot.active,
     });
+    if (pilot.team) {
+      setTeamName(pilot.team.name);
+      setTeamId(pilot.team.id);
+    }
   }, [pilotQuery.data]);
 
   const currentPilot = pilotQuery.data ?? null;
@@ -93,6 +101,25 @@ export function PilotForm() {
     setError('');
     setLoading(true);
     try {
+      // Resolve team: if name typed but no id selected, find or create
+      let resolvedTeamId: string | null | undefined = teamId;
+      if (teamName.trim() && !teamId) {
+        try {
+          const team = await teamsApi.create(teamName.trim());
+          resolvedTeamId = team.id;
+        } catch (err: unknown) {
+          // 409 = already exists, use returned team
+          const e = err as { status?: number; data?: { team?: { id: string } } };
+          if (e?.status === 409 && e?.data?.team?.id) {
+            resolvedTeamId = e.data.team.id;
+          } else {
+            throw err;
+          }
+        }
+      } else if (!teamName.trim()) {
+        resolvedTeamId = null;
+      }
+
       const data = {
         name: form.name,
         alias: form.alias || undefined,
@@ -101,6 +128,7 @@ export function PilotForm() {
         email: form.email || undefined,
         engine: form.engine || undefined,
         active: form.active,
+        teamId: resolvedTeamId,
       };
       if (isEdit && id) {
         await updateMutation.mutateAsync(data);
@@ -219,6 +247,14 @@ export function PilotForm() {
             />
           </div>
         ))}
+
+        <TeamAutocomplete
+          label="Equipo (opcional)"
+          value={teamName}
+          teamId={teamId}
+          onChange={(name, id) => { setTeamName(name); setTeamId(id); }}
+          placeholder="Busca o escribe el nombre del equipo"
+        />
 
         {isEdit && (
           <div className="flex items-center gap-3">

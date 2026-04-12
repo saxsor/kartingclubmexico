@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Trophy, User, ChevronRight } from 'lucide-react';
+import { Trophy, User, ChevronRight, Users } from 'lucide-react';
 import { SEO } from '../../components/shared/SEO';
-import { championshipApi, ChampionshipStandingsData } from '../../api/championship.api';
+import { championshipApi, ChampionshipStandingsData, ConstructorStandingsData } from '../../api/championship.api';
 import { CATEGORY_LABELS, getPositionClass, cn, resolveMediaUrl } from '../../lib/utils';
 import { queryKeys } from '../../lib/react-query';
 import { Category } from '../../api/events.api';
+
+type ViewMode = 'pilots' | 'constructors';
 
 const ALL_CATEGORIES: Category[] = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
 
@@ -85,6 +87,7 @@ export function ChampionshipDetailPublic() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedCat, setSelectedCat] = useState<Category | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('pilots');
 
   const detailQuery = useQuery({
     queryKey: id ? queryKeys.championships.detail(id) : ['championships', 'detail', 'missing'],
@@ -95,7 +98,13 @@ export function ChampionshipDetailPublic() {
   const standingsQuery = useQuery({
     queryKey: id && selectedCat ? queryKeys.championships.standings(id, selectedCat) : ['championships', 'standings', 'missing'],
     queryFn: () => championshipApi.getStandings(id!, selectedCat!),
-    enabled: !!id && !!selectedCat,
+    enabled: !!id && !!selectedCat && viewMode === 'pilots',
+  });
+
+  const constructorQuery = useQuery({
+    queryKey: id && selectedCat ? ['championships', 'constructors', id, selectedCat] : ['championships', 'constructors', 'missing'],
+    queryFn: () => championshipApi.getConstructorStandings(id!, selectedCat!),
+    enabled: !!id && !!selectedCat && viewMode === 'constructors',
   });
 
   // Auto-select first category
@@ -108,6 +117,7 @@ export function ChampionshipDetailPublic() {
 
   const championship = detailQuery.data ?? null;
   const standings = standingsQuery.data ?? null;
+  const constructorStandings = constructorQuery.data ?? null;
   const loading = detailQuery.isLoading;
 
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
@@ -144,6 +154,28 @@ export function ChampionshipDetailPublic() {
         <p className="text-sm text-white/40 mt-1">{championship.year} · {championship.events.length} eventos</p>
       </div>
 
+      {/* View mode toggle: Pilots / Constructors */}
+      <div className="flex gap-px mb-5 bg-[#38383f] w-fit">
+        <button
+          onClick={() => setViewMode('pilots')}
+          className={cn(
+            'flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors',
+            viewMode === 'pilots' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+          )}
+        >
+          <User className="h-3.5 w-3.5" /> Pilotos
+        </button>
+        <button
+          onClick={() => setViewMode('constructors')}
+          className={cn(
+            'flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors',
+            viewMode === 'constructors' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+          )}
+        >
+          <Users className="h-3.5 w-3.5" /> Constructores
+        </button>
+      </div>
+
       {/* Category tabs */}
       <div className="flex flex-wrap gap-px mb-6 bg-[#38383f]">
         {displayCats.map((cat) => (
@@ -162,15 +194,104 @@ export function ChampionshipDetailPublic() {
         ))}
       </div>
 
-      {standingsQuery.isLoading ? (
-        <div className="text-center py-10 text-white/40 text-sm">Cargando clasificación...</div>
-      ) : !standings || standings.standings.length === 0 ? (
-        <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">
-          No hay datos para esta categoría
-        </div>
+      {viewMode === 'pilots' ? (
+        standingsQuery.isLoading ? (
+          <div className="text-center py-10 text-white/40 text-sm">Cargando clasificación...</div>
+        ) : !standings || standings.standings.length === 0 ? (
+          <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">
+            No hay datos para esta categoría
+          </div>
+        ) : (
+          <ChampionshipPublicTable standings={standings} />
+        )
       ) : (
-        <ChampionshipPublicTable standings={standings} />
+        constructorQuery.isLoading ? (
+          <div className="text-center py-10 text-white/40 text-sm">Cargando constructores...</div>
+        ) : !constructorStandings || constructorStandings.standings.length === 0 ? (
+          <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">
+            No hay equipos con puntos en esta categoría
+          </div>
+        ) : (
+          <ConstructorPublicTable standings={constructorStandings} />
+        )
       )}
+    </div>
+  );
+}
+
+function ConstructorPublicTable({ standings }: { standings: ConstructorStandingsData }) {
+  const events = standings.events;
+  const rows = standings.standings;
+
+  return (
+    <div className="border border-[#38383f] overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#38383f] bg-[#1f1f27]">
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40 w-12">Pos</th>
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Equipo</th>
+              {events.map((e) => (
+                <th key={e.id} className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">
+                  <span className="block truncate max-w-[80px]" title={e.name}>
+                    {e.name.length > 10 ? e.name.slice(0, 9) + '…' : e.name}
+                  </span>
+                </th>
+              ))}
+              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Puntos</th>
+              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Gap</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((s, idx) => (
+              <tr
+                key={s.teamId}
+                className={cn(
+                  'border-b border-[#38383f]/60 transition-colors hover:bg-[#2a2a35]',
+                  idx === 0 && 'bg-yellow-500/5 border-l-[3px] border-l-yellow-500',
+                  idx === 1 && 'border-l-[3px] border-l-white/20',
+                  idx === 2 && 'border-l-[3px] border-l-orange-400/40',
+                  idx > 2 && 'border-l-[3px] border-l-transparent',
+                )}
+              >
+                <td className="px-4 py-3">
+                  <span
+                    className={cn('font-black text-xl', getPositionClass(s.position))}
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+                  >
+                    {s.position}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-7 w-7 bg-[#38383f] flex items-center justify-center flex-shrink-0">
+                      <Users className="h-3.5 w-3.5 text-white/30" />
+                    </div>
+                    <p
+                      className="font-bold text-white uppercase text-sm leading-tight"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
+                    >
+                      {s.teamName}
+                    </p>
+                  </div>
+                </td>
+                {events.map((e) => (
+                  <td key={e.id} className="px-3 py-3 text-center text-white/70 text-sm">
+                    {s.eventPoints[e.id] ?? '—'}
+                  </td>
+                ))}
+                <td className="px-4 py-3 text-center font-black text-white text-lg"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                  {s.totalPoints}
+                </td>
+                <td className="px-4 py-3 text-center text-white/40 text-xs font-bold">
+                  {s.gap === 0 ? '—' : `-${s.gap}`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

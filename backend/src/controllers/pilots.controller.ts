@@ -25,6 +25,7 @@ export async function listPilots(req: Request, res: Response): Promise<void> {
       orderBy: { name: 'asc' },
       skip,
       take: pageSize,
+      include: { team: { select: { id: true, name: true, slug: true } } },
     }),
     prisma.pilot.count({ where }),
   ]);
@@ -46,16 +47,18 @@ export async function createPilot(req: Request, res: Response): Promise<void> {
 export async function getPilot(req: Request, res: Response): Promise<void> {
   const pilot = await prisma.pilot.findUnique({
     where: { id: req.params.id },
+    include: { team: { select: { id: true, name: true, slug: true } } },
   });
   if (!pilot) { res.status(404).json({ error: 'Piloto no encontrado' }); return; }
   res.json(pilot);
 }
 
 export async function updatePilot(req: Request, res: Response): Promise<void> {
-  const { name, alias, kartNumber, phone, email, active, engine } = req.body;
+  const { name, alias, kartNumber, phone, email, active, engine, teamId } = req.body;
   const pilot = await prisma.pilot.update({
     where: { id: req.params.id },
-    data: { name, alias, kartNumber, phone, email, active, engine },
+    data: { name, alias, kartNumber, phone, email, active, engine, teamId },
+    include: { team: { select: { id: true, name: true, slug: true } } },
   });
   res.json(pilot);
 }

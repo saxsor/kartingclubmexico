@@ -4,9 +4,18 @@ import { config } from '../config/index.js';
 import { sendInscriptionConfirmation, sendPaymentApprovedEmail } from '../services/email.service.js';
 import { CATEGORY_LABELS } from '../lib/category-labels.js';
 
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 export async function selfRegister(req: Request, res: Response): Promise<void> {
   const { slug } = req.params;
-  const { pilotId, name, alias, email, phone, kartNumber, category, notes, companions } = req.body;
+  const { pilotId, name, alias, email, phone, kartNumber, category, notes, companions, teamName } = req.body;
 
   // Find event
   const event = await prisma.event.findUnique({ where: { slug } });
@@ -28,11 +37,34 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
   }
 
   const registration = await prisma.$transaction(async (tx) => {
+    // Resolve team: find or create by name
+    let resolvedTeamId: string | null = null;
+    if (teamName && teamName.trim()) {
+      const trimmedTeamName = teamName.trim();
+      let team = await tx.team.findFirst({
+        where: { name: { equals: trimmedTeamName, mode: 'insensitive' } },
+      });
+      if (!team) {
+        let slug = slugify(trimmedTeamName);
+        const slugExists = await tx.team.findUnique({ where: { slug } });
+        if (slugExists) slug = `${slug}-${Date.now()}`;
+        team = await tx.team.create({ data: { name: trimmedTeamName, slug } });
+      }
+      resolvedTeamId = team.id;
+    }
+
     let pilot;
 
     if (pilotId) {
       pilot = await tx.pilot.findUnique({ where: { id: pilotId } });
       if (!pilot) return null;
+      // Update team if provided
+      if (resolvedTeamId !== null) {
+        pilot = await tx.pilot.update({
+          where: { id: pilot.id },
+          data: { teamId: resolvedTeamId },
+        });
+      }
     } else {
       // New registration — find by email or create
       pilot = email ? await tx.pilot.findFirst({ where: { email } }) : null;
@@ -44,6 +76,7 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
             email: email || null,
             phone: phone || null,
             kartNumber: parsedKartNumber,
+            teamId: resolvedTeamId,
           },
         });
       } else {
@@ -54,6 +87,7 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
             alias: alias || pilot.alias,
             phone: phone || pilot.phone,
             kartNumber: parsedKartNumber ?? pilot.kartNumber,
+            ...(resolvedTeamId !== null && { teamId: resolvedTeamId }),
           },
         });
       }

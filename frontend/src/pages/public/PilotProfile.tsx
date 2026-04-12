@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { User, Hash, Calendar } from 'lucide-react';
+import { User, Hash, Calendar, Users } from 'lucide-react';
 import { pilotsApi, Pilot } from '../../api/pilots.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
@@ -8,7 +8,7 @@ import { queryKeys } from '../../lib/react-query';
 import { SEO } from '../../components/shared/SEO';
 
 interface History {
-  pilot: Pilot;
+  pilot: Pilot & { team?: { id: string; name: string; slug: string } | null };
   inscriptions: {
     id: string;
     category: string;
@@ -68,6 +68,12 @@ export function PilotProfile() {
               <p className="text-sm text-white/50 flex items-center gap-1.5 mt-1 uppercase tracking-wider">
                 <Hash className="h-3.5 w-3.5 text-[#e10600]" />
                 Kart #{pilot.kartNumber}
+              </p>
+            )}
+            {pilot.team && (
+              <p className="text-sm text-white/50 flex items-center gap-1.5 mt-1">
+                <Users className="h-3.5 w-3.5 text-[#e10600]" />
+                <span className="font-medium text-white/70">{pilot.team.name}</span>
               </p>
             )}
           </div>

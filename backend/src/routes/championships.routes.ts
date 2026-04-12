@@ -9,6 +9,7 @@ import {
   updateChampionship,
   deleteChampionship,
   getChampionshipStandings,
+  getConstructorStandings,
   getUnassignedEvents,
 } from '../controllers/championships.controller.js';
 
@@ -34,6 +35,12 @@ router.get('/:id/standings/:category', (req, res, next) => {
   if (!result.success) { res.status(400).json({ error: 'Categoría inválida' }); return; }
   next();
 }, getChampionshipStandings);
+
+router.get('/:id/constructors/:category', (req, res, next) => {
+  const result = categoryEnum.safeParse(req.params.category);
+  if (!result.success) { res.status(400).json({ error: 'Categoría inválida' }); return; }
+  next();
+}, getConstructorStandings);
 
 router.post('/', authenticate, requireRole('ADMIN'), validate(createSchema), createChampionship);
 router.put('/:id', authenticate, requireRole('ADMIN'), validate(updateSchema), updateChampionship);

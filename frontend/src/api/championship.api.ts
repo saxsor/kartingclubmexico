@@ -44,6 +44,24 @@ export interface ChampionshipStandingsData {
   standings: ChampionshipStandingRow[];
 }
 
+export interface ConstructorStandingRow {
+  position: number;
+  teamId: string;
+  teamName: string;
+  teamSlug: string;
+  eventPoints: Record<string, number>;
+  totalPoints: number;
+  gap: number;
+}
+
+export interface ConstructorStandingsData {
+  championship: { id: string; name: string; year: number };
+  category: Category;
+  events: ChampionshipEvent[];
+  allEvents: ChampionshipEvent[];
+  standings: ConstructorStandingRow[];
+}
+
 export const championshipApi = {
   list: () => api.get<Championship[]>('/championships'),
   create: (data: { name: string; year?: number }) => api.post<Championship>('/championships', data),
@@ -53,5 +71,7 @@ export const championshipApi = {
   delete: (id: string) => api.delete<void>(`/championships/${id}`),
   getStandings: (id: string, category: Category) =>
     api.get<ChampionshipStandingsData>(`/championships/${id}/standings/${category}`),
+  getConstructorStandings: (id: string, category: Category) =>
+    api.get<ConstructorStandingsData>(`/championships/${id}/constructors/${category}`),
   getUnassignedEvents: () => api.get<ChampionshipEvent[]>('/championships/unassigned-events'),
 };

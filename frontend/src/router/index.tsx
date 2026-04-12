@@ -33,6 +33,7 @@ import { Classification } from '../pages/admin/classification/Classification';
 import { UserManager } from '../pages/admin/users/UserManager';
 import { ChampionshipList } from '../pages/admin/championships/ChampionshipList';
 import { ChampionshipDetail } from '../pages/admin/championships/ChampionshipDetail';
+import { TeamManager } from '../pages/admin/teams/TeamManager';
 
 export const router = createBrowserRouter([
   {
@@ -75,6 +76,7 @@ export const router = createBrowserRouter([
       { path: 'eventos/:slug/clasificacion', element: <Classification /> },
       { path: 'campeonatos', element: <ChampionshipList /> },
       { path: 'campeonatos/:id', element: <ChampionshipDetail /> },
+      { path: 'equipos', element: <TeamManager /> },
       { path: 'usuarios', element: <UserManager /> },
     ],
   },

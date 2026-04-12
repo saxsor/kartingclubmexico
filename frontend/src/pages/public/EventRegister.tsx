@@ -9,6 +9,7 @@ import { CATEGORY_LABELS, formatCurrency } from '../../lib/utils';
 import { queryKeys } from '../../lib/react-query';
 import { useFileUpload } from '../../hooks/useFileUpload';
 import { UploadProgress } from '../../components/shared/UploadProgress';
+import { TeamAutocomplete } from '../../components/shared/TeamAutocomplete';
 import { useDebounce } from '../../hooks/useDebounce';
 
 const ALL_CATEGORIES: Category[] = [
@@ -73,6 +74,8 @@ export function EventRegister() {
     name: '', alias: '', email: '', phone: '', kartNumber: '',
     category: '' as Category | '', notes: '', companions: 0,
   });
+  const [teamName, setTeamName] = useState('');
+  const [teamId, setTeamId] = useState<string | null>(null);
 
   const event = eventQuery.data ?? null;
   const loadingEvent = eventQuery.isLoading;
@@ -84,7 +87,9 @@ export function EventRegister() {
     setSelectedPilot(pilot);
     setIsNewPilot(false);
     setStep('form');
+    const p = pilot as typeof pilot & { team?: { id: string; name: string } | null };
     setForm((f) => ({ ...f, name: pilot.name, alias: pilot.alias ?? '', kartNumber: pilot.kartNumber?.toString() ?? '' }));
+    if (p.team) { setTeamName(p.team.name); setTeamId(p.team.id); }
   };
 
   const handleNewPilot = () => {
@@ -99,6 +104,7 @@ export function EventRegister() {
     if (!slug || !form.category) return;
     setError('');
     try {
+      const teamPayload = teamName.trim() ? { teamName: teamName.trim() } : {};
       const payload = selectedPilot
         ? {
             pilotId: selectedPilot.id,
@@ -106,6 +112,7 @@ export function EventRegister() {
             category: form.category as Category,
             notes: form.notes || undefined,
             companions: form.companions,
+            ...teamPayload,
           }
         : {
             name: form.name,
@@ -116,6 +123,7 @@ export function EventRegister() {
             category: form.category as Category,
             notes: form.notes || undefined,
             companions: form.companions,
+            ...teamPayload,
           };
       const result = await selfRegisterMutation.mutateAsync(payload);
       setRegisterResult(result);
@@ -344,6 +352,17 @@ export function EventRegister() {
             <label className={labelClass}>Número de kart (opcional)</label>
             <input type="number" value={form.kartNumber} onChange={(e) => setForm({ ...form, kartNumber: e.target.value })}
               placeholder="42" min="1" className={inputClass} />
+          </div>
+
+          <div>
+            <label className={labelClass}>Equipo (opcional)</label>
+            <TeamAutocomplete
+              value={teamName}
+              teamId={teamId}
+              onChange={(name, id) => { setTeamName(name); setTeamId(id); }}
+              placeholder="Busca o escribe el nombre de tu equipo"
+              label=""
+            />
           </div>
 
           <div>

@@ -165,6 +165,84 @@ export async function getChampionshipStandings(req: Request, res: Response): Pro
   });
 }
 
+export async function getConstructorStandings(req: Request, res: Response): Promise<void> {
+  const { id, category } = req.params;
+
+  const championship = await prisma.championship.findUnique({
+    where: { id },
+    include: {
+      events: {
+        orderBy: { date: 'asc' },
+        select: { id: true, name: true, slug: true, date: true, status: true },
+      },
+    },
+  });
+  if (!championship) { res.status(404).json({ error: 'Campeonato no encontrado' }); return; }
+
+  const eventIds = championship.events.map((e) => e.id);
+  if (eventIds.length === 0) {
+    res.json({ championship: { id: championship.id, name: championship.name, year: championship.year }, category, events: [], standings: [] });
+    return;
+  }
+
+  const races = await prisma.race.findMany({
+    where: { eventId: { in: eventIds }, category: category as Category, status: 'FINISHED' },
+    include: {
+      results: {
+        where: { teamId: { not: null } },
+        select: {
+          teamId: true,
+          finalPoints: true,
+          team: { select: { id: true, name: true, slug: true } },
+          inscription: { select: { eventId: true } },
+        },
+      },
+    },
+  });
+
+  const teamMap = new Map<string, {
+    team: { id: string; name: string; slug: string };
+    eventPoints: Map<string, number>;
+    totalPoints: number;
+  }>();
+
+  for (const race of races) {
+    for (const result of race.results) {
+      if (!result.teamId || !result.team) continue;
+      if (!teamMap.has(result.teamId)) {
+        teamMap.set(result.teamId, { team: result.team, eventPoints: new Map(), totalPoints: 0 });
+      }
+      const data = teamMap.get(result.teamId)!;
+      const current = data.eventPoints.get(race.eventId) ?? 0;
+      data.eventPoints.set(race.eventId, current + result.finalPoints);
+      data.totalPoints += result.finalPoints;
+    }
+  }
+
+  const sorted = Array.from(teamMap.entries()).sort(([, a], [, b]) => b.totalPoints - a.totalPoints);
+  const leaderPoints = sorted[0]?.[1].totalPoints ?? 0;
+
+  const standings = sorted.map(([, data], idx) => ({
+    position: idx + 1,
+    teamId: data.team.id,
+    teamName: data.team.name,
+    teamSlug: data.team.slug,
+    eventPoints: Object.fromEntries(data.eventPoints),
+    totalPoints: data.totalPoints,
+    gap: leaderPoints - data.totalPoints,
+  }));
+
+  const eventsWithRaces = championship.events.filter((e) => races.some((r) => r.eventId === e.id));
+
+  res.json({
+    championship: { id: championship.id, name: championship.name, year: championship.year },
+    category: category as Category,
+    events: eventsWithRaces,
+    allEvents: championship.events,
+    standings,
+  });
+}
+
 // List all events not yet in any championship (for assignment UI)
 export async function getUnassignedEvents(_req: Request, res: Response): Promise<void> {
   const events = await prisma.event.findMany({

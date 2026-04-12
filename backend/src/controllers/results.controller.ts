@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { sseManager } from '../lib/sse.js';
 import { calculatePoints } from '../services/points.service.js';
-import { recalculateChampionship } from '../services/championship.service.js';
+import { recalculateChampionship, recalculateConstructorStandings } from '../services/championship.service.js';
 import { generateResultsPdf, generateCsvResults } from '../services/pdf.service.js';
 import { Category, ResultStatus } from '@prisma/client';
 
@@ -15,12 +15,27 @@ interface ResultInput {
 
 export async function saveRaceResults(req: Request, res: Response): Promise<void> {
   const { results }: { results: ResultInput[] } = req.body;
+  const user = req.user!;
 
   const race = await prisma.race.findUnique({
     where: { id: req.params.raceId },
     include: { event: true },
   });
   if (!race) { res.status(404).json({ error: 'Carrera no encontrada' }); return; }
+
+  const isFinishedEvent = race.event.status === 'FINISHED';
+  if (isFinishedEvent && user.role !== 'ADMIN') {
+    res.status(403).json({ error: 'Solo el ADMIN puede editar resultados de un evento finalizado' });
+    return;
+  }
+
+  // Pre-load team snapshots for all inscriptions in this batch
+  const inscriptionIds = results.map((r) => r.inscriptionId);
+  const inscriptions = await prisma.inscription.findMany({
+    where: { id: { in: inscriptionIds } },
+    select: { id: true, pilot: { select: { teamId: true } } },
+  });
+  const teamByInscription = new Map(inscriptions.map((i) => [i.id, i.pilot.teamId ?? null]));
 
   await prisma.$transaction(async (tx) => {
     for (const r of results) {
@@ -36,8 +51,9 @@ export async function saveRaceResults(req: Request, res: Response): Promise<void
         : 0;
 
       const finalPoints = Math.max(0, basePoints - penaltyPoints);
+      const teamId = teamByInscription.get(r.inscriptionId) ?? null;
 
-      await tx.raceResult.upsert({
+      const upserted = await tx.raceResult.upsert({
         where: { raceId_inscriptionId: { raceId: race.id, inscriptionId: r.inscriptionId } },
         update: {
           position: r.position,
@@ -46,6 +62,7 @@ export async function saveRaceResults(req: Request, res: Response): Promise<void
           basePoints,
           penaltyPoints,
           finalPoints,
+          teamId,
         },
         create: {
           raceId: race.id,
@@ -56,13 +73,40 @@ export async function saveRaceResults(req: Request, res: Response): Promise<void
           basePoints,
           penaltyPoints,
           finalPoints,
+          teamId,
         },
       });
+
+      if (isFinishedEvent && existing) {
+        const before = {
+          position: existing.position, status: existing.status,
+          basePoints: existing.basePoints, finalPoints: existing.finalPoints,
+        };
+        const after = {
+          position: upserted.position, status: upserted.status,
+          basePoints: upserted.basePoints, finalPoints: upserted.finalPoints,
+        };
+        if (JSON.stringify(before) !== JSON.stringify(after)) {
+          await tx.auditLog.create({
+            data: {
+              userId: user.sub,
+              userEmail: user.email,
+              action: 'UPDATE_RACE_RESULT',
+              entityType: 'RaceResult',
+              entityId: upserted.id,
+              before,
+              after,
+              eventId: race.eventId,
+            },
+          });
+        }
+      }
     }
   });
 
-  // Recalculate championship
+  // Recalculate championship standings
   await recalculateChampionship(race.event.year, race.category);
+  await recalculateConstructorStandings(race.event.year, race.category);
 
   // Emit SSE
   sseManager.emit(race.event.slug, 'race:results', {

@@ -117,6 +117,22 @@ model PasswordResetToken {
   @@index([tokenHash])
 }
 
+model Team {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  logoUrl   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pilots               Pilot[]
+  raceResults          RaceResult[]
+  constructorStandings ConstructorStanding[]
+
+  @@index([active])
+}
+
 model Pilot {
   id           String   @id @default(uuid())
   name         String
@@ -126,10 +142,12 @@ model Pilot {
   email        String?
   photoUrl     String?
   engine       String?
+  teamId       String?
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  team          Team?                  @relation(fields: [teamId], references: [id], onDelete: SetNull)
   inscriptions  Inscription[]
   standings     ChampionshipStanding[]
   user          User?
@@ -137,6 +155,7 @@ model Pilot {
 
   @@index([active])
   @@index([kartNumber])
+  @@index([teamId])
 }
 
 model Championship {
@@ -284,6 +303,7 @@ model RaceResult {
   id            String       @id @default(uuid())
   raceId        String
   inscriptionId String
+  teamId        String?
   position      Int?
   lapsCompleted Int          @default(0)
   status        ResultStatus @default(FINISHED)
@@ -295,9 +315,11 @@ model RaceResult {
 
   race        Race        @relation(fields: [raceId], references: [id], onDelete: Cascade)
   inscription Inscription @relation(fields: [inscriptionId], references: [id])
+  team        Team?       @relation(fields: [teamId], references: [id], onDelete: SetNull)
   penalties   Penalty[]
 
   @@unique([raceId, inscriptionId])
+  @@index([teamId])
 }
 
 model Penalty {
@@ -325,4 +347,38 @@ model ChampionshipStanding {
 
   @@unique([year, pilotId, category])
   @@index([year, category])
+}
+
+model ConstructorStanding {
+  id          String   @id @default(uuid())
+  year        Int
+  teamId      String
+  category    Category
+  totalPoints Int      @default(0)
+  position    Int?
+  eventsCount Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([year, teamId, category])
+  @@index([year, category])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  userEmail  String
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  eventId    String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([eventId])
+  @@index([createdAt])
 }

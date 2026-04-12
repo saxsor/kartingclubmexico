@@ -18,6 +18,7 @@ const pilotSchema = z.object({
   email: z.string().email().optional(),
   engine: z.string().optional(),
   active: z.boolean().optional(),
+  teamId: z.string().uuid().nullable().optional(),
 });
 
 router.post('/import', authenticate, requireRole('ADMIN', 'ORGANIZER'), uploadCsv.single('file'), importPilots);

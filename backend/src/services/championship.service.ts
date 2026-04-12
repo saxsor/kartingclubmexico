@@ -7,7 +7,6 @@ export async function recalculateConstructorStandings(year: number, category: Ca
     include: {
       results: {
         where: { teamId: { not: null } },
-        select: { teamId: true, finalPoints: true, raceId: true, inscriptionId: true },
         include: { inscription: { select: { eventId: true } } },
       },
     },

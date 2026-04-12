@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
+import { backfillPilotTeamSnapshots, recalculateConstructorStandings } from '../services/championship.service.js';
 
 export async function listPilots(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
@@ -55,11 +56,23 @@ export async function getPilot(req: Request, res: Response): Promise<void> {
 
 export async function updatePilot(req: Request, res: Response): Promise<void> {
   const { name, alias, kartNumber, phone, email, active, engine, teamId } = req.body;
+
+  const before = await prisma.pilot.findUnique({ where: { id: req.params.id }, select: { teamId: true } });
+
   const pilot = await prisma.pilot.update({
     where: { id: req.params.id },
     data: { name, alias, kartNumber, phone, email, active, engine, teamId },
     include: { team: { select: { id: true, name: true, slug: true } } },
   });
+
+  // If teamId was assigned or changed, backfill NULL snapshots and recalculate
+  const teamChanged = teamId !== undefined && teamId !== before?.teamId;
+  if (teamChanged && teamId) {
+    backfillPilotTeamSnapshots(req.params.id, teamId)
+      .then((combos) => Promise.all(combos.map((c) => recalculateConstructorStandings(c.year, c.category))))
+      .catch((err) => console.error('[TEAM BACKFILL]', err));
+  }
+
   res.json(pilot);
 }
 

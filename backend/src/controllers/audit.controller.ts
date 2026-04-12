@@ -1,6 +1,12 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
+import { globalBackfillAndRecalculate } from '../services/championship.service.js';
+
+export async function recalculateConstructors(_req: Request, res: Response): Promise<void> {
+  const result = await globalBackfillAndRecalculate();
+  res.json({ ok: true, ...result });
+}
 
 export async function listAuditLog(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);

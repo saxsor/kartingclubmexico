@@ -50,6 +50,79 @@ export async function recalculateConstructorStandings(year: number, category: Ca
   }
 }
 
+/**
+ * Backfill RaceResult.teamId for a single pilot.
+ * Only touches results where teamId IS NULL — never overwrites existing snapshots.
+ * Returns the affected year/category combos so the caller can recalculate standings.
+ */
+export async function backfillPilotTeamSnapshots(
+  pilotId: string,
+  teamId: string,
+): Promise<{ year: number; category: Category }[]> {
+  // Find all inscriptions for this pilot
+  const inscriptions = await prisma.inscription.findMany({
+    where: { pilotId },
+    select: { id: true },
+  });
+  if (inscriptions.length === 0) return [];
+
+  const inscriptionIds = inscriptions.map((i) => i.id);
+
+  // Update NULL teamId snapshots
+  await prisma.raceResult.updateMany({
+    where: { inscriptionId: { in: inscriptionIds }, teamId: null },
+    data: { teamId },
+  });
+
+  // Find affected year/category combos
+  const affected = await prisma.race.findMany({
+    where: {
+      status: 'FINISHED',
+      results: { some: { inscriptionId: { in: inscriptionIds }, teamId } },
+    },
+    select: { category: true, event: { select: { year: true } } },
+    distinct: ['category', 'eventId'],
+  });
+
+  const combos = new Map<string, { year: number; category: Category }>();
+  for (const r of affected) {
+    const key = `${r.event.year}-${r.category}`;
+    combos.set(key, { year: r.event.year, category: r.category as Category });
+  }
+  return Array.from(combos.values());
+}
+
+/**
+ * Full global backfill + recalculate for all pilots with a team.
+ * Safe to run at any time — only fills NULL snapshots.
+ */
+export async function globalBackfillAndRecalculate(): Promise<{ updated: number; combos: number }> {
+  // Get all pilots with a team
+  const pilots = await prisma.pilot.findMany({
+    where: { teamId: { not: null } },
+    select: { id: true, teamId: true },
+  });
+
+  let updated = 0;
+  const affectedCombos = new Map<string, { year: number; category: Category }>();
+
+  for (const pilot of pilots) {
+    if (!pilot.teamId) continue;
+    const combos = await backfillPilotTeamSnapshots(pilot.id, pilot.teamId);
+    combos.forEach((c) => affectedCombos.set(`${c.year}-${c.category}`, c));
+  }
+
+  // Count updated results
+  updated = pilots.length;
+
+  // Recalculate all affected combos
+  for (const { year, category } of affectedCombos.values()) {
+    await recalculateConstructorStandings(year, category);
+  }
+
+  return { updated, combos: affectedCombos.size };
+}
+
 export async function recalculateChampionship(year: number, category: Category): Promise<void> {
   // Get all finished races for this year/category with their results
   const races = await prisma.race.findMany({

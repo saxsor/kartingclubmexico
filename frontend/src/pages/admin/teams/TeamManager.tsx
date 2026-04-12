@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Users, Pencil, Check, X } from 'lucide-react';
+import { Users, Pencil, Check, X, RefreshCw } from 'lucide-react';
 import { teamsApi, Team } from '../../../api/teams.api';
+import { api } from '../../../api/client';
 import { toast } from '../../../store/toast.store';
 
 export function TeamManager() {
@@ -14,6 +15,14 @@ export function TeamManager() {
   const { data: teams = [], isLoading } = useQuery({
     queryKey: ['teams'],
     queryFn: () => teamsApi.list(),
+  });
+
+  const recalcMutation = useMutation({
+    mutationFn: () => api.post<{ ok: boolean; updated: number; combos: number }>('/admin/audit-log/recalculate-constructors', {}),
+    onSuccess: (res) => {
+      toast.success(`Standings actualizados — ${res.combos} combinación(es) recalculada(s)`);
+    },
+    onError: () => toast.error('Error al recalcular'),
   });
 
   const updateMutation = useMutation({
@@ -72,13 +81,24 @@ export function TeamManager() {
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-black text-white">Equipos</h1>
-        <button
-          onClick={() => setCreating(true)}
-          className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
-        >
-          <Users className="h-4 w-4" />
-          Nuevo equipo
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => recalcMutation.mutate()}
+            disabled={recalcMutation.isPending}
+            title="Backfill snapshots de equipo en resultados pasados y recalcula el campeonato de constructores"
+            className="flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${recalcMutation.isPending ? 'animate-spin' : ''}`} />
+            {recalcMutation.isPending ? 'Recalculando...' : 'Recalcular constructores'}
+          </button>
+          <button
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+          >
+            <Users className="h-4 w-4" />
+            Nuevo equipo
+          </button>
+        </div>
       </div>
 
       {/* Create form */}

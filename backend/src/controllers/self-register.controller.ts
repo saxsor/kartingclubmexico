@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { uploadToDrive } from '../lib/drive.service.js';
 import { config } from '../config/index.js';
 import { sendInscriptionConfirmation, sendPaymentApprovedEmail } from '../services/email.service.js';
 import { CATEGORY_LABELS } from '../lib/category-labels.js';
@@ -155,7 +156,7 @@ export async function uploadReceipt(req: Request, res: Response): Promise<void> 
 
   if (!req.file) { res.status(400).json({ error: 'No se recibió ningún archivo' }); return; }
 
-  const receiptPath = `/uploads/receipts/${req.file.filename}`;
+  const receiptPath = await uploadToDrive('receipts', req.file.buffer, req.file.originalname, req.file.mimetype, false);
 
   const updated = await prisma.inscription.update({
     where: { id },
@@ -164,6 +165,16 @@ export async function uploadReceipt(req: Request, res: Response): Promise<void> 
   });
 
   res.json(updated);
+}
+
+export async function viewReceipt(req: Request, res: Response): Promise<void> {
+  const inscription = await prisma.inscription.findUnique({ where: { id: req.params.id } });
+  if (!inscription?.receiptPath) { res.status(404).json({ error: 'No hay recibo' }); return; }
+
+  const { streamFromDrive } = await import('../lib/drive.service.js');
+  const { stream, mimeType } = await streamFromDrive(inscription.receiptPath);
+  res.setHeader('Content-Type', mimeType);
+  (stream as NodeJS.ReadableStream).pipe(res);
 }
 
 export async function approveReceipt(req: Request, res: Response): Promise<void> {

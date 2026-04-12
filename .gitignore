@@ -10,3 +10,6 @@ seed/prisma/
 
 # Docker volumes (no subir datos de DB)
 postgres_data/
+
+# Google service account credentials
+backend/google-service-account.json

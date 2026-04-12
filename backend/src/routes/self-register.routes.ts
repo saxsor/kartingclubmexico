@@ -8,6 +8,7 @@ import {
   uploadReceipt,
   approveReceipt,
   rejectReceipt,
+  viewReceipt,
 } from '../controllers/self-register.controller.js';
 
 const router = Router({ mergeParams: true });
@@ -29,6 +30,7 @@ const registerSchema = z.object({
 
 router.post('/self-register', validate(registerSchema), selfRegister);
 router.post('/inscriptions/:id/receipt', multerUpload.single('receipt'), uploadReceipt);
+router.get('/inscriptions/:id/receipt', authenticate, requireRole('ADMIN', 'ORGANIZER'), viewReceipt);
 router.post('/inscriptions/:id/approve', authenticate, requireRole('ADMIN', 'ORGANIZER'), approveReceipt);
 router.post('/inscriptions/:id/reject', authenticate, requireRole('ADMIN', 'ORGANIZER'), rejectReceipt);
 

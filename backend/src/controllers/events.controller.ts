@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import slugify from 'slugify';
-import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
+import { uploadToDrive, deleteFromDrive, isDriveValue } from '../lib/drive.service.js';
 import { Category } from '@prisma/client';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 import { config } from '../config/index.js';
@@ -102,13 +102,11 @@ export async function uploadEventPoster(req: Request, res: Response): Promise<vo
   if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
   if (!req.file) { res.status(400).json({ error: 'No se recibió ningún archivo' }); return; }
 
-  // Delete old poster if exists
-  if (event.posterUrl) {
-    const oldPath = `/app${event.posterUrl}`;
-    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+  if (event.posterUrl && isDriveValue(event.posterUrl)) {
+    await deleteFromDrive(event.posterUrl);
   }
 
-  const posterUrl = `/uploads/posters/${req.file.filename}`;
+  const posterUrl = await uploadToDrive('posters', req.file.buffer, req.file.originalname, req.file.mimetype, true);
   const updated = await prisma.event.update({
     where: { slug: req.params.slug },
     data: { posterUrl },
@@ -121,9 +119,8 @@ export async function deleteEventPoster(req: Request, res: Response): Promise<vo
   const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
   if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
 
-  if (event.posterUrl) {
-    const filePath = `/app${event.posterUrl}`;
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  if (event.posterUrl && isDriveValue(event.posterUrl)) {
+    await deleteFromDrive(event.posterUrl);
   }
 
   const updated = await prisma.event.update({

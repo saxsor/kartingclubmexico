@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 import { backfillPilotTeamSnapshots, recalculateConstructorStandings } from '../services/championship.service.js';
+import { uploadToDrive, deleteFromDrive, isDriveValue } from '../lib/drive.service.js';
 
 export async function listPilots(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
@@ -94,16 +94,12 @@ export async function uploadPilotPhoto(req: Request, res: Response): Promise<voi
   if (!pilot) { res.status(404).json({ error: 'Piloto no encontrado' }); return; }
   if (!req.file) { res.status(400).json({ error: 'No se recibió ningún archivo' }); return; }
 
-  if (pilot.photoUrl) {
-    const oldPath = `/app${pilot.photoUrl}`;
-    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+  if (pilot.photoUrl && isDriveValue(pilot.photoUrl)) {
+    await deleteFromDrive(pilot.photoUrl);
   }
 
-  const photoUrl = `/uploads/pilots/${req.file.filename}`;
-  const updated = await prisma.pilot.update({
-    where: { id: req.params.id },
-    data: { photoUrl },
-  });
+  const photoUrl = await uploadToDrive('pilots', req.file.buffer, req.file.originalname, req.file.mimetype, true);
+  const updated = await prisma.pilot.update({ where: { id: req.params.id }, data: { photoUrl } });
   res.json(updated);
 }
 
@@ -111,15 +107,11 @@ export async function deletePilotPhoto(req: Request, res: Response): Promise<voi
   const pilot = await prisma.pilot.findUnique({ where: { id: req.params.id } });
   if (!pilot) { res.status(404).json({ error: 'Piloto no encontrado' }); return; }
 
-  if (pilot.photoUrl) {
-    const filePath = `/app${pilot.photoUrl}`;
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  if (pilot.photoUrl && isDriveValue(pilot.photoUrl)) {
+    await deleteFromDrive(pilot.photoUrl);
   }
 
-  const updated = await prisma.pilot.update({
-    where: { id: req.params.id },
-    data: { photoUrl: null },
-  });
+  const updated = await prisma.pilot.update({ where: { id: req.params.id }, data: { photoUrl: null } });
   res.json(updated);
 }
 

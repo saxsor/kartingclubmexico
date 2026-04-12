@@ -23,6 +23,10 @@ export function formatCurrency(amount: number | string): string {
 export function resolveMediaUrl(url?: string | null): string | null {
   if (!url) return null;
 
+  if (url.startsWith('drive:')) {
+    return `https://drive.google.com/uc?export=view&id=${url.slice(6)}`;
+  }
+
   if (/^(?:https?:)?\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) {
     return url;
   }

@@ -6,6 +6,7 @@ import { prisma } from '../lib/prisma.js';
 import { config } from '../config/index.js';
 import { sendPilotMagicLinkEmail } from '../services/email.service.js';
 import { uploadPilotPhoto } from '../lib/upload.js';
+import { uploadToDrive, deleteFromDrive, isDriveValue } from '../lib/drive.service.js';
 import { JwtPayload } from '../middleware/auth.middleware.js';
 
 const MAGIC_LINK_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -177,7 +178,12 @@ export async function updateMyPhoto(req: Request, res: Response): Promise<void> 
   if (!pilotId) { res.status(403).json({ error: 'No vinculado a un piloto.' }); return; }
   if (!req.file) { res.status(400).json({ error: 'No se recibió ninguna imagen.' }); return; }
 
-  const photoUrl = `/uploads/pilots/${req.file.filename}`;
+  const existing = await prisma.pilot.findUnique({ where: { id: pilotId }, select: { photoUrl: true } });
+  if (existing?.photoUrl && isDriveValue(existing.photoUrl)) {
+    await deleteFromDrive(existing.photoUrl);
+  }
+
+  const photoUrl = await uploadToDrive('pilots', req.file.buffer, req.file.originalname, req.file.mimetype, true);
   const pilot = await prisma.pilot.update({ where: { id: pilotId }, data: { photoUrl } });
   res.json(pilot);
 }

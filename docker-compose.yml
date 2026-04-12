@@ -1,34 +1,15 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-      POSTGRES_DB: ${POSTGRES_DB:-edel_racing}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - internal
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - internal
     volumes:
       - uploads_data:/app/uploads
+      - ./backend/google-service-account.json:/app/google-service-account.json:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health | grep -q '\"db\":\"ok\"'"]
       interval: 15s
@@ -64,7 +45,6 @@ services:
       - external
 
 volumes:
-  postgres_data:
   nginx_certs:
   nginx_certs_www:
   uploads_data:

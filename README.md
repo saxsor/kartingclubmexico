@@ -1,15 +1,38 @@
 # Edel Racing — Karting Club México
 
-Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in, campeonato acumulado y SEO optimizado.
+Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in, campeonato acumulado por pilotos y constructores, portal de piloto con magic link, y SEO optimizado.
 
 ## Stack
 
-- **Backend**: Node.js + Express + TypeScript + Prisma + PostgreSQL
-- **Frontend**: React + TypeScript + Vite + Tailwind CSS + PWA
-- **Auth**: JWT con roles ADMIN / ORGANIZER / VALIDATOR, doble cookie (access + refresh)
+### Backend
+- **Runtime**: Node.js 20 + TypeScript
+- **Framework**: Express + express-async-errors
+- **ORM**: Prisma
+- **Base de datos**: [Neon](https://neon.tech) — PostgreSQL serverless
+- **Almacenamiento de archivos**: [Google Drive API v3](https://developers.google.com/drive) — fotos de pilotos, posters de eventos y comprobantes de pago
+- **Auth Google**: OAuth2 con refresh token (`googleapis` + `google-auth-library`)
+- **Email**: SMTP via [Resend](https://resend.com) (`nodemailer`) — magic links para portal de piloto
+- **Auth usuarios admin**: JWT doble cookie (access 7d + refresh 30d), roles ADMIN / ORGANIZER / VALIDATOR
 - **Realtime**: Server-Sent Events (SSE)
+- **Rate limiting**: express-rate-limit
+- **Seguridad**: helmet, bcryptjs
+
+### Frontend
+- **Framework**: React 18 + TypeScript
+- **Build**: Vite
+- **Estilos**: Tailwind CSS + shadcn/ui
+- **Routing**: React Router v6
+- **State / Fetching**: TanStack Query (React Query)
+- **Gráficas**: Recharts
+- **PWA**: vite-plugin-pwa
 - **SEO**: react-helmet-async, sitemap dinámico, JSON-LD (SportsEvent), robots.txt
-- **Deploy**: Docker + docker-compose + Nginx
+
+### Infraestructura
+- **Deploy**: Docker + Docker Compose + Nginx (proxy reverso)
+- **HTTPS**: Certbot / Let's Encrypt
+- **DB hosting**: Neon (serverless PostgreSQL, sin contenedor local)
+- **Blob storage**: Google Drive personal (5 TB, sin costo adicional)
+- **Email relay**: Resend (SMTP)
 
 ---
 
@@ -18,9 +41,21 @@ Sistema completo de gestión de carreras de karting con resultados en tiempo rea
 | Recurso | Mínimo |
 |---------|--------|
 | OS | Ubuntu 22.04+ |
-| RAM | 2 GB |
-| Disco | 20 GB |
+| RAM | 1 GB (sin PostgreSQL local) |
+| Disco | 10 GB |
 | Software | Docker 24+, Docker Compose v2+ |
+
+> La base de datos corre en Neon y los archivos en Google Drive, por lo que el servidor solo necesita correr los contenedores de backend, frontend y nginx.
+
+---
+
+## Servicios externos requeridos
+
+| Servicio | Uso | Dónde obtener |
+|----------|-----|---------------|
+| [Neon](https://neon.tech) | PostgreSQL serverless | neon.tech → crear proyecto → copiar connection string |
+| [Google Drive API](https://console.cloud.google.com) | Almacenamiento de archivos | Google Cloud Console → OAuth2 credentials + refresh token |
+| [Resend](https://resend.com) | Envío de emails (magic link) | resend.com → API Keys → SMTP credentials |
 
 ---
 
@@ -40,13 +75,6 @@ cp .env.example .env
 nano .env
 ```
 
-Variables obligatorias:
-- `JWT_SECRET` — genera uno seguro: `openssl rand -base64 32`
-- `JWT_REFRESH_SECRET` — genera uno distinto: `openssl rand -base64 32`
-- `CORS_ORIGIN` — tu dominio: `https://tudominio.com`
-- `APP_URL` — URL base del sitio (para sitemap y SEO): `https://tudominio.com`
-- `DATABASE_URL` — se configura automáticamente con Docker Compose
-
 ### 3. Construir y levantar servicios
 
 ```bash
@@ -58,24 +86,61 @@ Las migraciones de base de datos se aplican automáticamente al arrancar el back
 ### 4. Cargar datos de prueba (seed)
 
 ```bash
-docker compose run --rm \
-  -e DATABASE_URL=postgresql://postgres:password@postgres:5432/edel_racing \
-  -v $(pwd)/seed:/seed \
-  node:20-alpine sh -c "cd /seed && npm ci && npx tsx seed.ts"
+docker compose exec backend npx prisma db seed
 ```
+
+---
+
+## Variables de entorno (`.env`)
+
+```env
+# ── Base de datos ─────────────────────────────────────────────────────────────
+# Neon connection string (o cualquier PostgreSQL)
+DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+
+# ── JWT ───────────────────────────────────────────────────────────────────────
+JWT_SECRET=genera_con_openssl_rand_base64_32
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+
+# ── Servidor ──────────────────────────────────────────────────────────────────
+PORT=4000
+NODE_ENV=production
+CORS_ORIGIN=https://tudominio.com
+APP_URL=https://tudominio.com
+
+# ── Email (Resend SMTP) ───────────────────────────────────────────────────────
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
+SMTP_USER=resend
+SMTP_PASS=re_xxxxxxxxxxxxxxxxxxxx
+SMTP_FROM=Edel Racing <onboarding@resend.dev>
+
+# ── Google Drive (OAuth2) ─────────────────────────────────────────────────────
+# Google Cloud Console → OAuth2 credentials (tipo "Desktop" o "Web")
+GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxxxxxxx
+# Refresh token obtenido con el flujo OAuth2 offline
+GOOGLE_REFRESH_TOKEN=1//xxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### Cómo obtener el refresh token de Google Drive
+
+1. Ve a [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials
+2. Crea o usa un OAuth2 Client ID (tipo Web, agrega `http://localhost` como redirect URI)
+3. Genera la URL de autorización y completa el flujo de consentimiento con la cuenta que tiene el Drive de destino
+4. Intercambia el `code` por tokens usando el endpoint `https://oauth2.googleapis.com/token`
+5. Copia el `refresh_token` al `.env`
+
+Las carpetas de Drive donde se suben los archivos se configuran en `backend/src/lib/drive.service.ts` (`FOLDER_IDS`).
 
 ---
 
 ## HTTPS con Certbot
 
 ```bash
-# Instalar Certbot
 apt install -y certbot python3-certbot-nginx
-
-# Obtener certificado (nginx debe estar corriendo en puerto 80)
 certbot --nginx -d tudominio.com -d www.tudominio.com
-
-# Descomentar el bloque HTTPS en nginx.conf y reemplazar tudominio.com
 docker compose exec nginx nginx -s reload
 ```
 
@@ -87,58 +152,55 @@ docker compose exec nginx nginx -s reload
 |-----|-------------|
 | `/` | Sitio público — eventos, parrillas, resultados |
 | `/eventos` | Listado de eventos públicos |
-| `/eventos/:slug` | Detalle del evento (parrilla, resultados, pilotos inscritos) |
-| `/eventos/:slug/pilotos` | Pilotos inscritos por categoría (público) |
-| `/eventos/:slug/resultados` | Resultados y puntos por categoría (público) |
-| `/eventos/:slug/inscribirse` | Formulario de auto-inscripción para pilotos |
-| `/campeonato` | Tabla de campeonato acumulado |
+| `/eventos/:slug` | Detalle del evento |
+| `/eventos/:slug/inscribirse` | Auto-inscripción para pilotos |
+| `/campeonato` | Tabla de campeonato (pilotos y constructores) |
 | `/pilotos/:id` | Perfil público de piloto |
-| `/sitemap.xml` | Sitemap XML (generado dinámicamente) |
-| `/robots.txt` | Reglas para crawlers |
+| `/piloto` | Portal del piloto (acceso por magic link) |
+| `/sitemap.xml` | Sitemap XML dinámico |
 | `/login` | Login administradores |
-| `/app/dashboard` | Panel de administración (ADMIN / ORGANIZER) |
-| `/app/eventos` | Listado de eventos (todos los roles) |
+| `/app/dashboard` | Panel de administración |
 | `/api/` | API REST |
-| `/uploads/` | Archivos subidos (comprobantes, fotos, posters) |
 
 ---
 
-## Credenciales de prueba (seed)
+## Portal de piloto (magic link)
 
-| Usuario | Contraseña | Rol |
-|---------|------------|-----|
-| admin@edelracing.mx | password123 | ADMIN |
-| organizador@edelracing.mx | password123 | ORGANIZER |
+Los pilotos acceden sin contraseña a través de un magic link enviado a su email:
 
-> **Importante**: Cambia estas contraseñas en producción desde el panel de usuarios (`/app/usuarios`).
+1. El piloto introduce su email en `/piloto`
+2. El sistema envía un link de un solo uso (expira en 15 min) via Resend/SMTP
+3. Al hacer clic, el piloto queda autenticado y puede:
+   - Ver sus inscripciones activas y el estado de pago
+   - Editar su perfil: foto, número de kart, equipo/constructor
+   - Subir/reemplazar comprobantes de pago
 
 ---
 
-## Flujo de operación de un evento
+## Campeonato de constructores
 
-### Desde el panel de administración
+Además del campeonato individual, el sistema calcula standings por equipo/constructor:
 
-1. **Crear evento** — nombre, fecha, pista/circuito, categorías activas, cuota de servicio, cuota de alimentos y datos de transferencia bancaria
-2. **Abrir inscripciones** — cambiar status a `OPEN` para activar el formulario público
-3. **Inscribir pilotos** — manualmente desde *Gestionar → Inscripciones* (con número de acompañantes para comida), o esperar auto-inscripciones del público
-4. **Caja** — revisar y aprobar comprobantes de pago enviados por pilotos; registrar pagos manuales; eliminar pagos incorrectos (revierte el estado a pendiente automáticamente)
-5. **Check-in** — confirmar llegada y asignar número de kart
-6. **Sorteo de parrilla** — aleatorio entre pilotos con check-in completado
-7. **Carreras** — generar 3 carreras por categoría con un clic (se pueden agregar más o eliminar carreras pendientes); capturar posiciones con drag-and-drop
-8. **Clasificación** — ver tabla de puntos y exportar resultados (PDF/CSV)
-9. **Finalizar** — cambiar status a `FINISHED`
+- Los resultados de cada piloto suman puntos al equipo con el que corrió en esa carrera
+- Se captura un snapshot `raceResultTeamSnapshot` al guardar resultados para preservar el equipo histórico aunque el piloto cambie
+- Visible en `/campeonato` (toggle pilotos / constructores) y en el panel admin de campeonatos
 
-### Flujo de auto-inscripción (pilotos sin login)
+---
 
-1. El piloto entra al evento público → botón **"Inscribirme"** (visible solo si el evento está `OPEN`)
-2. **Búsqueda**: el piloto busca su nombre en la base de pilotos registrados
-   - **Piloto existente**: selecciona su nombre → solo llena datos de carrera (categoría, kart, acompañantes)
-   - **Piloto nuevo**: llena el formulario completo (nombre, alias, email, teléfono, etc.)
-3. El sistema crea o asocia su perfil de piloto y genera la inscripción
-4. Se muestran los **datos bancarios** para hacer la transferencia y el monto a pagar
-5. El piloto **sube su comprobante** de pago (JPG, PNG o PDF, máx. 10 MB) → inscripción queda en estado *Recibo enviado*
-6. El admin/organizador ve los comprobantes pendientes en **Caja** y los **Aprueba** o **Rechaza**
-7. Al aprobar, la inscripción pasa a *Pagada* y se registran los pagos automáticamente
+## Almacenamiento de archivos (Google Drive)
+
+Todos los archivos se almacenan en Google Drive usando la API v3 con OAuth2:
+
+| Tipo | Carpeta Drive | Visibilidad |
+|------|---------------|-------------|
+| Fotos de pilotos | `pilots/` | Pública (anyone reader) |
+| Posters de eventos | `posters/` | Pública (anyone reader) |
+| Comprobantes de pago | `receipts/` | Privada (solo admin via proxy) |
+
+- Los campos en BD almacenan `drive:FILE_ID`
+- El frontend resuelve a `https://lh3.googleusercontent.com/d/FILE_ID` para imágenes públicas
+- Los comprobantes se sirven via proxy en el backend (`GET /api/events/:slug/inscriptions/:id/receipt`)
+- Script de migración one-time: `backend/scripts/migrate-uploads-to-drive.mjs`
 
 ---
 
@@ -153,28 +215,15 @@ docker compose exec nginx nginx -s reload
 | Ver dashboard de recaudación | ✓ | ✓ | — |
 | Inscribir pilotos | ✓ | ✓ | ✓ |
 | Eliminar inscripciones | ✓ | ✓ | — |
-| Ver listado de inscripciones | ✓ | ✓ | ✓ |
 | Aprobar / rechazar comprobantes | ✓ | ✓ | — |
 | Registrar pagos manuales | ✓ | ✓ | ✓ |
-| Ver caja | ✓ | ✓ | ✓ |
 | Eliminar pagos | ✓ | — | — |
 | Check-in | ✓ | ✓ | ✓ |
 | Sorteo de parrilla | ✓ | ✓ | — |
 | Capturar resultados de carreras | ✓ | ✓ | — |
 | Ver clasificación | ✓ | ✓ | — |
-| Ver panel público | todos | todos | todos |
 
-> El rol **VALIDATOR** está pensado para organizadores en pit lane durante el evento: pueden hacer check-in, inscribir pilotos de último momento y registrar pagos en efectivo, pero no tienen acceso a configuración, finanzas ni resultados.
-
----
-
-## Cuota de alimentos con acompañantes
-
-La cuota de alimentos se calcula por persona: `foodFee × (1 piloto + N acompañantes)`.
-
-- En la auto-inscripción pública, el piloto elige cuántos acompañantes lleva
-- En inscripción manual desde el panel, el campo "Acompañantes" está en el formulario
-- La caja muestra el desglose y el saldo correcto por piloto
+> El rol **VALIDATOR** está pensado para pit lane: check-in, inscripciones de último momento y pagos en efectivo, sin acceso a configuración ni finanzas.
 
 ---
 
@@ -203,20 +252,8 @@ La clasificación del evento suma las 3 carreras por piloto por categoría. Dese
 | Estado | Descripción |
 |--------|-------------|
 | `PENDING_PAYMENT` | Inscrita, pendiente de pago |
-| `RECEIPT_SUBMITTED` | Piloto subió comprobante, pendiente de aprobación |
+| `RECEIPT_SUBMITTED` | Comprobante subido, pendiente de aprobación |
 | `PAID` | Pago confirmado |
-
----
-
-## SEO
-
-El sitio está optimizado para motores de búsqueda:
-
-- **Títulos y meta tags dinámicos** por página usando `react-helmet-async`
-- **Open Graph y Twitter Card** para previews en redes sociales
-- **JSON-LD** (schema.org `SportsEvent`) en páginas de eventos
-- **Sitemap XML dinámico** en `/sitemap.xml` — generado desde la BD con todos los eventos, pilotos y campeonatos
-- **robots.txt** — permite crawling público, bloquea rutas de administración
 
 ---
 
@@ -227,53 +264,47 @@ edel-racing/
 ├── backend/
 │   ├── prisma/
 │   │   ├── schema.prisma              Modelos de base de datos
-│   │   └── migrations/                Migraciones SQL (automáticas al arrancar)
+│   │   └── migrations/                Migraciones SQL
+│   ├── scripts/
+│   │   └── migrate-uploads-to-drive.mjs  Migración one-time a Google Drive
 │   └── src/
 │       ├── controllers/
-│       │   ├── events.controller.ts         Eventos + pilotos públicos por categoría
-│       │   ├── inscriptions.controller.ts   Inscripciones con cascade delete
+│       │   ├── events.controller.ts
+│       │   ├── inscriptions.controller.ts
 │       │   ├── payments.controller.ts
 │       │   ├── pilots.controller.ts
-│       │   ├── races.controller.ts          Resultados con pilotos de última hora
-│       │   ├── self-register.controller.ts  Auto-inscripción (piloto nuevo o existente)
-│       │   └── ...
+│       │   ├── pilot-portal.controller.ts   Portal de piloto (magic link)
+│       │   ├── races.controller.ts
+│       │   ├── self-register.controller.ts  Auto-inscripción + proxy de recibos
+│       │   ├── analytics.controller.ts      Dashboard stats + gráficas
+│       │   └── championships.controller.ts  Standings pilotos y constructores
 │       ├── lib/
-│       │   ├── upload.ts              Multer para comprobantes y fotos
-│       │   ├── sse.ts                 Server-Sent Events manager
-│       │   └── ...
+│       │   ├── drive.service.ts       Google Drive API (upload/delete/stream)
+│       │   ├── upload.ts              Multer memory storage
+│       │   ├── mailer.ts              Nodemailer + Resend SMTP
+│       │   └── sse.ts                 Server-Sent Events manager
 │       └── routes/
 │           ├── index.ts               Sitemap XML dinámico
+│           ├── pilot-portal.routes.ts
 │           ├── self-register.routes.ts
 │           └── ...
 ├── frontend/
-│   ├── public/
-│   │   └── robots.txt
 │   └── src/
 │       ├── api/
-│       │   └── client.ts              uploadWithAuth (token refresh en multipart)
 │       ├── components/
-│       │   └── shared/
-│       │       └── SEO.tsx            Componente reutilizable de SEO
-│       ├── pages/
-│       │   ├── admin/
-│       │   │   ├── events/            Gestión de eventos
-│       │   │   ├── pilots/            Gestión de pilotos
-│       │   │   ├── payments/          Caja + comprobantes
-│       │   │   ├── checkin/           Check-in
-│       │   │   ├── grid/              Sorteo de parrilla
-│       │   │   ├── races/             Carreras y captura de resultados
-│       │   │   ├── classification/    Clasificación y exportación
-│       │   │   └── users/             Usuarios (ADMIN only)
-│       │   └── public/
-│       │       ├── EventRegister.tsx  Auto-inscripción con búsqueda de piloto
-│       │       ├── EventPilots.tsx    Lista pública de pilotos por categoría
-│       │       ├── EventResults.tsx   Resultados públicos con SSE
-│       │       ├── Championship.tsx   Campeonato acumulado
-│       │       └── ...
-│       └── router/
-├── nginx.conf                         Proxy /api/, /uploads/, /sitemap.xml; CSP headers
+│       ├── lib/
+│       │   └── utils.ts               resolveMediaUrl (drive: → lh3.googleusercontent.com)
+│       └── pages/
+│           ├── admin/
+│           │   ├── Dashboard.tsx      Stats + gráficas (Recharts)
+│           │   ├── championships/     Standings pilotos + constructores
+│           │   └── ...
+│           ├── pilot/
+│           │   └── PilotPortal.tsx    Portal piloto (editar perfil, kart, equipo)
+│           └── public/
+├── nginx.conf
 ├── docker-compose.yml
-└── .env.example
+└── .env
 ```
 
 ---
@@ -291,40 +322,29 @@ docker compose restart backend
 # Recargar nginx (sin downtime)
 docker compose exec nginx nginx -s reload
 
-# Rebuild y redeploy
-docker compose build backend frontend && docker compose up -d
+# Rebuild y redeploy completo
+docker compose build && docker compose up -d
 
-# Backup de base de datos
-docker compose exec postgres pg_dump -U postgres edel_racing > backup_$(date +%Y%m%d).sql
+# Solo rebuild frontend y redeploy
+docker compose build frontend && docker compose up -d frontend
 
-# Restaurar backup
-cat backup.sql | docker compose exec -T postgres psql -U postgres edel_racing
-
-# Aplicar migraciones manualmente (normalmente automático al arrancar)
+# Aplicar migraciones manualmente
 docker compose exec backend npx prisma migrate deploy
+
+# Backup de base de datos (Neon)
+pg_dump "$DATABASE_URL" > backup_$(date +%Y%m%d).sql
+
+# Migrar uploads existentes a Google Drive (one-time)
+docker compose exec backend node scripts/migrate-uploads-to-drive.mjs
 ```
 
 ---
 
-## Variables de entorno (`.env`)
+## Credenciales de prueba (seed)
 
-```env
-# Base de datos (se configura automáticamente con Docker Compose)
-DATABASE_URL=postgresql://postgres:password@postgres:5432/edel_racing
+| Usuario | Contraseña | Rol |
+|---------|------------|-----|
+| admin@edelracing.mx | password123 | ADMIN |
+| organizador@edelracing.mx | password123 | ORGANIZER |
 
-# JWT — genera con: openssl rand -base64 32
-JWT_SECRET=cambia_esto_en_produccion
-JWT_REFRESH_SECRET=cambia_esto_tambien_en_produccion
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=30d
-
-# Servidor
-PORT=4000
-NODE_ENV=production
-
-# CORS — tu dominio en producción
-CORS_ORIGIN=https://tudominio.com
-
-# URL base del sitio (para sitemap y links en emails)
-APP_URL=https://tudominio.com
-```
+> **Importante**: Cambia estas contraseñas en producción desde el panel de usuarios (`/app/usuarios`).

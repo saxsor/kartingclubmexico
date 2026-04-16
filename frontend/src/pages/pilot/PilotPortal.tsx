@@ -25,7 +25,7 @@ function getTotalPaid(insc: PilotInscription) {
 }
 
 function getRequired(insc: PilotInscription) {
-  return Number(insc.event.serviceFee) + Number(insc.event.foodFee) * (insc.companions + 1);
+  return Number(insc.event.serviceFee) + Number(insc.event.foodFee) * insc.companions;
 }
 
 export function PilotPortal() {
@@ -295,7 +295,7 @@ export function PilotPortal() {
                               onChange={(e) => setInscForm({ ...inscForm, companions: parseInt(e.target.value) || 0 })}
                               className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
                             />
-                            <p className="text-xs text-white/30 mt-0.5">{inscForm.companions + 1} comensales en total</p>
+                            <p className="text-xs text-white/30 mt-0.5">{inscForm.companions} comensales en total</p>
                           </div>
                           <div className="flex-1">
                             <label className="text-xs text-white/40 block mb-1">Número de kart</label>
@@ -330,7 +330,7 @@ export function PilotPortal() {
                     ) : (
                       <div className="border-t border-white/10 pt-3 flex items-center justify-between">
                         <div className="text-xs text-white/50 space-y-0.5">
-                          <p>{insc.companions} acompañantes · {insc.companions + 1} comensales</p>
+                          <p>{insc.companions} comensales</p>
                           <p>Kart: {insc.kartNumber ?? <span className="text-white/30">Sin asignar</span>}</p>
                           {insc.engine && <p>Motor: {insc.engine}</p>}
                         </div>

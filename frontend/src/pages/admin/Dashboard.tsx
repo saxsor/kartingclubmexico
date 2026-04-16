@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Calendar, Users, Trophy, Flag, TrendingUp, DollarSign, ShieldCheck } from 'lucide-react';
+import { Calendar, Users, Trophy, Flag, TrendingUp, DollarSign, ShieldCheck, UtensilsCrossed } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { eventsApi } from '../../api/events.api';
 import { pilotsApi } from '../../api/pilots.api';
-import { analyticsApi, StandingEntry, ConstructorEntry } from '../../api/analytics.api';
+import { analyticsApi, StandingEntry, ConstructorEntry, FoodByEvent } from '../../api/analytics.api';
 import { formatDate, CATEGORY_LABELS } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { queryKeys } from '../../lib/react-query';
@@ -178,6 +178,8 @@ export function Dashboard() {
   const constructorsByCategory = analytics?.constructorsByCategory ?? {};
   const constructorCategories = Object.keys(constructorsByCategory).filter((c) => constructorsByCategory[c].length > 0);
 
+  const foodByEvent: FoodByEvent[] = analytics?.foodByEvent ?? [];
+
   if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
 
   return (
@@ -218,6 +220,33 @@ export function Dashboard() {
             >
               Gestionar
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Food / comensales section */}
+      {foodByEvent.length > 0 && (
+        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <UtensilsCrossed className="h-4 w-4 text-orange-400" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-orange-400">Comensales</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {foodByEvent.map((ev) => (
+              <Link key={ev.slug} to={`/app/eventos/${ev.slug}/caja`} className="group rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-orange-500/30 transition-colors p-4">
+                <p className="text-xs text-white/40 uppercase tracking-wide mb-1 truncate">{ev.name}</p>
+                <div className="flex items-end justify-between gap-2 mt-2">
+                  <div className="space-y-1 text-xs text-white/50">
+                    <p>Pilotos: <span className="text-white font-semibold">{ev.pilotos}</span></p>
+                    <p>Staff: <span className="text-white font-semibold">{ev.staff}</span></p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-black text-orange-400">{ev.total}</p>
+                    <p className="text-[10px] text-white/30 uppercase tracking-wide">total</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       )}

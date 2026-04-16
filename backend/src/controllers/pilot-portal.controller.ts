@@ -29,6 +29,35 @@ function setCookies(res: Response, accessToken: string, refreshToken: string): v
   res.cookie('csrf_token', csrfToken, { httpOnly: false, sameSite: 'lax', secure: isProduction, maxAge: REFRESH_TOKEN_MAX_AGE, path: '/' });
 }
 
+// POST /api/pilot/self-register
+export async function selfRegisterPilot(req: Request, res: Response): Promise<void> {
+  const { name, alias, email, phone } = req.body;
+
+  // Check for duplicate (same name + email)
+  const existing = await prisma.pilot.findFirst({ where: { email, active: true } });
+  if (existing) {
+    res.status(409).json({ error: 'Ya existe un piloto registrado con ese correo. Usa la opción de acceso con enlace.' });
+    return;
+  }
+
+  const pilot = await prisma.pilot.create({
+    data: { name, alias: alias || null, email, phone: phone || null },
+  });
+
+  // Send magic link immediately
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  await prisma.pilotMagicToken.create({
+    data: {
+      pilotId: pilot.id,
+      tokenHash: hashToken(rawToken),
+      expiresAt: new Date(Date.now() + MAGIC_LINK_TTL_MS),
+    },
+  });
+  await sendPilotMagicLinkEmail(email, name, rawToken);
+
+  res.status(201).json({ message: 'Piloto registrado. Revisa tu correo para acceder a tu perfil.' });
+}
+
 // POST /api/pilot/request-access
 export async function requestMagicLink(req: Request, res: Response): Promise<void> {
   const { email } = req.body;

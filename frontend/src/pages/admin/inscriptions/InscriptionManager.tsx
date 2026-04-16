@@ -196,7 +196,7 @@ export function InscriptionManager() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/70 mb-1">Acompañantes (comida)</label>
+              <label className="block text-xs font-medium text-white/70 mb-1">Comensales</label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"

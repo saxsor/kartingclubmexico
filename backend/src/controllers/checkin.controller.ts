@@ -18,7 +18,7 @@ export async function listCheckIns(req: Request, res: Response): Promise<void> {
 }
 
 export async function doCheckIn(req: Request, res: Response): Promise<void> {
-  const { kartNumber } = req.body;
+  const { kartNumber, kartNotes } = req.body;
   const confirmedBy = req.user?.name ?? 'Sistema';
 
   const inscription = await prisma.inscription.findUnique({
@@ -45,7 +45,7 @@ export async function doCheckIn(req: Request, res: Response): Promise<void> {
 
     await tx.inscription.update({
       where: { id: inscription.id },
-      data: { kartNumber },
+      data: { kartNumber, ...(kartNotes !== undefined && { kartNotes: kartNotes || null }) },
     });
 
     return checkIn;

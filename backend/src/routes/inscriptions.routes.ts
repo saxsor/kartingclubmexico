@@ -21,6 +21,7 @@ const createSchema = z.object({
 const updateSchema = z.object({
   category: categoryEnum.optional(),
   kartNumber: z.number().int().positive().optional(),
+  kartNotes: z.string().optional(),
   notes: z.string().optional(),
   status: z.enum(['PENDING_PAYMENT', 'PAID']).optional(),
   companions: z.number().int().min(0).optional(),

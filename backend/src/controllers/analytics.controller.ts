@@ -11,7 +11,7 @@ import { prisma } from '../lib/prisma.js';
 export async function getDashboardAnalytics(_req: Request, res: Response): Promise<void> {
   const currentYear = new Date().getFullYear();
 
-  const [events, payments, inscriptions, standings, totalTeams, constructorStandings, teamResultRows] = await prisma.$transaction([
+  const [events, payments, inscriptions, standings, totalTeams, constructorStandings, teamResultRows, foodEvents] = await prisma.$transaction([
     // Last 10 events ordered by date descending
     prisma.event.findMany({
       orderBy: { date: 'desc' },
@@ -68,6 +68,16 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     prisma.raceResult.findMany({
       where: { teamId: { not: null }, race: { status: 'FINISHED' } },
       select: { teamId: true, race: { select: { eventId: true } } },
+    }),
+
+    // Open/active events with comensales data
+    prisma.event.findMany({
+      where: { status: { in: ['OPEN', 'IN_PROGRESS'] } },
+      orderBy: { date: 'asc' },
+      select: {
+        id: true, name: true, slug: true, status: true, staffCount: true,
+        inscriptions: { select: { companions: true } },
+      },
     }),
   ]);
 
@@ -176,6 +186,15 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     }))
     .filter((e) => e.equipos > 0);
 
+  const foodByEvent = foodEvents.map((e) => ({
+    slug: e.slug,
+    name: e.name,
+    status: e.status,
+    pilotos: e.inscriptions.reduce((sum, i) => sum + i.companions, 0),
+    staff: e.staffCount,
+    total: e.inscriptions.reduce((sum, i) => sum + i.companions, 0) + e.staffCount,
+  }));
+
   res.json({
     revenueByEvent: revenueByEvent.slice().reverse(),
     participationByEvent: participationByEvent.slice().reverse(),
@@ -184,6 +203,7 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     totalTeams,
     avgTeamsPerEvent,
     teamsPerEvent,
+    foodByEvent,
     year: currentYear,
   });
 }

@@ -9,7 +9,7 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
   const paymentsWhere = { inscription: { eventId: event.id } };
 
-  const [payments, total, allPayments] = await prisma.$transaction([
+  const [payments, total, allPayments, companionsAggregate] = await prisma.$transaction([
     prisma.payment.findMany({
       where: paymentsWhere,
       include: {
@@ -25,6 +25,10 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
     prisma.payment.findMany({
       where: paymentsWhere,
       select: { amount: true, type: true },
+    }),
+    prisma.inscription.aggregate({
+      where: { eventId: event.id },
+      _sum: { companions: true },
     }),
   ]);
 
@@ -43,6 +47,7 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
   res.json({
     payments,
     totals,
+    totalPilotosComensales: companionsAggregate._sum.companions ?? 0,
     pagination: getPaginationMeta(page, pageSize, total),
   });
 }
@@ -63,7 +68,7 @@ export async function addPayment(req: Request, res: Response): Promise<void> {
     });
 
     const totalPaid = [...inscription.payments, payment].reduce((s, p) => s + Number(p.amount), 0);
-    const required = Number(inscription.event.serviceFee) + Number(inscription.event.foodFee) * (inscription.companions + 1);
+    const required = Number(inscription.event.serviceFee) + Number(inscription.event.foodFee) * inscription.companions;
 
     if (totalPaid >= required) {
       await tx.inscription.update({
@@ -99,7 +104,7 @@ export async function deletePayment(req: Request, res: Response): Promise<void> 
       .filter((p) => p.id !== req.params.paymentId)
       .reduce((s, p) => s + Number(p.amount), 0);
     const required = Number(payment.inscription.event.serviceFee)
-      + Number(payment.inscription.event.foodFee) * (payment.inscription.companions + 1);
+      + Number(payment.inscription.event.foodFee) * payment.inscription.companions;
 
     if (remainingTotal < required && payment.inscription.status === 'PAID') {
       await tx.inscription.update({

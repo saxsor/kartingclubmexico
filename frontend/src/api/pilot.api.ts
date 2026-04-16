@@ -44,6 +44,9 @@ export interface PilotStanding {
 }
 
 export const pilotApi = {
+  selfRegister: (data: { name: string; alias?: string; email: string; phone?: string }) =>
+    api.post<{ message: string }>('/pilot/self-register', data),
+
   requestAccess: (email: string) =>
     api.post<{ message: string }>('/pilot/request-access', { email }),
 

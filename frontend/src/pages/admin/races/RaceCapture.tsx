@@ -31,6 +31,7 @@ interface RaceEntry {
   pilotName: string;
   alias: string | null;
   kartNumber: number | null;
+  kartNotes: string | null;
   status: ResultStatus;
   lapsCompleted: number;
 }
@@ -75,6 +76,7 @@ function SortableItem({ id, position, entry, onStatusChange, onAddPenalty }: Sor
         <p className="font-semibold text-white truncate">{entry.pilotName}</p>
         {entry.alias && <p className="text-xs text-white/50">"{entry.alias}"</p>}
         {entry.kartNumber && <p className="text-xs text-white/40">Kart #{entry.kartNumber}</p>}
+        {entry.kartNotes && <p className="text-xs text-white/35 italic truncate">{entry.kartNotes}</p>}
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -153,6 +155,7 @@ export function RaceCapture() {
         pilotName: res.inscription.pilot.name,
         alias: res.inscription.pilot.alias,
         kartNumber: res.inscription.kartNumber,
+        kartNotes: res.inscription.kartNotes,
         status: res.status,
         lapsCompleted: res.lapsCompleted,
       }));
@@ -164,6 +167,7 @@ export function RaceCapture() {
           pilotName: i.pilot.name,
           alias: i.pilot.alias,
           kartNumber: i.kartNumber,
+          kartNotes: i.kartNotes,
           status: 'FINISHED' as ResultStatus,
           lapsCompleted: r.laps,
         }));
@@ -174,6 +178,7 @@ export function RaceCapture() {
         pilotName: i.pilot.name,
         alias: i.pilot.alias,
         kartNumber: i.kartNumber,
+        kartNotes: i.kartNotes,
         status: 'FINISHED' as ResultStatus,
         lapsCompleted: r.laps,
       })));

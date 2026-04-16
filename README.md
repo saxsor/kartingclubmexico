@@ -1,6 +1,6 @@
 # Edel Racing — Karting Club México
 
-Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in, campeonato acumulado por pilotos y constructores, portal de piloto con magic link, y SEO optimizado.
+Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in, campeonato acumulado por pilotos y constructores, portal de piloto con magic link, gestión de comensales y notas de kart, y SEO optimizado.
 
 ## Stack
 
@@ -168,12 +168,36 @@ docker compose exec nginx nginx -s reload
 
 Los pilotos acceden sin contraseña a través de un magic link enviado a su email:
 
-1. El piloto introduce su email en `/piloto`
-2. El sistema envía un link de un solo uso (expira en 15 min) via Resend/SMTP
-3. Al hacer clic, el piloto queda autenticado y puede:
+1. El piloto busca su nombre en `/piloto`
+2. Si ya existe: selecciona "Soy yo" e ingresa su correo → recibe un magic link (expira en 24h)
+3. Si es nuevo: completa el formulario de registro (nombre, alias, correo, teléfono) → se crea su perfil y recibe el magic link automáticamente
+4. Al hacer clic en el enlace, el piloto queda autenticado y puede:
    - Ver sus inscripciones activas y el estado de pago
    - Editar su perfil: foto, número de kart, equipo/constructor
    - Subir/reemplazar comprobantes de pago
+
+> El flujo obliga a buscar por nombre antes de permitir el registro, evitando perfiles duplicados.
+
+---
+
+## Comensales y logística de comida
+
+El sistema gestiona la logística de comida por evento de forma independiente del número de pilotos inscritos:
+
+- **Comensales por piloto**: cada piloto puede registrar cuántas personas van a comer (incluyéndose a sí mismo si lo desea). El valor por defecto es 0 — los pilotos no se cuentan automáticamente.
+- **Staff en pista**: el admin puede registrar en la Caja cuántas personas de staff van a comer, editable directamente en la pantalla de Caja.
+- **Total visible**: en la Caja se muestra `Pilotos + Staff = Total comidas`. En el Dashboard, los eventos abiertos o en curso muestran un resumen de comensales con link directo a la Caja.
+
+---
+
+## Notas de kart (`kartNotes`)
+
+Durante el check-in, los administradores pueden agregar una nota descriptiva al kart de cada piloto (ej: "kart azul, pontones blancos"). Esta nota:
+- Se guarda independientemente del check-in (botón de guardar inline, o se envía junto al check-in)
+- Se muestra debajo del nombre del piloto en la **parrilla de salida**
+- Se muestra debajo del nombre del piloto en la **captura de resultados** de carrera
+
+Permite identificar a los pilotos cuando no tienen número visible en el kart.
 
 ---
 

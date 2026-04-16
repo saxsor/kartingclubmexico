@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { CheckSquare, X, Search } from 'lucide-react';
+import { CheckSquare, X, Search, Save } from 'lucide-react';
 import { checkinApi } from '../../../api/checkin.api';
-import { Inscription } from '../../../api/inscriptions.api';
+import { inscriptionsApi, Inscription } from '../../../api/inscriptions.api';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { queryKeys } from '../../../lib/react-query';
@@ -12,6 +12,7 @@ export function CheckInPanel() {
   const { slug } = useParams<{ slug: string }>();
   const [search, setSearch] = useState('');
   const [kartInputs, setKartInputs] = useState<Record<string, string>>({});
+  const [kartNotesInputs, setKartNotesInputs] = useState<Record<string, string>>({});
   const [error, setError] = useState<Record<string, string>>({});
   const queryClient = useQueryClient();
   const checkinQuery = useQuery({
@@ -20,12 +21,20 @@ export function CheckInPanel() {
     enabled: !!slug,
   });
   const checkInMutation = useMutation({
-    mutationFn: ({ inscriptionId, kartNumber }: { inscriptionId: string; kartNumber: number }) =>
-      checkinApi.checkIn(slug!, inscriptionId, kartNumber),
+    mutationFn: ({ inscriptionId, kartNumber, kartNotes }: { inscriptionId: string; kartNumber: number; kartNotes?: string }) =>
+      checkinApi.checkIn(slug!, inscriptionId, kartNumber, kartNotes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.checkin.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.grids.all });
+    },
+  });
+  const saveNotesMutation = useMutation({
+    mutationFn: ({ inscriptionId, kartNotes }: { inscriptionId: string; kartNotes: string }) =>
+      inscriptionsApi.update(slug!, inscriptionId, { kartNotes: kartNotes || undefined }),
+    onSuccess: (_data, { inscriptionId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.checkin.all });
+      setKartNotesInputs((k) => { const n = { ...k }; delete n[inscriptionId]; return n; });
     },
   });
   const undoMutation = useMutation({
@@ -47,8 +56,9 @@ export function CheckInPanel() {
       setError((e) => ({ ...e, [insc.id]: 'Ingresa número de kart' }));
       return;
     }
+    const notes = kartNotesInputs[insc.id] ?? insc.kartNotes ?? '';
     try {
-      await checkInMutation.mutateAsync({ inscriptionId: insc.id, kartNumber: kart });
+      await checkInMutation.mutateAsync({ inscriptionId: insc.id, kartNumber: kart, kartNotes: notes || undefined });
       setError((e) => { const n = { ...e }; delete n[insc.id]; return n; });
     } catch (err) {
       setError((e) => ({ ...e, [insc.id]: err instanceof Error ? err.message : 'Error' }));
@@ -109,21 +119,45 @@ export function CheckInPanel() {
                       <p className="text-xs text-red-400 mt-1">{error[insc.id]}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={kartInputs[insc.id] ?? insc.kartNumber?.toString() ?? ''}
-                      onChange={(e) => setKartInputs((k) => ({ ...k, [insc.id]: e.target.value }))}
-                      placeholder="Kart #"
-                      className="w-20 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white text-center focus:border-racing-red focus:outline-none"
-                    />
-                    <button
-                      onClick={() => handleCheckIn(insc)}
-                      className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
-                    >
-                      <CheckSquare className="h-4 w-4" />
-                      Check-in
-                    </button>
+                  <div className="flex flex-col gap-2 items-end">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={kartInputs[insc.id] ?? insc.kartNumber?.toString() ?? ''}
+                        onChange={(e) => setKartInputs((k) => ({ ...k, [insc.id]: e.target.value }))}
+                        placeholder="Kart #"
+                        className="w-20 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white text-center focus:border-racing-red focus:outline-none"
+                      />
+                      <button
+                        onClick={() => handleCheckIn(insc)}
+                        className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
+                      >
+                        <CheckSquare className="h-4 w-4" />
+                        Check-in
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1.5 w-full">
+                      <input
+                        type="text"
+                        value={kartNotesInputs[insc.id] ?? insc.kartNotes ?? ''}
+                        onChange={(e) => setKartNotesInputs((k) => ({ ...k, [insc.id]: e.target.value }))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveNotesMutation.mutate({ inscriptionId: insc.id, kartNotes: kartNotesInputs[insc.id] ?? insc.kartNotes ?? '' });
+                        }}
+                        placeholder="Ej: kart azul, pontones blancos"
+                        className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white placeholder-white/25 focus:border-racing-red focus:outline-none"
+                      />
+                      {(kartNotesInputs[insc.id] !== undefined && kartNotesInputs[insc.id] !== (insc.kartNotes ?? '')) && (
+                        <button
+                          onClick={() => saveNotesMutation.mutate({ inscriptionId: insc.id, kartNotes: kartNotesInputs[insc.id] })}
+                          disabled={saveNotesMutation.isPending}
+                          title="Guardar nota"
+                          className="flex-shrink-0 rounded-lg bg-white/10 p-1.5 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-40"
+                        >
+                          <Save className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -149,6 +183,9 @@ export function CheckInPanel() {
                         Kart #{insc.checkIn!.kartNumber}
                       </span>
                     </div>
+                    {insc.kartNotes && (
+                      <p className="text-xs text-white/40 mt-0.5 italic">{insc.kartNotes}</p>
+                    )}
                   </div>
                   <button
                     onClick={() => handleUndo(insc)}

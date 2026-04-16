@@ -17,6 +17,7 @@ export interface RaceResult {
   inscription: {
     id: string;
     kartNumber: number | null;
+    kartNotes: string | null;
     pilot: { id: string; name: string; alias: string | null };
   };
   penalties: Penalty[];

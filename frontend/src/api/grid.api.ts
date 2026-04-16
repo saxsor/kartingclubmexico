@@ -7,6 +7,7 @@ export interface GridPosition {
   inscription: {
     id: string;
     kartNumber: number | null;
+    kartNotes: string | null;
     pilot: { id: string; name: string; alias: string | null; photoUrl: string | null };
   };
 }

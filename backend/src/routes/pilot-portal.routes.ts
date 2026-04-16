@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import {
+  selfRegisterPilot,
   requestMagicLink,
   verifyMagicLink,
   getMyProfile,
@@ -14,6 +15,12 @@ import {
 
 const router = Router();
 
+const selfRegisterSchema = z.object({
+  name: z.string().min(2),
+  alias: z.string().optional(),
+  email: z.string().email(),
+  phone: z.string().optional(),
+});
 const requestSchema = z.object({ email: z.string().email() });
 const verifySchema = z.object({ token: z.string().min(1) });
 const updateProfileSchema = z.object({
@@ -29,6 +36,7 @@ const updateInscriptionSchema = z.object({
 });
 
 // Public — no auth required
+router.post('/self-register', validate(selfRegisterSchema), selfRegisterPilot);
 router.post('/request-access', validate(requestSchema), requestMagicLink);
 router.post('/verify-access', validate(verifySchema), verifyMagicLink);
 

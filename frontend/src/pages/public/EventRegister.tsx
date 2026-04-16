@@ -389,7 +389,7 @@ export function EventRegister() {
           </div>
 
           <div>
-            <label className={labelClass}>Número de acompañantes</label>
+            <label className={labelClass}>Comensales (incluye al piloto si come)</label>
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -405,7 +405,7 @@ export function EventRegister() {
             </div>
             {Number(event?.foodFee ?? 0) > 0 && (
               <p className="mt-1.5 text-xs text-white/40 uppercase tracking-wide">
-                La comida se cobra por persona — piloto{form.companions > 0 ? ` + ${form.companions} acompañante${form.companions > 1 ? 's' : ''}` : ''} = {form.companions + 1} persona{form.companions > 0 ? 's' : ''}
+                La comida se cobra por persona — {form.companions} comensal{form.companions !== 1 ? 'es' : ''} seleccionado{form.companions !== 1 ? 's' : ''}
               </p>
             )}
           </div>
@@ -455,10 +455,10 @@ export function EventRegister() {
             {Number(registerResult.foodFee) > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-white/50">
-                  Comida ({registerResult.companions + 1} persona{registerResult.companions > 0 ? 's' : ''})
+                  Comida ({registerResult.companions} persona{registerResult.companions !== 1 ? 's' : ''})
                 </span>
                 <span className="font-bold text-white">
-                  {formatCurrency(Number(registerResult.foodFee) * (registerResult.companions + 1))}
+                  {formatCurrency(Number(registerResult.foodFee) * registerResult.companions)}
                 </span>
               </div>
             )}
@@ -466,7 +466,7 @@ export function EventRegister() {
               <span className="text-sm font-bold text-white uppercase tracking-wide">Total</span>
               <span className="text-xl font-black text-[#e10600]"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                {formatCurrency(Number(registerResult.serviceFee) + Number(registerResult.foodFee) * (registerResult.companions + 1))}
+                {formatCurrency(Number(registerResult.serviceFee) + Number(registerResult.foodFee) * registerResult.companions)}
               </span>
             </div>
           </div>

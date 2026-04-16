@@ -102,7 +102,12 @@ export function GridDraw() {
                       }`}>
                         {pos.position}
                       </span>
-                      <span className="text-sm text-white flex-1">{pos.inscription.pilot.name}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-white">{pos.inscription.pilot.name}</span>
+                        {pos.inscription.kartNotes && (
+                          <p className="text-xs text-white/35 italic truncate">{pos.inscription.kartNotes}</p>
+                        )}
+                      </div>
                       {pos.inscription.kartNumber && (
                         <span className="text-xs font-mono text-white/50">#{pos.inscription.kartNumber}</span>
                       )}

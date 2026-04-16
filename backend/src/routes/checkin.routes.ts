@@ -8,6 +8,7 @@ const router = Router({ mergeParams: true });
 
 const checkInSchema = z.object({
   kartNumber: z.number().int().positive(),
+  kartNotes: z.string().optional(),
 });
 
 router.get('/checkin', authenticate, requireRole('ADMIN', 'ORGANIZER', 'VALIDATOR'), listCheckIns);

@@ -40,6 +40,15 @@ export interface TeamsPerEvent {
   equipos: number;
 }
 
+export interface FoodByEvent {
+  slug: string;
+  name: string;
+  status: string;
+  pilotos: number;
+  staff: number;
+  total: number;
+}
+
 export interface DashboardAnalytics {
   revenueByEvent: RevenueByEvent[];
   participationByEvent: ParticipationByEvent[];
@@ -48,6 +57,7 @@ export interface DashboardAnalytics {
   totalTeams: number;
   avgTeamsPerEvent: number;
   teamsPerEvent: TeamsPerEvent[];
+  foodByEvent: FoodByEvent[];
   year: number;
 }
 

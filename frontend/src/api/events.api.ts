@@ -22,6 +22,7 @@ export interface KartEvent {
   year: number;
   serviceFee: string;
   foodFee: string;
+  staffCount: number;
   blockCheckInOnDebt: boolean;
   transferInfo: string | null;
   posterUrl: string | null;

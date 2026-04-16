@@ -189,7 +189,7 @@ export async function approveReceipt(req: Request, res: Response): Promise<void>
   if (inscription.event.slug !== slug) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
   if (inscription.status !== 'RECEIPT_SUBMITTED') { res.status(400).json({ error: 'No hay recibo pendiente de aprobación' }); return; }
 
-  const totalFoodFee = Number(inscription.event.foodFee) * (inscription.companions + 1);
+  const totalFoodFee = Number(inscription.event.foodFee) * inscription.companions;
 
   const updated = await prisma.$transaction(async (tx) => {
     const insc = await tx.inscription.update({
@@ -204,7 +204,7 @@ export async function approveReceipt(req: Request, res: Response): Promise<void>
     }
     if (totalFoodFee > 0) {
       await tx.payment.create({
-        data: { inscriptionId: id, type: 'FOOD_FEE', amount: totalFoodFee, notes: `Comida ${inscription.companions + 1} persona(s)`, createdBy: user.name },
+        data: { inscriptionId: id, type: 'FOOD_FEE', amount: totalFoodFee, notes: `Comida ${inscription.companions} persona(s)`, createdBy: user.name },
       });
     }
     return insc;

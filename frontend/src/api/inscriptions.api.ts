@@ -15,6 +15,7 @@ export interface Inscription {
   pilotId: string;
   category: Category;
   kartNumber: number | null;
+  kartNotes: string | null;
   engine: string | null;
   companions: number;
   status: InscriptionStatus;

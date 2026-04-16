@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useParams } from 'react-router-dom';
-import { Plus, CheckCircle, XCircle, FileText, Download, Trash2, Users, Pencil, X } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, FileText, Download, Trash2, Users, Pencil, X, UtensilsCrossed } from 'lucide-react';
 import { downloadCsv } from '../../../lib/download';
 import { paymentsApi } from '../../../api/payments.api';
 import { eventsApi } from '../../../api/events.api';
@@ -21,6 +21,8 @@ export function CashBox() {
   const [processingCashPayment, setProcessingCashPayment] = useState<string | null>(null);
   const [editingCompanions, setEditingCompanions] = useState<string | null>(null); // inscriptionId
   const [companionsValue, setCompanionsValue] = useState<number>(0);
+  const [editingStaff, setEditingStaff] = useState(false);
+  const [staffValue, setStaffValue] = useState<number>(0);
   const [inscriptionsPage, setInscriptionsPage] = useState(1);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const queryClient = useQueryClient();
@@ -78,16 +80,28 @@ export function CashBox() {
     },
   });
 
+  const updateStaffMutation = useMutation({
+    mutationFn: (staffCount: number) => eventsApi.update(slug!, { staffCount }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: slug ? queryKeys.events.detail(slug) : [] });
+      setEditingStaff(false);
+    },
+  });
+
   const cashbox = cashboxQuery.data ?? null;
   const event = eventQuery.data ?? null;
   const inscriptions = inscriptionsQuery.data?.items ?? [];
   const inscriptionsPagination = inscriptionsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
   const loading = cashboxQuery.isLoading || inscriptionsQuery.isLoading || eventQuery.isLoading;
 
+  const totalPilotosComensales = cashbox?.totalPilotosComensales ?? 0;
+  const totalStaff = event?.staffCount ?? 0;
+  const totalComensales = totalPilotosComensales + totalStaff;
+
   const getPaymentSummary = (inscription: Inscription) => {
     const serviceFee = Number(event?.serviceFee ?? 0);
     const foodFee = Number(event?.foodFee ?? 0);
-    const totalFoodFee = foodFee * (inscription.companions + 1);
+    const totalFoodFee = foodFee * inscription.companions;
     const required = serviceFee + totalFoodFee;
     const totalPaid = inscription.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
     const servicePaid = inscription.payments
@@ -201,6 +215,54 @@ export function CashBox() {
         </div>
       )}
 
+      {/* Food / comensales summary */}
+      {Number(event?.foodFee ?? 0) > 0 && (
+        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <UtensilsCrossed className="h-4 w-4 text-orange-400" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-orange-400">Comensales</h2>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-xs text-white/40 mb-0.5">Pilotos</p>
+              <p className="text-2xl font-black text-white">{totalPilotosComensales}</p>
+            </div>
+            <div>
+              <p className="text-xs text-white/40 mb-0.5">Staff en pista</p>
+              {editingStaff ? (
+                <form onSubmit={(e) => { e.preventDefault(); updateStaffMutation.mutate(staffValue); }} className="flex items-center gap-2">
+                  <input
+                    type="number" min="0" max="100" autoFocus
+                    value={staffValue}
+                    onChange={(e) => setStaffValue(parseInt(e.target.value) || 0)}
+                    className="w-16 rounded border border-white/20 bg-white/10 px-2 py-0.5 text-sm text-white focus:border-orange-400 focus:outline-none"
+                  />
+                  <button type="submit" disabled={updateStaffMutation.isPending} className="text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
+                    <CheckCircle className="h-4 w-4" />
+                  </button>
+                  <button type="button" onClick={() => setEditingStaff(false)} className="text-xs text-white/40 hover:text-white/70">
+                    <X className="h-4 w-4" />
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={() => { setStaffValue(totalStaff); setEditingStaff(true); }}
+                  className="flex items-center gap-1.5 text-left group"
+                  title="Editar staff"
+                >
+                  <span className="text-2xl font-black text-white group-hover:text-orange-300 transition-colors">{totalStaff}</span>
+                  <Pencil className="h-3 w-3 text-white/30 group-hover:text-orange-400 transition-colors" />
+                </button>
+              )}
+            </div>
+            <div className="border-l border-white/10 pl-4">
+              <p className="text-xs text-white/40 mb-0.5">Total comidas</p>
+              <p className="text-2xl font-black text-orange-400">{totalComensales}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pending receipts section — hidden for VALIDATOR */}
       {user?.role !== 'VALIDATOR' && inscriptions.filter((i) => i.status === 'RECEIPT_SUBMITTED').length > 0 && (
         <div>
@@ -298,7 +360,7 @@ export function CashBox() {
                             className="w-16 rounded border border-white/20 bg-white/10 px-2 py-0.5 text-xs text-white focus:border-racing-red focus:outline-none"
                             autoFocus
                           />
-                          <span className="text-xs text-white/40">acomp. ({companionsValue + 1} total)</span>
+                          <span className="text-xs text-white/40">comensales</span>
                           <button type="submit" disabled={updateCompanionsMutation.isPending} className="text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
                             <CheckCircle className="h-3.5 w-3.5" />
                           </button>
@@ -312,7 +374,7 @@ export function CashBox() {
                           className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors group"
                           title="Editar comensales"
                         >
-                          <span>{insc.companions} acomp. · {insc.companions + 1} comensales en total</span>
+                          <span>{insc.companions} comensales</span>
                           <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
                         </button>
                       )}

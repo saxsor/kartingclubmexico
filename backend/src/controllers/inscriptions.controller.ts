@@ -87,12 +87,13 @@ export async function getInscription(req: Request, res: Response): Promise<void>
 }
 
 export async function updateInscription(req: Request, res: Response): Promise<void> {
-  const { category, kartNumber, notes, status, companions, engine } = req.body;
+  const { category, kartNumber, kartNotes, notes, status, companions, engine } = req.body;
   const inscription = await prisma.inscription.update({
     where: { id: req.params.id },
     data: {
       ...(category !== undefined && { category }),
       ...(kartNumber !== undefined && { kartNumber }),
+      ...(kartNotes !== undefined && { kartNotes: kartNotes || null }),
       ...(notes !== undefined && { notes }),
       ...(status !== undefined && { status }),
       ...(companions !== undefined && { companions }),

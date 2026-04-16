@@ -48,7 +48,9 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
   );
 
   const requiredServiceFee = Number(event.serviceFee) * inscriptionCount;
-  const requiredFoodFee = Number(event.foodFee) * totalPilotosComensales;
+  const staffCount = event.staffCount ?? 0;
+  const payingComensales = Math.max(0, totalPilotosComensales - staffCount);
+  const requiredFoodFee = Number(event.foodFee) * payingComensales;
 
   res.json({
     payments,

@@ -84,6 +84,7 @@ export function CashBox() {
     mutationFn: (staffCount: number) => eventsApi.update(slug!, { staffCount }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: slug ? queryKeys.events.detail(slug) : [] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
       setEditingStaff(false);
     },
   });

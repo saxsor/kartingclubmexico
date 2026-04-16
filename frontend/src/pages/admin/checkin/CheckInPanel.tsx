@@ -29,6 +29,15 @@ export function CheckInPanel() {
       queryClient.invalidateQueries({ queryKey: queryKeys.grids.all });
     },
   });
+  const saveKartNumberMutation = useMutation({
+    mutationFn: ({ inscriptionId, kartNumber }: { inscriptionId: string; kartNumber: number }) =>
+      inscriptionsApi.update(slug!, inscriptionId, { kartNumber }),
+    onSuccess: (_data, { inscriptionId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.checkin.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.grids.all });
+      setKartInputs((k) => { const n = { ...k }; delete n[inscriptionId]; return n; });
+    },
+  });
   const saveNotesMutation = useMutation({
     mutationFn: ({ inscriptionId, kartNotes }: { inscriptionId: string; kartNotes: string }) =>
       inscriptionsApi.update(slug!, inscriptionId, { kartNotes: kartNotes || undefined }),
@@ -128,6 +137,19 @@ export function CheckInPanel() {
                         placeholder="Kart #"
                         className="w-20 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white text-center focus:border-racing-red focus:outline-none"
                       />
+                      {(kartInputs[insc.id] !== undefined && kartInputs[insc.id] !== (insc.kartNumber?.toString() ?? '')) && (
+                        <button
+                          onClick={() => {
+                            const n = parseInt(kartInputs[insc.id]);
+                            if (n) saveKartNumberMutation.mutate({ inscriptionId: insc.id, kartNumber: n });
+                          }}
+                          disabled={saveKartNumberMutation.isPending}
+                          title="Guardar número de kart"
+                          className="flex-shrink-0 rounded-lg bg-white/10 p-2 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-40"
+                        >
+                          <Save className="h-4 w-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleCheckIn(insc)}
                         className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"

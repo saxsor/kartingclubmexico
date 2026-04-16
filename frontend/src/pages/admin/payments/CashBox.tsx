@@ -406,7 +406,14 @@ export function CashBox() {
                       </button>
                     )}
                     <button
-                      onClick={() => setShowForm(showForm === insc.id ? null : insc.id)}
+                      onClick={() => {
+                        if (showForm === insc.id) { setShowForm(null); return; }
+                        const s = getPaymentSummary(insc);
+                        const type = s.serviceOutstanding > 0 ? 'SERVICE_FEE' : s.foodOutstanding > 0 ? 'FOOD_FEE' : 'OTHER';
+                        const amount = type === 'SERVICE_FEE' ? String(s.serviceOutstanding) : type === 'FOOD_FEE' ? String(s.foodOutstanding) : '';
+                        setForm({ type, amount, notes: '' });
+                        setShowForm(insc.id);
+                      }}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 transition-colors"
                     >
                       <Plus className="h-3.5 w-3.5" />
@@ -416,10 +423,33 @@ export function CashBox() {
                 </div>
 
                 {showForm === insc.id && (
-                  <form onSubmit={handleAddPayment} className="mt-3 pt-3 border-t border-white/10 flex gap-2 flex-wrap">
+                  <form onSubmit={handleAddPayment} className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                    {/* Pending breakdown hint */}
+                    {(() => {
+                      const s = getPaymentSummary(insc);
+                      return (s.serviceOutstanding > 0 || s.foodOutstanding > 0) ? (
+                        <div className="flex gap-3 text-xs text-white/50">
+                          {s.serviceOutstanding > 0 && (
+                            <span>Servicio pendiente: <span className="text-blue-400 font-medium">{formatCurrency(s.serviceOutstanding)}</span></span>
+                          )}
+                          {s.foodOutstanding > 0 && (
+                            <span>Comida pendiente: <span className="text-orange-400 font-medium">{formatCurrency(s.foodOutstanding)}</span></span>
+                          )}
+                        </div>
+                      ) : null;
+                    })()}
+                    <div className="flex gap-2 flex-wrap">
                     <select
                       value={form.type}
-                      onChange={(e) => setForm({ ...form, type: e.target.value })}
+                      onChange={(e) => {
+                        const type = e.target.value;
+                        const s = getPaymentSummary(insc);
+                        const autoAmount =
+                          type === 'SERVICE_FEE' && s.serviceOutstanding > 0 ? String(s.serviceOutstanding) :
+                          type === 'FOOD_FEE' && s.foodOutstanding > 0 ? String(s.foodOutstanding) :
+                          form.amount;
+                        setForm({ ...form, type, amount: autoAmount });
+                      }}
                       className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
                     >
                       <option value="SERVICE_FEE">Cuota servicio</option>
@@ -446,6 +476,7 @@ export function CashBox() {
                     <button type="submit" className="rounded-lg bg-racing-red px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
                       Guardar
                     </button>
+                    </div>
                   </form>
                 )}
               </div>

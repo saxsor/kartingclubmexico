@@ -5,6 +5,7 @@ import { buildPaginationQuery, PaginationMeta, PaginationParams } from './pagina
 export interface CashBoxData {
   payments: (Payment & { inscription: { pilot: { name: string; alias: string | null } } })[];
   totals: { total: number; serviceFee: number; foodFee: number; other: number };
+  required: { serviceFee: number; foodFee: number; total: number };
   totalPilotosComensales: number;
   pagination: PaginationMeta;
 }

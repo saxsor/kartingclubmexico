@@ -9,7 +9,7 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
   const paymentsWhere = { inscription: { eventId: event.id } };
 
-  const [payments, total, allPayments, companionsAggregate] = await prisma.$transaction([
+  const [payments, total, allPayments, companionsAggregate, inscriptionCount] = await prisma.$transaction([
     prisma.payment.findMany({
       where: paymentsWhere,
       include: {
@@ -30,7 +30,10 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
       where: { eventId: event.id },
       _sum: { companions: true },
     }),
+    prisma.inscription.count({ where: { eventId: event.id } }),
   ]);
+
+  const totalPilotosComensales = companionsAggregate._sum.companions ?? 0;
 
   const totals = allPayments.reduce(
     (acc, p) => {
@@ -44,10 +47,18 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
     { total: 0, serviceFee: 0, foodFee: 0, other: 0 },
   );
 
+  const requiredServiceFee = Number(event.serviceFee) * inscriptionCount;
+  const requiredFoodFee = Number(event.foodFee) * totalPilotosComensales;
+
   res.json({
     payments,
     totals,
-    totalPilotosComensales: companionsAggregate._sum.companions ?? 0,
+    required: {
+      serviceFee: requiredServiceFee,
+      foodFee: requiredFoodFee,
+      total: requiredServiceFee + requiredFoodFee,
+    },
+    totalPilotosComensales,
     pagination: getPaginationMeta(page, pageSize, total),
   });
 }

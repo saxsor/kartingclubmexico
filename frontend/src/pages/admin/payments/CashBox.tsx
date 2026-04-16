@@ -201,17 +201,31 @@ export function CashBox() {
 
       {cashbox && (
         <div className="grid gap-4 sm:grid-cols-4">
-          {[
-            { label: 'Total recaudado', value: cashbox.totals.total, color: 'text-green-400' },
-            { label: 'Cuota de servicio', value: cashbox.totals.serviceFee, color: 'text-blue-400' },
-            { label: 'Cuota de comida', value: cashbox.totals.foodFee, color: 'text-orange-400' },
-            { label: 'Otros', value: cashbox.totals.other, color: 'text-white/60' },
-          ].map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs text-white/50 mb-1">{stat.label}</p>
-              <p className={`text-2xl font-black ${stat.color}`}>{formatCurrency(stat.value)}</p>
-            </div>
-          ))}
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-white/50 mb-1">Total recaudado</p>
+            <p className="text-2xl font-black text-green-400">{formatCurrency(cashbox.totals.total)}</p>
+            {cashbox.required.total > 0 && (
+              <p className="text-xs text-white/35 mt-0.5">de {formatCurrency(cashbox.required.total)}</p>
+            )}
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-white/50 mb-1">Cuota de servicio</p>
+            <p className="text-2xl font-black text-blue-400">{formatCurrency(cashbox.totals.serviceFee)}</p>
+            {cashbox.required.serviceFee > 0 && (
+              <p className="text-xs text-white/35 mt-0.5">de {formatCurrency(cashbox.required.serviceFee)}</p>
+            )}
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-white/50 mb-1">Cuota de comida</p>
+            <p className="text-2xl font-black text-orange-400">{formatCurrency(cashbox.totals.foodFee)}</p>
+            {cashbox.required.foodFee > 0 && (
+              <p className="text-xs text-white/35 mt-0.5">de {formatCurrency(cashbox.required.foodFee)}</p>
+            )}
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-white/50 mb-1">Otros</p>
+            <p className="text-2xl font-black text-white/60">{formatCurrency(cashbox.totals.other)}</p>
+          </div>
         </div>
       )}
 

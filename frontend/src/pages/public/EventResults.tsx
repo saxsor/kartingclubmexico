@@ -9,6 +9,7 @@ import { CATEGORY_LABELS } from '../../lib/utils';
 import { PointsTable } from '../../components/shared/PointsTable';
 import { queryKeys } from '../../lib/react-query';
 import { SEO } from '../../components/shared/SEO';
+import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 
 export function EventResults() {
   const { slug } = useParams<{ slug: string }>();
@@ -42,7 +43,7 @@ export function EventResults() {
   const results = resultsQuery.data ?? null;
   const loading = eventQuery.isLoading;
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState rows={3} />;
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
 

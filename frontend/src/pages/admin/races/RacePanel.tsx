@@ -8,6 +8,8 @@ import { CATEGORY_LABELS } from '../../../lib/utils';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { queryKeys } from '../../../lib/react-query';
+import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 export function RacePanel() {
   const { slug } = useParams<{ slug: string }>();
@@ -80,12 +82,13 @@ export function RacePanel() {
     return acc;
   }, {} as Record<string, Race[]>);
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState showFilters rows={4} />;
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
 
   return (
     <div className="space-y-6">
+      <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Carreras" />
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-xl font-black text-white">Carreras</h1>
         <div className="flex gap-2">
@@ -217,6 +220,7 @@ export function RacePanel() {
                             deleteMutation.mutate(race.id);
                           }}
                           disabled={deleteMutation.isPending}
+                          aria-label={`Eliminar carrera ${race.number}`}
                           className="rounded-lg border border-red-500/20 px-2 py-1.5 text-xs text-red-400/70 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-40"
                           title="Eliminar carrera"
                         >

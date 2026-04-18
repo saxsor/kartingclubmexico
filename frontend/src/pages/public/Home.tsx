@@ -6,6 +6,7 @@ import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { SEO } from '../../components/shared/SEO';
+import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 
 export function Home() {
   const [events, setEvents] = useState<KartEvent[]>([]);
@@ -227,7 +228,7 @@ export function Home() {
       )}
 
       {loading && (
-        <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Cargando eventos...</div>
+        <PageLoadingState rows={3} />
       )}
     </div>
   );

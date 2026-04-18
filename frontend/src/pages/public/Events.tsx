@@ -8,6 +8,7 @@ import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { PaginationMeta } from '../../api/pagination';
 import { PaginationControls } from '../../components/shared/PaginationControls';
 import { SEO } from '../../components/shared/SEO';
+import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 
 export function Events() {
   const [events, setEvents] = useState<KartEvent[]>([]);
@@ -25,7 +26,7 @@ export function Events() {
       .finally(() => setLoading(false));
   }, [page]);
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState rows={4} />;
 
   return (
     <div>

@@ -8,6 +8,7 @@ import { useSSE } from '../../hooks/useSSE';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { queryKeys } from '../../lib/react-query';
 import { resolveMediaUrl } from '../../lib/utils';
+import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 
 export function EventGrid() {
   const { slug } = useParams<{ slug: string }>();
@@ -33,7 +34,7 @@ export function EventGrid() {
   const grids = gridsQuery.data ?? [];
   const loading = eventQuery.isLoading || gridsQuery.isLoading;
 
-  if (loading) return <div className="text-center py-20 text-white/40 text-sm uppercase tracking-widest">Cargando...</div>;
+  if (loading) return <PageLoadingState rows={4} />;
 
   return (
     <div>

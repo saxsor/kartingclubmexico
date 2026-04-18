@@ -7,6 +7,9 @@ import { eventsApi, Category } from '../../../api/events.api';
 import { toast } from '../../../store/toast.store';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 import { queryKeys } from '../../../lib/react-query';
+import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
+import { CATEGORY_LABELS } from '../../../lib/utils';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 export function GridDraw() {
   const { slug } = useParams<{ slug: string }>();
@@ -56,12 +59,13 @@ export function GridDraw() {
     await deleteMutation.mutateAsync(category);
   };
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState cards={4} rows={0} />;
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
 
   return (
     <div className="space-y-6">
+      <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Parrilla" />
       <h1 className="text-xl font-black text-white">Parrilla de salida</h1>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -75,6 +79,7 @@ export function GridDraw() {
                   {grid && (
                     <button
                       onClick={() => handleDelete(ec.category)}
+                      aria-label={`Eliminar parrilla de ${CATEGORY_LABELS[ec.category] ?? ec.category}`}
                       className="text-white/30 hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -94,7 +99,7 @@ export function GridDraw() {
               {grid ? (
                 <div className="space-y-1 mt-3">
                   {grid.positions.map((pos) => (
-                    <div key={pos.id} className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-white/5">
+                    <div key={pos.id} className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-white/5">
                       <span className={`w-6 text-center text-sm font-bold ${
                         pos.position === 1 ? 'text-yellow-400' :
                         pos.position === 2 ? 'text-gray-300' :

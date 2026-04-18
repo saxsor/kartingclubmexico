@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { toast } from '../../../store/toast.store';
 import {
   DndContext,
@@ -25,6 +25,8 @@ import { inscriptionsApi } from '../../../api/inscriptions.api';
 import { useOfflineSync } from '../../../hooks/useOfflineSync';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 import { queryKeys } from '../../../lib/react-query';
+import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 interface RaceEntry {
   inscriptionId: string;
@@ -106,7 +108,6 @@ function SortableItem({ id, position, entry, onStatusChange, onAddPenalty }: Sor
 
 export function RaceCapture() {
   const { slug, raceId } = useParams<{ slug: string; raceId: string }>();
-  const navigate = useNavigate();
   const { saveAndSync } = useOfflineSync();
 
   const [race, setRace] = useState<Race | null>(null);
@@ -246,16 +247,21 @@ export function RaceCapture() {
     setPenaltyModal(null);
   };
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState rows={5} />;
   if (!race) return <div className="text-center py-20 text-white/40">Carrera no encontrada</div>;
 
   return (
     <div className="space-y-4 max-w-lg mx-auto">
+      <EventBreadcrumbs
+        eventSlug={slug!}
+        eventName={undefined}
+        currentLabel={`Carrera ${race.number}`}
+      />
       <div className="flex items-center justify-between">
         <div>
-          <button onClick={() => navigate(-1)} className="text-sm text-white/50 hover:text-white mb-1 block">
+          <Link to={`/app/eventos/${slug}/carreras`} className="text-sm text-white/50 hover:text-white mb-1 block">
             ← Carreras
-          </button>
+          </Link>
           <div className="flex items-center gap-2">
             <CategoryBadge category={race.category} />
             <h1 className="text-lg font-black text-white">Carrera {race.number}</h1>

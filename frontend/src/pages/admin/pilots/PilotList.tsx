@@ -11,6 +11,7 @@ import { EmptyState } from '../../../components/shared/EmptyState';
 import { queryKeys } from '../../../lib/react-query';
 import { resolveMediaUrl } from '../../../lib/utils';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { TableLoadingState, InlineLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 interface ImportPreviewRow {
   name: string;
@@ -193,7 +194,7 @@ export function PilotList() {
           </div>
 
           {importLoading && (
-            <div className="text-center py-6 text-white/40 text-sm">Analizando archivo...</div>
+            <InlineLoadingState lines={3} className="py-6" />
           )}
 
           {!importLoading && importPreview !== null && (
@@ -214,7 +215,7 @@ export function PilotList() {
                     </thead>
                     <tbody>
                       {importPreview.map((row, i) => (
-                        <tr key={i} className="border-b border-white/5">
+                        <tr key={i} className="border-b border-white/5 transition-colors hover:bg-white/[0.03]">
                           <td className="py-2 pr-3 text-white font-medium">{row.name}</td>
                           <td className="py-2 pr-3 text-white/50 hidden sm:table-cell">{row.alias ?? '—'}</td>
                           <td className="py-2 pr-3 text-white/50 hidden md:table-cell">{row.email ?? '—'}</td>
@@ -282,7 +283,7 @@ export function PilotList() {
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-white/40 text-sm uppercase tracking-widest">Cargando...</div>
+        <TableLoadingState rows={6} />
       ) : (
         <div className="border border-[#38383f] overflow-x-auto">
           <table className="w-full min-w-[500px] text-sm">

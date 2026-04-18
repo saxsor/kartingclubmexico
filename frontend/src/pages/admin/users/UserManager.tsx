@@ -6,6 +6,7 @@ import { api } from '../../../api/client';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
 import { queryKeys } from '../../../lib/react-query';
+import { TableLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 interface User {
   id: string;
@@ -188,7 +189,7 @@ export function UserManager() {
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-white/40">Cargando...</div>
+        <TableLoadingState rows={6} />
       ) : (
         <div className="rounded-xl border border-white/10 overflow-x-auto">
           <table className="w-full min-w-[500px] text-sm">
@@ -202,7 +203,7 @@ export function UserManager() {
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user.id} className="border-b border-white/5 hover:bg-white/5">
+                <tr key={user.id} className="border-b border-white/5 transition-colors hover:bg-white/5">
                   <td className="px-4 py-3">
                     <p className="font-medium text-white">{user.name}</p>
                     <p className="text-xs text-white/50">{user.email}</p>

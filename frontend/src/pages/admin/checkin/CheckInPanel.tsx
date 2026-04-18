@@ -4,10 +4,13 @@ import { useParams } from 'react-router-dom';
 import { CheckSquare, X, Search, Save } from 'lucide-react';
 import { checkinApi } from '../../../api/checkin.api';
 import { inscriptionsApi, Inscription } from '../../../api/inscriptions.api';
+import { eventsApi } from '../../../api/events.api';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { queryKeys } from '../../../lib/react-query';
+import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 export function CheckInPanel() {
   const { slug } = useParams<{ slug: string }>();
@@ -17,6 +20,11 @@ export function CheckInPanel() {
   const [kartNotesInputs, setKartNotesInputs] = useState<Record<string, string>>({});
   const [error, setError] = useState<Record<string, string>>({});
   const queryClient = useQueryClient();
+  const eventQuery = useQuery({
+    queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
+    queryFn: () => eventsApi.get(slug!),
+    enabled: !!slug,
+  });
   const checkinQuery = useQuery({
     queryKey: slug ? queryKeys.checkin.list(slug) : ['checkin', 'list', 'missing'],
     queryFn: () => checkinApi.list(slug!),
@@ -58,7 +66,8 @@ export function CheckInPanel() {
   });
 
   const inscriptions = checkinQuery.data ?? [];
-  const loading = checkinQuery.isLoading;
+  const loading = checkinQuery.isLoading || eventQuery.isLoading;
+  const event = eventQuery.data ?? null;
 
   const handleCheckIn = async (insc: Inscription) => {
     if (!slug) return;
@@ -92,10 +101,11 @@ export function CheckInPanel() {
   const checkedIn = filtered.filter((i) => i.checkIn);
   const notCheckedIn = filtered.filter((i) => !i.checkIn);
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState showFilters rows={5} />;
 
   return (
     <div className="space-y-6">
+      <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Check-in" />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-black text-white">Check-in</h1>
         <div className="text-sm text-white/60">
@@ -164,6 +174,7 @@ export function CheckInPanel() {
                           }}
                           disabled={saveKartNumberMutation.isPending}
                           title="Guardar número de kart"
+                          aria-label={`Guardar número de kart para ${insc.pilot.name}`}
                           className="flex-shrink-0 rounded-lg bg-white/10 p-2 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-40"
                         >
                           <Save className="h-4 w-4" />
@@ -193,6 +204,7 @@ export function CheckInPanel() {
                           onClick={() => saveNotesMutation.mutate({ inscriptionId: insc.id, kartNotes: kartNotesInputs[insc.id] })}
                           disabled={saveNotesMutation.isPending}
                           title="Guardar nota"
+                          aria-label={`Guardar nota de kart para ${insc.pilot.name}`}
                           className="flex-shrink-0 rounded-lg bg-white/10 p-1.5 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-40"
                         >
                           <Save className="h-3.5 w-3.5" />

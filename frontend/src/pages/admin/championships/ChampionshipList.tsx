@@ -5,6 +5,7 @@ import { Trophy, Plus, Trash2, ChevronRight, Search, X } from 'lucide-react';
 import { championshipApi } from '../../../api/championship.api';
 import { queryKeys } from '../../../lib/react-query';
 import { toast } from '../../../store/toast.store';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 export function ChampionshipList() {
   const navigate = useNavigate();
@@ -130,7 +131,11 @@ export function ChampionshipList() {
             className="w-full border border-[#38383f] bg-[#1f1f27] pl-9 pr-4 py-2 text-xs text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">
+            <button
+              onClick={() => setSearch('')}
+              aria-label="Limpiar búsqueda de campeonato"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"
+            >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -146,7 +151,7 @@ export function ChampionshipList() {
       </div>
 
       {listQuery.isLoading ? (
-        <div className="text-center py-16 text-white/40 text-sm">Cargando...</div>
+        <PageLoadingState showFilters rows={4} />
       ) : championships.length === 0 ? (
         <div className="text-center py-16 text-white/40 text-sm border border-dashed border-white/10">
           <Trophy className="h-8 w-8 mx-auto mb-3 opacity-30" />
@@ -174,6 +179,7 @@ export function ChampionshipList() {
               <button
                 onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }}
                 disabled={deleteMutation.isPending}
+                aria-label={`Eliminar campeonato ${c.name}`}
                 className="ml-3 p-1.5 text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
                 title="Eliminar campeonato"
               >

@@ -4,6 +4,7 @@ import { Users, Pencil, Check, X, RefreshCw, Search } from 'lucide-react';
 import { teamsApi, Team } from '../../../api/teams.api';
 import { api } from '../../../api/client';
 import { toast } from '../../../store/toast.store';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 export function TeamManager() {
   const queryClient = useQueryClient();
@@ -78,7 +79,7 @@ export function TeamManager() {
   };
 
   if (isLoading) {
-    return <div className="text-white/50 text-sm">Cargando equipos...</div>;
+    return <PageLoadingState rows={5} />;
   }
 
   return (
@@ -196,6 +197,7 @@ export function TeamManager() {
                     onClick={() => handleEdit(team)}
                     className="p-1.5 rounded text-white/40 hover:text-white hover:bg-white/10 transition-colors"
                     title="Renombrar"
+                    aria-label={`Renombrar equipo ${team.name}`}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>

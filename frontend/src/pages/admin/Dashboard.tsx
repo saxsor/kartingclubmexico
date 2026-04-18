@@ -20,6 +20,25 @@ const CATEGORY_COLORS: Record<string, string> = {
   MINIS: '#ec4899',
 };
 
+function DashboardStatSkeleton() {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-5 animate-pulse">
+      <div className="mb-3 h-5 w-5 rounded bg-white/10" />
+      <div className="h-8 w-16 rounded bg-white/10" />
+      <div className="mt-2 h-4 w-28 rounded bg-white/5" />
+    </div>
+  );
+}
+
+function DashboardChartSkeleton() {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-4 animate-pulse">
+      <div className="h-4 w-40 rounded bg-white/10" />
+      <div className="h-56 rounded-lg bg-white/[0.04]" />
+    </div>
+  );
+}
+
 function shortName(name: string): string {
   const parts = name.split(' ');
   return parts.length > 2 ? `${parts[0]} ${parts[parts.length - 1]}` : name;
@@ -137,7 +156,7 @@ export function Dashboard() {
   const events = eventsQuery.data?.items ?? [];
   const pilots = pilotsQuery.data?.items ?? [];
   const analytics = analyticsQuery.data;
-  const loading = eventsQuery.isLoading || pilotsQuery.isLoading;
+  const loading = eventsQuery.isLoading || pilotsQuery.isLoading || analyticsQuery.isLoading;
 
   const activeEvent = events.find((e) => e.status === 'IN_PROGRESS');
   const openEvents = events.filter((e) => e.status === 'OPEN');
@@ -180,8 +199,6 @@ export function Dashboard() {
 
   const foodByEvent: FoodByEvent[] = analytics?.foodByEvent ?? [];
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
-
   return (
     <div className="space-y-8">
       <div>
@@ -191,15 +208,17 @@ export function Dashboard() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {stats.map((stat) => (
-          <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
+        {loading
+          ? Array.from({ length: 6 }, (_, index) => <DashboardStatSkeleton key={index} />)
+          : stats.map((stat) => (
+            <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-5">
+              <div className="flex items-center justify-between mb-3">
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              </div>
+              <p className="text-3xl font-black text-white">{stat.value}</p>
+              <p className="text-sm text-white/50 mt-1">{stat.label}</p>
             </div>
-            <p className="text-3xl font-black text-white">{stat.value}</p>
-            <p className="text-sm text-white/50 mt-1">{stat.label}</p>
-          </div>
-        ))}
+          ))}
       </div>
 
       {/* Active event banner */}
@@ -252,7 +271,9 @@ export function Dashboard() {
       )}
 
       {/* Revenue chart */}
-      {revenueChartData.length > 0 && (
+      {loading ? (
+        <DashboardChartSkeleton />
+      ) : revenueChartData.length > 0 && (
         <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-4">
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-green-400" />
@@ -288,7 +309,9 @@ export function Dashboard() {
       )}
 
       {/* Participation chart */}
-      {participationChartData.length > 0 && participationCategories.length > 0 && (
+      {loading ? (
+        <DashboardChartSkeleton />
+      ) : participationChartData.length > 0 && participationCategories.length > 0 && (
         <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-blue-400" />
@@ -418,7 +441,7 @@ export function Dashboard() {
             </thead>
             <tbody>
               {recentEvents.map((event) => (
-                <tr key={event.id} className="border-b border-white/5 hover:bg-white/5">
+                <tr key={event.id} className="border-b border-white/5 transition-colors hover:bg-white/5">
                   <td className="px-4 py-3 font-medium text-white">{event.name}</td>
                   <td className="px-4 py-3 text-white/60">{formatDate(event.date)}</td>
                   <td className="px-4 py-3"><StatusBadge status={event.status} /></td>

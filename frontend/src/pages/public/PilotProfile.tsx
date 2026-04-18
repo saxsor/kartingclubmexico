@@ -6,6 +6,7 @@ import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { queryKeys } from '../../lib/react-query';
 import { SEO } from '../../components/shared/SEO';
+import { HeroLoadingState } from '../../components/shared/LoadingSkeleton';
 
 interface History {
   pilot: Pilot & { team?: { id: string; name: string; slug: string } | null };
@@ -29,7 +30,7 @@ export function PilotProfile() {
   const history = historyQuery.data ?? null;
   const loading = historyQuery.isLoading;
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <HeroLoadingState sections={2} />;
   if (!history) return <div className="text-center py-20 text-white/40">Piloto no encontrado</div>;
 
   const { pilot, inscriptions, standings } = history;

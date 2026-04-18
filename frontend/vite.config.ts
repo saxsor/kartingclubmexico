@@ -48,6 +48,22 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+
+          if (id.includes('recharts')) return 'charts';
+          if (id.includes('@dnd-kit')) return 'dnd-kit';
+          if (id.includes('@tanstack/react-query')) return 'query';
+          if (id.includes('react-helmet-async')) return 'seo';
+
+          return 'vendor';
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': {

@@ -8,6 +8,7 @@ import { CATEGORY_LABELS, cn, getPositionClass, resolveMediaUrl } from '../../..
 import { queryKeys } from '../../../lib/react-query';
 import { toast } from '../../../store/toast.store';
 import { Category } from '../../../api/events.api';
+import { InlineLoadingState, PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 type ViewMode = 'pilotos' | 'constructores';
 
@@ -115,7 +116,7 @@ export function ChampionshipDetail() {
   }
 
   if (detailQuery.isLoading) {
-    return <div className="text-center py-20 text-white/40">Cargando...</div>;
+    return <PageLoadingState cards={2} rows={3} />;
   }
   if (!championship) {
     return <div className="text-center py-20 text-white/40">Campeonato no encontrado</div>;
@@ -146,11 +147,16 @@ export function ChampionshipDetail() {
               <button
                 onClick={() => updateMutation.mutate({ name: nameInput })}
                 disabled={updateMutation.isPending || !nameInput.trim()}
+                aria-label="Guardar nombre del campeonato"
                 className="p-1.5 text-green-400 hover:text-green-300 disabled:opacity-40"
               >
                 <Check className="h-5 w-5" />
               </button>
-              <button onClick={() => setEditingName(false)} className="p-1.5 text-white/40 hover:text-white">
+              <button
+                onClick={() => setEditingName(false)}
+                aria-label="Cancelar edición del campeonato"
+                className="p-1.5 text-white/40 hover:text-white"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -161,6 +167,7 @@ export function ChampionshipDetail() {
                 onClick={() => { setEditingName(true); setNameInput(championship.name); }}
                 className="p-1 text-white/20 hover:text-white/70 transition-colors"
                 title="Editar nombre"
+                aria-label="Editar nombre del campeonato"
               >
                 <Edit2 className="h-4 w-4" />
               </button>
@@ -190,7 +197,7 @@ export function ChampionshipDetail() {
           <div className="mb-4 bg-[#1f1f27] border border-[#38383f] p-4">
             <p className="text-xs text-white/50 mb-3 uppercase tracking-wider">Selecciona un evento para agregar:</p>
             {allEventsQuery.isLoading ? (
-              <p className="text-sm text-white/40">Cargando eventos...</p>
+              <InlineLoadingState lines={3} />
             ) : availableToAdd.length === 0 ? (
               <p className="text-sm text-white/40">No hay eventos disponibles sin campeonato asignado.</p>
             ) : (
@@ -236,6 +243,7 @@ export function ChampionshipDetail() {
                     }
                   }}
                   disabled={removeEventMutation.isPending}
+                  aria-label={`Quitar ${e.name} del campeonato`}
                   className="p-1.5 text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
                   title="Quitar del campeonato"
                 >
@@ -299,7 +307,7 @@ export function ChampionshipDetail() {
 
         {viewMode === 'pilotos' ? (
           standingsQuery.isLoading ? (
-            <div className="text-center py-10 text-white/40 text-sm">Cargando clasificación...</div>
+            <InlineLoadingState lines={4} />
           ) : !standings || standings.standings.length === 0 ? (
             <div className="text-center py-10 text-white/40 text-sm border border-dashed border-white/10">
               No hay resultados para esta categoría en el campeonato
@@ -309,7 +317,7 @@ export function ChampionshipDetail() {
           )
         ) : (
           constructorQuery.isLoading ? (
-            <div className="text-center py-10 text-white/40 text-sm">Cargando constructores...</div>
+            <InlineLoadingState lines={4} />
           ) : !constructorQuery.data || constructorQuery.data.standings.length === 0 ? (
             <div className="text-center py-10 text-white/40 text-sm border border-dashed border-white/10">
               No hay datos de constructores para esta categoría

@@ -60,6 +60,47 @@
   }
 }
 
+@layer base {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="button"]:focus-visible {
+    outline: none !important;
+    border-color: rgba(225, 6, 0, 0.9) !important;
+    box-shadow: 0 0 0 1px rgba(225, 6, 0, 0.95), 0 0 0 4px rgba(225, 6, 0, 0.18) !important;
+  }
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.route-enter {
+  animation: route-fade-in 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .route-enter {
+    animation: none;
+  }
+}
+
 /* F1-style design system */
 .racing-gradient {
   background: linear-gradient(135deg, #15151e 0%, #1f1f27 50%, #15151e 100%);

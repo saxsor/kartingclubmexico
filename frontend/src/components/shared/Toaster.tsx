@@ -14,7 +14,7 @@ const DOT = {
 };
 
 export function Toaster() {
-  const { toasts, remove } = useToastStore();
+  const { toasts, startExit } = useToastStore();
 
   if (toasts.length === 0) return null;
 
@@ -23,12 +23,19 @@ export function Toaster() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`flex items-start gap-3 px-4 py-3 shadow-lg pointer-events-auto animate-in slide-in-from-right-4 fade-in duration-200 ${STYLES[t.type]}`}
+          className={[
+            'flex items-start gap-3 px-4 py-3 shadow-lg pointer-events-auto',
+            STYLES[t.type],
+            t.exiting
+              ? 'animate-out slide-out-to-right-4 fade-out duration-200 fill-mode-forwards'
+              : 'animate-in slide-in-from-right-4 fade-in duration-200',
+          ].join(' ')}
         >
           <div className={`h-1.5 w-1.5 rounded-full mt-1.5 flex-shrink-0 ${DOT[t.type]}`} />
           <p className="text-sm flex-1 leading-snug">{t.message}</p>
           <button
-            onClick={() => remove(t.id)}
+            onClick={() => startExit(t.id)}
+            aria-label="Cerrar notificación"
             className="text-white/30 hover:text-white transition-colors flex-shrink-0 mt-0.5"
           >
             <X className="h-3.5 w-3.5" />

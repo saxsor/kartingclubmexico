@@ -7,6 +7,7 @@ import { championshipApi, ChampionshipStandingsData, ConstructorStandingsData } 
 import { CATEGORY_LABELS, getPositionClass, cn, resolveMediaUrl } from '../../lib/utils';
 import { queryKeys } from '../../lib/react-query';
 import { Category } from '../../api/events.api';
+import { InlineLoadingState, PageLoadingState } from '../../components/shared/LoadingSkeleton';
 
 type ViewMode = 'pilots' | 'constructors';
 
@@ -29,7 +30,7 @@ export function Championship() {
   }, [listQuery.isLoading, championships, navigate]);
 
   if (listQuery.isLoading || championships.length === 1) {
-    return <div className="text-center py-20 text-white/40">Cargando...</div>;
+    return <PageLoadingState rows={4} />;
   }
 
   return (
@@ -120,7 +121,7 @@ export function ChampionshipDetailPublic() {
   const constructorStandings = constructorQuery.data ?? null;
   const loading = detailQuery.isLoading;
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState rows={4} />;
   if (!championship) return <div className="text-center py-20 text-white/40">Campeonato no encontrado</div>;
 
   const availableCats = getAvailableCategories(championship.events);
@@ -196,7 +197,7 @@ export function ChampionshipDetailPublic() {
 
       {viewMode === 'pilots' ? (
         standingsQuery.isLoading ? (
-          <div className="text-center py-10 text-white/40 text-sm">Cargando clasificación...</div>
+          <InlineLoadingState lines={4} />
         ) : !standings || standings.standings.length === 0 ? (
           <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">
             No hay datos para esta categoría
@@ -206,7 +207,7 @@ export function ChampionshipDetailPublic() {
         )
       ) : (
         constructorQuery.isLoading ? (
-          <div className="text-center py-10 text-white/40 text-sm">Cargando constructores...</div>
+          <InlineLoadingState lines={4} />
         ) : !constructorStandings || constructorStandings.standings.length === 0 ? (
           <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">
             No hay equipos con puntos en esta categoría

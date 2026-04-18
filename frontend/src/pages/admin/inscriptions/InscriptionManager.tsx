@@ -14,6 +14,8 @@ import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
 import { queryKeys } from '../../../lib/react-query';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 const STATUS_LABELS: Record<InscriptionStatus, string> = {
   PENDING_PAYMENT: 'Pago pendiente',
@@ -150,10 +152,11 @@ export function InscriptionManager() {
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
   const hasFilters = !!(debouncedSearch || statusFilter || categoryFilter);
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState showFilters rows={5} />;
 
   return (
     <div className="space-y-6">
+      <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Inscripciones" />
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-xl font-black text-white">Inscripciones — {event?.name}</h1>
         <div className="flex gap-2">
@@ -341,7 +344,7 @@ export function InscriptionManager() {
           </thead>
           <tbody>
             {inscriptions.map((i) => (
-              <tr key={i.id} className="border-b border-white/5 hover:bg-white/5">
+              <tr key={i.id} className="border-b border-white/5 transition-colors hover:bg-white/5">
                 <td className="px-4 py-3">
                   <p className="font-medium text-white">{i.pilot.name}</p>
                   {i.pilot.alias && <p className="text-xs text-white/50">"{i.pilot.alias}"</p>}

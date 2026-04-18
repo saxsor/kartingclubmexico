@@ -13,6 +13,8 @@ import { formatCurrency, resolveMediaUrl } from '../../../lib/utils';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
 import { queryKeys } from '../../../lib/react-query';
+import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 export function CashBox() {
   const { user } = useAuth();
@@ -196,12 +198,13 @@ export function CashBox() {
     }
   };
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState showFilters rows={5} cards={2} />;
 
   return (
     <div className="space-y-6">
+      <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Caja" />
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-black text-white">Caja — {slug}</h1>
+        <h1 className="text-xl font-black text-white">Caja — {event?.name ?? slug}</h1>
         <button
           onClick={() => downloadCsv(`/api/events/${slug}/cashbox/export`, `${slug}-caja.csv`).catch(() => {})}
           className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition-colors"
@@ -263,10 +266,10 @@ export function CashBox() {
                     onChange={(e) => setStaffValue(parseInt(e.target.value) || 0)}
                     className="w-16 rounded border border-white/20 bg-white/10 px-2 py-0.5 text-sm text-white focus:border-orange-400 focus:outline-none"
                   />
-                  <button type="submit" disabled={updateStaffMutation.isPending} className="text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
+                  <button type="submit" disabled={updateStaffMutation.isPending} aria-label="Guardar cantidad de staff" className="text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
                     <CheckCircle className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => setEditingStaff(false)} className="text-xs text-white/40 hover:text-white/70">
+                  <button type="button" onClick={() => setEditingStaff(false)} aria-label="Cancelar edición de staff" className="text-xs text-white/40 hover:text-white/70">
                     <X className="h-4 w-4" />
                   </button>
                 </form>
@@ -275,6 +278,7 @@ export function CashBox() {
                   onClick={() => { setStaffValue(totalStaff); setEditingStaff(true); }}
                   className="flex items-center gap-1.5 text-left group"
                   title="Editar staff"
+                  aria-label="Editar cantidad de staff"
                 >
                   <span className="text-2xl font-black text-white group-hover:text-orange-300 transition-colors">{totalStaff}</span>
                   <Pencil className="h-3 w-3 text-white/30 group-hover:text-orange-400 transition-colors" />
@@ -419,10 +423,10 @@ export function CashBox() {
                             autoFocus
                           />
                           <span className="text-xs text-white/40">comensales</span>
-                          <button type="submit" disabled={updateCompanionsMutation.isPending} className="text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
+                          <button type="submit" disabled={updateCompanionsMutation.isPending} aria-label={`Guardar comensales de ${insc.pilot.name}`} className="text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
                             <CheckCircle className="h-3.5 w-3.5" />
                           </button>
-                          <button type="button" onClick={() => setEditingCompanions(null)} className="text-xs text-white/40 hover:text-white/70">
+                          <button type="button" onClick={() => setEditingCompanions(null)} aria-label={`Cancelar edición de comensales de ${insc.pilot.name}`} className="text-xs text-white/40 hover:text-white/70">
                             <X className="h-3.5 w-3.5" />
                           </button>
                         </form>
@@ -431,6 +435,7 @@ export function CashBox() {
                           onClick={() => { setEditingCompanions(insc.id); setCompanionsValue(insc.companions); }}
                           className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors group"
                           title="Editar comensales"
+                          aria-label={`Editar comensales de ${insc.pilot.name}`}
                         >
                           <span>{insc.companions} comensales</span>
                           <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
@@ -553,7 +558,7 @@ export function CashBox() {
               </thead>
               <tbody>
                 {cashbox.payments.map((p) => (
-                  <tr key={p.id} className="border-b border-white/5 hover:bg-white/5">
+                  <tr key={p.id} className="border-b border-white/5 transition-colors hover:bg-white/5">
                     <td className="px-4 py-3 text-white">{p.inscription.pilot.name}</td>
                     <td className="px-4 py-3 text-white/60">
                       {p.type === 'SERVICE_FEE' ? 'Servicio' : p.type === 'FOOD_FEE' ? 'Comida' : 'Otro'}
@@ -571,6 +576,7 @@ export function CashBox() {
                           deletePaymentMutation.mutate(p.id);
                         }}
                         disabled={deletePaymentMutation.isPending}
+                        aria-label={`Eliminar pago de ${p.inscription.pilot.name}`}
                         className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
                         title="Eliminar pago"
                       >

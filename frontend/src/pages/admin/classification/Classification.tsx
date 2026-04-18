@@ -8,6 +8,8 @@ import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { PointsTable } from '../../../components/shared/PointsTable';
 import { queryKeys } from '../../../lib/react-query';
+import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 export function Classification() {
   const { slug } = useParams<{ slug: string }>();
@@ -34,12 +36,13 @@ export function Classification() {
   const results = resultsQuery.data ?? null;
   const loading = eventQuery.isLoading;
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState rows={3} />;
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
 
   return (
     <div className="space-y-6">
+      <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Clasificación" />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-black text-white">Clasificación — {event?.name}</h1>
         {selectedCat && slug && (

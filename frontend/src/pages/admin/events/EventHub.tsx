@@ -6,6 +6,8 @@ import { formatDate } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { useAuth } from '../../../hooks/useAuth';
 import { queryKeys } from '../../../lib/react-query';
+import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 const actions = [
   { label: 'Inscripciones', to: 'inscripciones', icon: ClipboardList, description: 'Gestionar inscripciones de pilotos' },
@@ -38,16 +40,14 @@ export function EventHub() {
   const event = eventQuery.data ?? null;
   const loading = eventQuery.isLoading;
 
-  if (loading) return <div className="text-center py-20 text-white/40">Cargando...</div>;
+  if (loading) return <PageLoadingState cards={3} rows={1} />;
   if (!event) return <div className="text-center py-20 text-white/40">Evento no encontrado</div>;
 
   return (
     <div className="space-y-6">
+      <EventBreadcrumbs eventSlug={slug!} eventName={event.name} />
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Link to="/app/eventos" className="text-sm text-white/50 hover:text-white mb-2 block">
-            ← Eventos
-          </Link>
           <h1 className="text-2xl font-black text-white">{event.name}</h1>
           <p className="text-white/50 text-sm mt-1">{formatDate(event.date)}</p>
         </div>

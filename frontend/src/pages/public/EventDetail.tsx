@@ -7,6 +7,7 @@ import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { queryKeys } from '../../lib/react-query';
+import { HeroLoadingState } from '../../components/shared/LoadingSkeleton';
 
 export function EventDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -20,7 +21,7 @@ export function EventDetail() {
   const loading = eventQuery.isLoading;
 
   if (loading) return (
-    <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Cargando...</div>
+    <HeroLoadingState sections={3} />
   );
   if (!event) return (
     <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Evento no encontrado</div>

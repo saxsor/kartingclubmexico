@@ -4,6 +4,7 @@ import { pilotApi } from '../../api/pilot.api';
 import { pilotsApi, Pilot } from '../../api/pilots.api';
 import { useDebounce } from '../../hooks/useDebounce';
 import { Mail, Flag, Search, UserCheck, UserPlus, ChevronRight } from 'lucide-react';
+import { InlineLoadingState } from '../../components/shared/LoadingSkeleton';
 
 type Step = 'search' | 'login' | 'register' | 'sent';
 
@@ -107,7 +108,7 @@ export function PilotAccess() {
               {debouncedSearch.length >= 2 && (
                 <div className="space-y-1">
                   {searching && (
-                    <p className="text-xs text-white/30 text-center py-2">Buscando...</p>
+                    <InlineLoadingState lines={2} />
                   )}
                   {!searching && pilots.map((pilot) => (
                     <button

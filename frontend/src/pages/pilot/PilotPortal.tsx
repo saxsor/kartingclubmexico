@@ -8,6 +8,7 @@ import { teamsApi } from '../../api/teams.api';
 import { formatCurrency, formatDate, resolveMediaUrl } from '../../lib/utils';
 import { Flag, User, Camera, LogOut, Pencil, CheckCircle, X, Trophy, Calendar, Users } from 'lucide-react';
 import { TeamAutocomplete } from '../../components/shared/TeamAutocomplete';
+import { HeroLoadingState } from '../../components/shared/LoadingSkeleton';
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   PENDING_PAYMENT: { label: 'Pago pendiente', color: 'text-orange-400' },
@@ -88,8 +89,10 @@ export function PilotPortal() {
 
   if (profileQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-racing-dark flex items-center justify-center">
-        <p className="text-white/40 text-sm">Cargando...</p>
+      <div className="min-h-screen bg-racing-dark px-4 py-6">
+        <div className="mx-auto max-w-lg">
+          <HeroLoadingState sections={3} />
+        </div>
       </div>
     );
   }
@@ -116,6 +119,7 @@ export function PilotPortal() {
         <button
           onClick={handleLogout}
           className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white transition-colors"
+          aria-label="Cerrar sesión"
         >
           <LogOut className="h-3.5 w-3.5" /> Salir
         </button>
@@ -140,6 +144,7 @@ export function PilotPortal() {
                 disabled={uploadPhotoMutation.isPending}
                 className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-racing-red flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-60"
                 title="Cambiar foto"
+                aria-label="Cambiar foto de perfil"
               >
                 <Camera className="h-3 w-3 text-white" />
               </button>
@@ -223,7 +228,12 @@ export function PilotPortal() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-black text-lg leading-tight">{pilot.name}</h2>
-                    <button onClick={startEditProfile} className="text-white/30 hover:text-white transition-colors" title="Editar perfil">
+                    <button
+                      onClick={startEditProfile}
+                      className="text-white/30 hover:text-white transition-colors"
+                      title="Editar perfil"
+                      aria-label="Editar perfil"
+                    >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -367,7 +377,7 @@ export function PilotPortal() {
                 </thead>
                 <tbody>
                   {pilot.standings.map((s) => (
-                    <tr key={s.id} className="border-b border-white/5">
+                    <tr key={s.id} className="border-b border-white/5 transition-colors hover:bg-white/5">
                       <td className="px-4 py-2.5 text-white/60">{s.year}</td>
                       <td className="px-4 py-2.5 text-white/60">{CATEGORY_LABEL[s.category] ?? s.category}</td>
                       <td className="px-4 py-2.5 text-right font-bold text-white">

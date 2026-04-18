@@ -1,4 +1,4 @@
-import { NavLink, Outlet, Navigate, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
   Users, Calendar, BarChart2, UserCog, LogOut, Menu, X, Trophy, ShieldCheck,
 } from 'lucide-react';
@@ -18,6 +18,7 @@ const navItems = [
 export function AdminLayout() {
   const { isAuthenticated, user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -34,6 +35,7 @@ export function AdminLayout() {
     if (item.minRole === 'ORGANIZER') return user?.role === 'ADMIN' || user?.role === 'ORGANIZER';
     return true;
   });
+  const mobileNavItems = filteredNav.slice(0, 5);
 
   return (
     <div className="flex h-screen bg-[#15151e] text-white overflow-hidden">
@@ -55,6 +57,7 @@ export function AdminLayout() {
           <button
             className="ml-auto lg:hidden text-white/40 hover:text-white"
             onClick={() => setSidebarOpen(false)}
+            aria-label="Cerrar menú lateral"
           >
             <X className="h-5 w-5" />
           </button>
@@ -93,6 +96,7 @@ export function AdminLayout() {
           </div>
           <button
             onClick={handleLogout}
+            type="button"
             className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-[#e10600] hover:bg-[#2a2a35] transition-colors"
           >
             <LogOut className="h-4 w-4" />
@@ -114,6 +118,7 @@ export function AdminLayout() {
         <header className="flex h-16 items-center gap-4 border-b border-[#38383f] bg-[#15151e] px-6 lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menú lateral"
             className="text-white/50 hover:text-white"
           >
             <Menu className="h-6 w-6" />
@@ -125,10 +130,34 @@ export function AdminLayout() {
           />
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-[#15151e] p-6">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto bg-[#15151e] p-6 pb-28 lg:pb-6">
+          <div key={location.pathname} className="route-enter mx-auto w-full max-w-5xl">
+            <Outlet />
+          </div>
         </main>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[#38383f] bg-[#15151e]/95 px-2 py-2 backdrop-blur lg:hidden">
+        <div className="grid grid-cols-5 gap-1">
+          {mobileNavItems.map((item) => (
+            <NavLink
+              key={`mobile-${item.to}`}
+              to={item.to}
+              className={({ isActive }) =>
+                cn(
+                  'flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors',
+                  isActive
+                    ? 'bg-[#e10600] text-white'
+                    : 'text-white/45 hover:bg-[#2a2a35] hover:text-white',
+                )
+              }
+            >
+              <item.icon className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

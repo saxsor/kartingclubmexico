@@ -11,6 +11,7 @@ import { useFileUpload } from '../../hooks/useFileUpload';
 import { UploadProgress } from '../../components/shared/UploadProgress';
 import { TeamAutocomplete } from '../../components/shared/TeamAutocomplete';
 import { useDebounce } from '../../hooks/useDebounce';
+import { HeroLoadingState, InlineLoadingState } from '../../components/shared/LoadingSkeleton';
 
 const ALL_CATEGORIES: Category[] = [
   'SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS',
@@ -150,7 +151,7 @@ export function EventRegister() {
   };
 
   if (loadingEvent) return (
-    <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Cargando...</div>
+    <HeroLoadingState sections={2} />
   );
 
   if (!event) return (
@@ -237,6 +238,7 @@ export function EventRegister() {
             {searchInput && (
               <button
                 onClick={() => setSearchInput('')}
+                aria-label="Limpiar búsqueda de piloto"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"
               >
                 <X className="h-4 w-4" />
@@ -248,7 +250,7 @@ export function EventRegister() {
           {debouncedSearch.length >= 2 && (
             <div className="border border-white/10 divide-y divide-white/5">
               {pilotSearchQuery.isLoading && (
-                <div className="px-4 py-3 text-sm text-white/30 uppercase tracking-wide">Buscando...</div>
+                <InlineLoadingState lines={2} className="m-2" />
               )}
               {!pilotSearchQuery.isLoading && pilotResults.length === 0 && (
                 <div className="px-4 py-3 text-sm text-white/30">

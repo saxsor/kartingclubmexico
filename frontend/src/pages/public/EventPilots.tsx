@@ -4,6 +4,7 @@ import { ArrowLeft, User, Users, ClipboardList } from 'lucide-react';
 import { api } from '../../api/client';
 import { CATEGORY_LABELS, resolveMediaUrl } from '../../lib/utils';
 import { SEO } from '../../components/shared/SEO';
+import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 
 const ALL_CATEGORY_ORDER = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
 
@@ -36,7 +37,7 @@ export function EventPilots() {
   const loading = query.isLoading;
 
   if (loading) return (
-    <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Cargando...</div>
+    <PageLoadingState rows={4} />
   );
   if (!data) return (
     <div className="text-center py-20 text-white/30 text-sm uppercase tracking-widest">Evento no encontrado</div>

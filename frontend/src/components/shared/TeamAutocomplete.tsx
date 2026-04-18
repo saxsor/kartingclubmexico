@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { teamsApi, Team } from '../../api/teams.api';
 import { Users } from 'lucide-react';
+import { InlineLoadingState } from './LoadingSkeleton';
 
 interface Props {
   value: string;           // team name (display)
@@ -91,6 +92,7 @@ export function TeamAutocomplete({ value, teamId, onChange, placeholder = 'Busca
           <button
             type="button"
             onClick={handleClear}
+            aria-label="Limpiar equipo"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 text-lg leading-none"
           >
             ×
@@ -134,7 +136,7 @@ export function TeamAutocomplete({ value, teamId, onChange, placeholder = 'Busca
             </button>
           )}
           {loading && (
-            <div className="px-4 py-2.5 text-xs text-white/30">Buscando...</div>
+            <InlineLoadingState lines={2} className="m-2" />
           )}
         </div>
       )}

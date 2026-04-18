@@ -14,6 +14,7 @@ import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
 import { queryKeys } from '../../../lib/react-query';
 import { Flag } from 'lucide-react';
+import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 
 export function EventList() {
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -121,7 +122,7 @@ export function EventList() {
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-white/40">Cargando...</div>
+        <PageLoadingState showFilters rows={4} />
       ) : events.length === 0 ? (
         <EmptyState
           icon={Flag}

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Users, Pencil, Check, X, RefreshCw } from 'lucide-react';
+import { Users, Pencil, Check, X, RefreshCw, Search } from 'lucide-react';
 import { teamsApi, Team } from '../../../api/teams.api';
 import { api } from '../../../api/client';
 import { toast } from '../../../store/toast.store';
@@ -11,11 +11,15 @@ export function TeamManager() {
   const [editName, setEditName] = useState('');
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState('');
 
-  const { data: teams = [], isLoading } = useQuery({
+  const { data: allTeams = [], isLoading } = useQuery({
     queryKey: ['teams'],
     queryFn: () => teamsApi.list(),
   });
+  const teams = search
+    ? allTeams.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
+    : allTeams;
 
   const recalcMutation = useMutation({
     mutationFn: () => api.post<{ ok: boolean; updated: number; combos: number }>('/admin/audit-log/recalculate-constructors', {}),
@@ -99,6 +103,17 @@ export function TeamManager() {
             Nuevo equipo
           </button>
         </div>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar equipo..."
+          className="w-full rounded-lg border border-white/10 bg-white/5 pl-9 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+        />
       </div>
 
       {/* Create form */}

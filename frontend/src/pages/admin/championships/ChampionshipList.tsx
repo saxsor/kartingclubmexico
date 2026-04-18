@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Plus, Trash2, ChevronRight } from 'lucide-react';
+import { Trophy, Plus, Trash2, ChevronRight, Search, X } from 'lucide-react';
 import { championshipApi } from '../../../api/championship.api';
 import { queryKeys } from '../../../lib/react-query';
 import { toast } from '../../../store/toast.store';
@@ -12,6 +12,8 @@ export function ChampionshipList() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', year: new Date().getFullYear().toString() });
   const [formError, setFormError] = useState('');
+  const [search, setSearch] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
 
   const listQuery = useQuery({
     queryKey: queryKeys.championships.list(),
@@ -48,7 +50,13 @@ export function ChampionshipList() {
     deleteMutation.mutate(id);
   };
 
-  const championships = listQuery.data ?? [];
+  const allChampionships = listQuery.data ?? [];
+  const years = [...new Set(allChampionships.map((c) => c.year))].sort((a, b) => b - a);
+  const championships = allChampionships.filter((c) => {
+    if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (yearFilter && String(c.year) !== yearFilter) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -110,6 +118,32 @@ export function ChampionshipList() {
           </div>
         </form>
       )}
+
+      <div className="flex gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[180px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre..."
+            className="w-full border border-[#38383f] bg-[#1f1f27] pl-9 pr-4 py-2 text-xs text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        <select
+          value={yearFilter}
+          onChange={(e) => setYearFilter(e.target.value)}
+          className="border border-[#38383f] bg-[#1f1f27] px-3 py-2 text-xs text-white focus:border-[#e10600] focus:outline-none"
+        >
+          <option value="">Todos los años</option>
+          {years.map((y) => <option key={y} value={String(y)}>{y}</option>)}
+        </select>
+      </div>
 
       {listQuery.isLoading ? (
         <div className="text-center py-16 text-white/40 text-sm">Cargando...</div>

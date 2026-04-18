@@ -16,6 +16,11 @@ export interface PaginationParams {
   search?: string;
   status?: string;
   category?: string;
+  active?: boolean;
+  role?: string;
+  year?: number;
+  sortBy?: string;
+  sortDir?: string;
 }
 
 export function buildPaginationQuery<T extends object>(params: T) {

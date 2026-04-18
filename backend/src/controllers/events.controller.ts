@@ -11,7 +11,21 @@ import { CATEGORY_LABELS } from '../lib/category-labels.js';
 export async function listEvents(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
   const publicOnly = req.query.public === 'true';
-  const where = publicOnly ? { status: { not: 'DRAFT' as const } } : undefined;
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  const statusFilter = typeof req.query.status === 'string' ? req.query.status : '';
+  const yearFilter = typeof req.query.year === 'string' && /^\d{4}$/.test(req.query.year) ? parseInt(req.query.year, 10) : undefined;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {};
+  if (publicOnly) where.status = { not: 'DRAFT' };
+  if (statusFilter) where.status = statusFilter;
+  if (search) where.name = { contains: search, mode: 'insensitive' };
+  if (yearFilter !== undefined) {
+    where.date = {
+      gte: new Date(`${yearFilter}-01-01`),
+      lte: new Date(`${yearFilter}-12-31T23:59:59`),
+    };
+  }
 
   const [events, total] = await prisma.$transaction([
     prisma.event.findMany({

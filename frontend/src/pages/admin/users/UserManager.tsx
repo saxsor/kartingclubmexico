@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Search } from 'lucide-react';
+import { useDebounce } from '../../../hooks/useDebounce';
 import { api } from '../../../api/client';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
@@ -20,10 +21,27 @@ export function UserManager() {
   const [form, setForm] = useState({ email: '', password: '', name: '', role: 'ORGANIZER' as User['role'] });
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<User['role'] | ''>('');
+  const [activeFilter, setActiveFilter] = useState<'true' | 'false' | ''>('');
+  const debouncedSearch = useDebounce(search, 300);
   const queryClient = useQueryClient();
+
+  const listParams = {
+    page, pageSize: 10,
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+    ...(roleFilter ? { role: roleFilter } : {}),
+    ...(activeFilter !== '' ? { active: activeFilter === 'true' } : {}),
+  };
   const usersQuery = useQuery({
-    queryKey: queryKeys.users.list({ page, pageSize: 10 }),
-    queryFn: () => api.get<{ items: User[]; pagination: PaginationMeta }>(`/users?page=${page}&pageSize=10`),
+    queryKey: queryKeys.users.list(listParams),
+    queryFn: () => {
+      const params = new URLSearchParams({ page: String(page), pageSize: '10' });
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (roleFilter) params.set('role', roleFilter);
+      if (activeFilter !== '') params.set('active', activeFilter);
+      return api.get<{ items: User[]; pagination: PaginationMeta }>(`/users?${params}`);
+    },
   });
   const createMutation = useMutation({
     mutationFn: (payload: typeof form) => api.post<User>('/users', payload),
@@ -128,6 +146,46 @@ export function UserManager() {
           </button>
         </form>
       )}
+
+      <div className="flex gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Buscar por nombre o email..."
+            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+          />
+        </div>
+        <select
+          value={roleFilter}
+          onChange={(e) => { setRoleFilter(e.target.value as User['role'] | ''); setPage(1); }}
+          className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+        >
+          <option value="">Todos los roles</option>
+          <option value="ADMIN">Admin</option>
+          <option value="ORGANIZER">Organizador</option>
+          <option value="VALIDATOR">Validador</option>
+        </select>
+        <select
+          value={activeFilter}
+          onChange={(e) => { setActiveFilter(e.target.value as 'true' | 'false' | ''); setPage(1); }}
+          className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+        >
+          <option value="">Todos los estados</option>
+          <option value="true">Activos</option>
+          <option value="false">Inactivos</option>
+        </select>
+        {(search || roleFilter || activeFilter !== '') && (
+          <button
+            onClick={() => { setSearch(''); setRoleFilter(''); setActiveFilter(''); setPage(1); }}
+            className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <X className="h-3.5 w-3.5" /> Limpiar
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <div className="text-center py-10 text-white/40">Cargando...</div>

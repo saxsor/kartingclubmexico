@@ -5,12 +5,14 @@ import { CheckSquare, X, Search, Save } from 'lucide-react';
 import { checkinApi } from '../../../api/checkin.api';
 import { inscriptionsApi, Inscription } from '../../../api/inscriptions.api';
 import { CategoryBadge } from '../../../components/shared/CategoryBadge';
+import { CATEGORY_LABELS } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { queryKeys } from '../../../lib/react-query';
 
 export function CheckInPanel() {
   const { slug } = useParams<{ slug: string }>();
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [kartInputs, setKartInputs] = useState<Record<string, string>>({});
   const [kartNotesInputs, setKartNotesInputs] = useState<Record<string, string>>({});
   const [error, setError] = useState<Record<string, string>>({});
@@ -79,10 +81,13 @@ export function CheckInPanel() {
     await undoMutation.mutateAsync(insc.id);
   };
 
-  const filtered = inscriptions.filter((i) =>
-    i.pilot.name.toLowerCase().includes(search.toLowerCase()) ||
-    i.category.toLowerCase().includes(search.toLowerCase()),
-  );
+  const categories = [...new Set(inscriptions.map((i) => i.category))].sort();
+
+  const filtered = inscriptions.filter((i) => {
+    if (categoryFilter && i.category !== categoryFilter) return false;
+    if (search && !i.pilot.name.toLowerCase().includes(search.toLowerCase()) && !i.category.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   const checkedIn = filtered.filter((i) => i.checkIn);
   const notCheckedIn = filtered.filter((i) => !i.checkIn);
@@ -98,15 +103,29 @@ export function CheckInPanel() {
         </div>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar piloto..."
-          className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
-        />
+      <div className="flex gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar piloto..."
+            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+          />
+        </div>
+        {categories.length > 1 && (
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+          >
+            <option value="">Todas las categorías</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>{CATEGORY_LABELS[c as keyof typeof CATEGORY_LABELS] ?? c}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {notCheckedIn.length > 0 && (

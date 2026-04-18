@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { racesApi, Race } from '../../../api/races.api';
 import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
@@ -13,6 +13,8 @@ export function RacePanel() {
   const { slug } = useParams<{ slug: string }>();
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ category: '' as Category | '', number: 1, laps: 15 });
+  const [filterCat, setFilterCat] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const queryClient = useQueryClient();
   const eventQuery = useQuery({
     queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
@@ -66,7 +68,13 @@ export function RacePanel() {
     await patchStatusMutation.mutateAsync({ raceId: race.id, status });
   };
 
-  const grouped = races.reduce((acc, r) => {
+  const filteredRaces = races.filter((r) => {
+    if (filterCat && r.category !== filterCat) return false;
+    if (filterStatus && r.status !== filterStatus) return false;
+    return true;
+  });
+
+  const grouped = filteredRaces.reduce((acc, r) => {
     if (!acc[r.category]) acc[r.category] = [];
     acc[r.category].push(r);
     return acc;
@@ -142,6 +150,41 @@ export function RacePanel() {
             Crear
           </button>
         </form>
+      )}
+
+      {races.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          {activeCategories.length > 1 && (
+            <select
+              value={filterCat}
+              onChange={(e) => setFilterCat(e.target.value)}
+              className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+            >
+              <option value="">Todas las categorías</option>
+              {activeCategories.map((c) => (
+                <option key={c.id} value={c.category}>{CATEGORY_LABELS[c.category]}</option>
+              ))}
+            </select>
+          )}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+          >
+            <option value="">Todos los estados</option>
+            <option value="PENDING">Pendiente</option>
+            <option value="IN_PROGRESS">En progreso</option>
+            <option value="FINISHED">Terminada</option>
+          </select>
+          {(filterCat || filterStatus) && (
+            <button
+              onClick={() => { setFilterCat(''); setFilterStatus(''); }}
+              className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="h-3.5 w-3.5" /> Limpiar
+            </button>
+          )}
+        </div>
       )}
 
       {Object.keys(grouped).map((cat) => (

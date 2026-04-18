@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Plus, X, Search, ClipboardList, Download, Trash2 } from 'lucide-react';
+import { Plus, X, Search, ClipboardList, Download, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { downloadCsv } from '../../../lib/download';
 import { inscriptionsApi, InscriptionStatus } from '../../../api/inscriptions.api';
 import { pilotsApi } from '../../../api/pilots.api';
@@ -34,6 +34,8 @@ export function InscriptionManager() {
   const page = parseInt(searchParams.get('page') ?? '1', 10);
   const statusFilter = searchParams.get('status') as InscriptionStatus | null;
   const categoryFilter = searchParams.get('category') as Category | null;
+  const sortBy = searchParams.get('sortBy') ?? 'createdAt';
+  const sortDir = (searchParams.get('sortDir') ?? 'asc') as 'asc' | 'desc';
 
   const setFilter = (key: string, value: string | null) => {
     setSearchParams((prev) => {
@@ -62,12 +64,35 @@ export function InscriptionManager() {
     enabled: !!slug,
   });
 
+  const handleSort = (col: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (next.get('sortBy') === col) {
+        next.set('sortDir', next.get('sortDir') === 'asc' ? 'desc' : 'asc');
+      } else {
+        next.set('sortBy', col);
+        next.set('sortDir', 'asc');
+      }
+      next.set('page', '1');
+      return next;
+    });
+  };
+
+  const SortIcon = ({ col }: { col: string }) => {
+    if (sortBy !== col) return <ChevronsUpDown className="h-3 w-3 text-white/20 ml-1 inline" />;
+    return sortDir === 'asc'
+      ? <ChevronUp className="h-3 w-3 text-racing-red ml-1 inline" />
+      : <ChevronDown className="h-3 w-3 text-racing-red ml-1 inline" />;
+  };
+
   const listParams = {
     page,
     pageSize: 10,
     search: debouncedSearch || undefined,
     status: statusFilter ?? undefined,
     category: categoryFilter ?? undefined,
+    sortBy: sortBy !== 'createdAt' ? sortBy : undefined,
+    sortDir: sortBy !== 'createdAt' ? sortDir : undefined,
   };
 
   const inscriptionsQuery = useQuery({
@@ -289,11 +314,27 @@ export function InscriptionManager() {
         <table className="w-full min-w-[600px] text-sm">
           <thead>
             <tr className="border-b border-white/10 bg-white/5">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Piloto</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Categoría</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Kart</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">
+                <button onClick={() => handleSort('name')} className="flex items-center hover:text-white transition-colors">
+                  Piloto <SortIcon col="name" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">
+                <button onClick={() => handleSort('category')} className="flex items-center hover:text-white transition-colors">
+                  Categoría <SortIcon col="category" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">
+                <button onClick={() => handleSort('kart')} className="flex items-center mx-auto hover:text-white transition-colors">
+                  Kart <SortIcon col="kart" />
+                </button>
+              </th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/60">Motor</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Pago</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">
+                <button onClick={() => handleSort('status')} className="flex items-center mx-auto hover:text-white transition-colors">
+                  Pago <SortIcon col="status" />
+                </button>
+              </th>
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-white/60">Check-in</th>
               <th className="px-4 py-3" />
             </tr>

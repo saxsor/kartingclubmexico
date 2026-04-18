@@ -9,7 +9,10 @@ export async function listPilots(req: Request, res: Response): Promise<void> {
   const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
   const parsedKartNumber = search && /^\d+$/.test(search) ? Number(search) : undefined;
 
-  const where = search
+  const activeParam = req.query.active;
+  const activeFilter = activeParam === 'true' ? true : activeParam === 'false' ? false : undefined;
+
+  const searchClause = search
     ? {
         OR: [
           { name: { contains: search, mode: 'insensitive' as const } },
@@ -18,17 +21,22 @@ export async function listPilots(req: Request, res: Response): Promise<void> {
           ...(parsedKartNumber !== undefined ? [{ kartNumber: parsedKartNumber }] : []),
         ],
       }
-    : undefined;
+    : {};
+  const where = {
+    ...searchClause,
+    ...(activeFilter !== undefined ? { active: activeFilter } : {}),
+  };
+  const finalWhere = Object.keys(where).length > 0 ? where : undefined;
 
   const [pilots, total] = await prisma.$transaction([
     prisma.pilot.findMany({
-      where,
+      where: finalWhere,
       orderBy: { name: 'asc' },
       skip,
       take: pageSize,
       include: { team: { select: { id: true, name: true, slug: true } } },
     }),
-    prisma.pilot.count({ where }),
+    prisma.pilot.count({ where: finalWhere }),
   ]);
 
   res.json({

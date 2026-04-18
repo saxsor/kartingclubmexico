@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useParams } from 'react-router-dom';
-import { Plus, CheckCircle, XCircle, FileText, Download, Trash2, Users, Pencil, X, UtensilsCrossed } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, FileText, Download, Trash2, Users, Pencil, X, UtensilsCrossed, Search } from 'lucide-react';
+import { useDebounce } from '../../../hooks/useDebounce';
+import { CATEGORY_LABELS } from '../../../lib/utils';
 import { downloadCsv } from '../../../lib/download';
 import { paymentsApi } from '../../../api/payments.api';
 import { eventsApi } from '../../../api/events.api';
@@ -25,6 +27,9 @@ export function CashBox() {
   const [staffValue, setStaffValue] = useState<number>(0);
   const [inscriptionsPage, setInscriptionsPage] = useState(1);
   const [paymentsPage, setPaymentsPage] = useState(1);
+  const [inscSearch, setInscSearch] = useState('');
+  const [inscCategory, setInscCategory] = useState('');
+  const debouncedInscSearch = useDebounce(inscSearch, 300);
   const queryClient = useQueryClient();
   const cashboxQuery = useQuery({
     queryKey: slug ? queryKeys.payments.cashbox(slug, { page: paymentsPage, pageSize: 10 }) : ['payments', 'cashbox', 'missing'],
@@ -36,9 +41,15 @@ export function CashBox() {
     queryFn: () => eventsApi.get(slug!),
     enabled: !!slug,
   });
+  const inscListParams = {
+    page: inscriptionsPage,
+    pageSize: 10,
+    ...(debouncedInscSearch ? { search: debouncedInscSearch } : {}),
+    ...(inscCategory ? { category: inscCategory } : {}),
+  };
   const inscriptionsQuery = useQuery({
-    queryKey: slug ? queryKeys.inscriptions.list(slug, { page: inscriptionsPage, pageSize: 10 }) : ['inscriptions', 'list', 'missing'],
-    queryFn: () => inscriptionsApi.list(slug!, { page: inscriptionsPage, pageSize: 10 }),
+    queryKey: slug ? queryKeys.inscriptions.list(slug, inscListParams) : ['inscriptions', 'list', 'missing'],
+    queryFn: () => inscriptionsApi.list(slug!, inscListParams),
     enabled: !!slug,
   });
   const approveMutation = useMutation({
@@ -332,6 +343,38 @@ export function CashBox() {
         <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60 mb-3">
           Registrar pago
         </h2>
+        <div className="flex gap-2 flex-wrap mb-4">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40" />
+            <input
+              type="text"
+              value={inscSearch}
+              onChange={(e) => { setInscSearch(e.target.value); setInscriptionsPage(1); }}
+              placeholder="Buscar piloto..."
+              className="w-full rounded-lg border border-white/10 bg-white/5 pl-9 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+            />
+          </div>
+          {(event?.eventCategories.filter((c) => c.active) ?? []).length > 1 && (
+            <select
+              value={inscCategory}
+              onChange={(e) => { setInscCategory(e.target.value); setInscriptionsPage(1); }}
+              className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+            >
+              <option value="">Todas las categorías</option>
+              {(event?.eventCategories.filter((c) => c.active) ?? []).map((c) => (
+                <option key={c.id} value={c.category}>{CATEGORY_LABELS[c.category] ?? c.category}</option>
+              ))}
+            </select>
+          )}
+          {(inscSearch || inscCategory) && (
+            <button
+              onClick={() => { setInscSearch(''); setInscCategory(''); setInscriptionsPage(1); }}
+              className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="h-3.5 w-3.5" /> Limpiar
+            </button>
+          )}
+        </div>
         <div className="space-y-2">
           {inscriptions.map((insc) => {
             const paymentSummary = getPaymentSummary(insc);

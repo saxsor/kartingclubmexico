@@ -15,15 +15,31 @@ const userSelect = {
 
 export async function listUsers(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  const role = typeof req.query.role === 'string' ? req.query.role : '';
+  const activeParam = req.query.active;
+  const activeFilter = activeParam === 'true' ? true : activeParam === 'false' ? false : undefined;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {};
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+  if (role) where.role = role;
+  if (activeFilter !== undefined) where.active = activeFilter;
 
   const [users, total] = await prisma.$transaction([
     prisma.user.findMany({
+      where,
       select: userSelect,
       orderBy: { name: 'asc' },
       skip,
       take: pageSize,
     }),
-    prisma.user.count(),
+    prisma.user.count({ where }),
   ]);
 
   res.json({

@@ -36,6 +36,7 @@ function getCsrfToken(): string | null {
 export function PilotList() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
+  const [activeFilter, setActiveFilter] = useState<'true' | 'false' | ''>('');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
@@ -99,7 +100,11 @@ export function PilotList() {
     }
   };
 
-  const listParams = { page, pageSize: 10, search: debouncedSearch };
+  const listParams = {
+    page, pageSize: 10,
+    search: debouncedSearch,
+    ...(activeFilter !== '' ? { active: activeFilter === 'true' } : {}),
+  };
   const pilotsQuery = useQuery({
     queryKey: queryKeys.pilots.list(listParams),
     queryFn: () => pilotsApi.list(listParams),
@@ -251,18 +256,29 @@ export function PilotList() {
         </div>
       )}
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Buscar por nombre, alias o número..."
-          className="w-full border border-white/10 bg-[#1f1f27] pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
-        />
+      <div className="flex gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Buscar por nombre, alias o número..."
+            className="w-full border border-white/10 bg-[#1f1f27] pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
+          />
+        </div>
+        <select
+          value={activeFilter}
+          onChange={(e) => { setActiveFilter(e.target.value as 'true' | 'false' | ''); setPage(1); }}
+          className="border border-white/10 bg-[#1f1f27] px-3 py-2.5 text-sm text-white focus:border-[#e10600] focus:outline-none"
+        >
+          <option value="">Todos</option>
+          <option value="true">Activos</option>
+          <option value="false">Inactivos</option>
+        </select>
       </div>
 
       {loading ? (

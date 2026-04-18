@@ -43,6 +43,15 @@ export async function listInscriptions(req: Request, res: Response): Promise<voi
       : {}),
   };
 
+  const sortBy = typeof req.query.sortBy === 'string' ? req.query.sortBy : 'createdAt';
+  const sortDir = req.query.sortDir === 'desc' ? 'desc' : 'asc';
+  const orderBy: Record<string, unknown> =
+    sortBy === 'name' ? { pilot: { name: sortDir } } :
+    sortBy === 'category' ? { category: sortDir } :
+    sortBy === 'kart' ? { kartNumber: sortDir } :
+    sortBy === 'status' ? { status: sortDir } :
+    { createdAt: 'asc' };
+
   const [inscriptions, total] = await prisma.$transaction([
     prisma.inscription.findMany({
       where,
@@ -51,7 +60,8 @@ export async function listInscriptions(req: Request, res: Response): Promise<voi
         payments: true,
         checkIn: true,
       },
-      orderBy: { createdAt: 'asc' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      orderBy: orderBy as any,
       skip,
       take: pageSize,
     }),

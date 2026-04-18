@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icons/*.png'],
       manifest: {
-        name: 'Edel Racing',
-        short_name: 'Edel Racing',
+        name: 'Karting Club México',
+        short_name: 'KCM',
         description: 'Gestión de carreras de karting - Karting Club México',
         theme_color: '#dc2626',
         background_color: '#0f0f0f',

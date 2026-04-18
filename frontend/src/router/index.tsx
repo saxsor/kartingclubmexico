@@ -14,6 +14,7 @@ import { EventPilots } from '../pages/public/EventPilots';
 import { EventResults } from '../pages/public/EventResults';
 import { Championship, ChampionshipDetailPublic } from '../pages/public/Championship';
 import { PilotProfile } from '../pages/public/PilotProfile';
+import { ContactPage, FAQPage, PrivacyPage, TermsPage } from '../pages/public/SiteInfo';
 import { Login } from '../pages/auth/Login';
 import { ForgotPassword } from '../pages/auth/ForgotPassword';
 import { ResetPassword } from '../pages/auth/ResetPassword';
@@ -49,6 +50,10 @@ export const router = createBrowserRouter([
       { path: 'eventos/:slug/resultados', element: <EventResults /> },
       { path: 'campeonato', element: <Championship /> },
       { path: 'campeonato/:id', element: <ChampionshipDetailPublic /> },
+      { path: 'contacto', element: <ContactPage /> },
+      { path: 'preguntas-frecuentes', element: <FAQPage /> },
+      { path: 'privacidad', element: <PrivacyPage /> },
+      { path: 'terminos', element: <TermsPage /> },
       { path: 'pilotos/:id', element: <PilotProfile /> },
     ],
   },

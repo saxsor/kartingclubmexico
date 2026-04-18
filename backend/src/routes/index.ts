@@ -82,9 +82,8 @@ router.get('/sitemap', async (_req, res) => {
   const { prisma } = await import('../lib/prisma.js');
   const baseUrl = process.env.APP_URL ?? 'https://kartingclubmexico.com';
 
-  const [events, pilots, championships] = await Promise.all([
+  const [events, championships] = await Promise.all([
     prisma.event.findMany({ where: { status: { not: 'DRAFT' } }, select: { slug: true, updatedAt: true }, orderBy: { date: 'desc' } }),
-    prisma.pilot.findMany({ where: { active: true }, select: { id: true, updatedAt: true } }),
     prisma.championship.findMany({ select: { id: true, updatedAt: true } }),
   ]);
 
@@ -92,6 +91,10 @@ router.get('/sitemap', async (_req, res) => {
     { loc: baseUrl, priority: '1.0' },
     { loc: `${baseUrl}/eventos`, priority: '0.9' },
     { loc: `${baseUrl}/campeonato`, priority: '0.8' },
+    { loc: `${baseUrl}/contacto`, priority: '0.6' },
+    { loc: `${baseUrl}/preguntas-frecuentes`, priority: '0.6' },
+    { loc: `${baseUrl}/privacidad`, priority: '0.3' },
+    { loc: `${baseUrl}/terminos`, priority: '0.3' },
   ];
 
   const eventUrls = events.map((e) => ({
@@ -100,19 +103,13 @@ router.get('/sitemap', async (_req, res) => {
     priority: '0.8',
   }));
 
-  const pilotUrls = pilots.map((p) => ({
-    loc: `${baseUrl}/pilotos/${p.id}`,
-    lastmod: p.updatedAt.toISOString().split('T')[0],
-    priority: '0.5',
-  }));
-
   const championshipUrls = championships.map((c) => ({
     loc: `${baseUrl}/campeonato/${c.id}`,
     lastmod: c.updatedAt.toISOString().split('T')[0],
     priority: '0.7',
   }));
 
-  const allUrls = [...staticUrls, ...eventUrls, ...pilotUrls, ...championshipUrls];
+  const allUrls = [...staticUrls, ...eventUrls, ...championshipUrls];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

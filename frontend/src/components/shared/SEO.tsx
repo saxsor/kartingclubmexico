@@ -11,9 +11,10 @@ interface SEOProps {
   url?: string;
   type?: 'website' | 'article';
   jsonLd?: object;
+  noIndex?: boolean;
 }
 
-export function SEO({ title, description, image, url, type = 'website', jsonLd }: SEOProps) {
+export function SEO({ title, description, image, url, type = 'website', jsonLd, noIndex = false }: SEOProps) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
   const metaDescription = description ?? DEFAULT_DESCRIPTION;
   const metaImage = image ?? DEFAULT_IMAGE;
@@ -38,6 +39,8 @@ export function SEO({ title, description, image, url, type = 'website', jsonLd }
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={metaDescription} />
       <meta name="twitter:image" content={metaImage.startsWith('http') ? metaImage : `${window.location.origin}${metaImage}`} />
+
+      {noIndex && <meta name="robots" content="noindex,nofollow" />}
 
       {/* JSON-LD structured data */}
       {jsonLd && (

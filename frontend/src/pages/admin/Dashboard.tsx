@@ -160,6 +160,7 @@ export function Dashboard() {
 
   const activeEvent = events.find((e) => e.status === 'IN_PROGRESS');
   const openEvents = events.filter((e) => e.status === 'OPEN');
+  const nextEvent = activeEvent ?? openEvents[0] ?? null;
   const recentEvents = events.slice(0, 5);
 
   const stats = [
@@ -206,13 +207,124 @@ export function Dashboard() {
         <p className="text-white/50 text-sm mt-1">Resumen general del sistema</p>
       </div>
 
+      {/* Action-first event section */}
+      {loading ? (
+        <DashboardChartSkeleton />
+      ) : (
+        <div className="grid gap-4">
+          <section className="overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(135deg,rgba(225,6,0,0.18),rgba(255,255,255,0.03)_35%,rgba(255,255,255,0.02))]">
+            <div className="border-b border-white/10 bg-black/15 px-6 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">
+                {activeEvent ? 'Evento en curso' : nextEvent ? 'Siguiente evento disponible' : 'Sin evento activo'}
+              </p>
+            </div>
+            <div className="p-6">
+              {nextEvent ? (
+                <div className="space-y-6">
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="max-w-2xl">
+                      <StatusBadge status={nextEvent.status} className="mb-3" />
+                      <h2
+                        className="text-4xl font-black uppercase leading-none text-white"
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+                      >
+                        {nextEvent.name}
+                      </h2>
+                      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
+                        <span className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-[#e10600]" />
+                          {formatDate(nextEvent.date)}
+                        </span>
+                        {nextEvent.track && (
+                          <span className="flex items-center gap-2">
+                            <Flag className="h-4 w-4 text-[#e10600]" />
+                            {nextEvent.track}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-5 max-w-xl text-sm leading-7 text-white/68">
+                        {activeEvent
+                          ? 'Este es el foco operativo del día. Las acciones críticas deben estar visibles sin depender de scroll profundo.'
+                          : 'Este es el siguiente evento accionable. Debe estar al frente para acelerar acceso a inscripción, caja, check-in y operación de carrera.'}
+                      </p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[280px] lg:grid-cols-1">
+                      <Link
+                        to={`/app/eventos/${nextEvent.slug}`}
+                        className="rounded-xl bg-[#e10600] px-5 py-4 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-[#b30500]"
+                      >
+                        Abrir hub del evento
+                      </Link>
+                      <Link
+                        to={`/app/eventos/${nextEvent.slug}/inscripciones`}
+                        className="rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-bold uppercase tracking-widest text-white/80 transition-colors hover:border-white/30 hover:text-white"
+                      >
+                        Ver inscripciones
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <Link
+                      to={`/app/eventos/${nextEvent.slug}/caja`}
+                      className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-[#e10600]/40 hover:bg-white/10"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Caja</p>
+                      <p className="mt-2 text-lg font-black uppercase text-white">Pagos y saldo</p>
+                      <p className="mt-1 text-sm text-white/55">Cobros, comprobantes y control financiero.</p>
+                    </Link>
+                    <Link
+                      to={`/app/eventos/${nextEvent.slug}/checkin`}
+                      className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-[#e10600]/40 hover:bg-white/10"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Check-in</p>
+                      <p className="mt-2 text-lg font-black uppercase text-white">Acceso operativo</p>
+                      <p className="mt-1 text-sm text-white/55">Llegadas, asistencia y validación de pilotos.</p>
+                    </Link>
+                    <Link
+                      to={`/app/eventos/${nextEvent.slug}/parrilla`}
+                      className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-[#e10600]/40 hover:bg-white/10"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Parrilla</p>
+                      <p className="mt-2 text-lg font-black uppercase text-white">Orden de salida</p>
+                      <p className="mt-1 text-sm text-white/55">Sorteo, revisión y publicación operativa.</p>
+                    </Link>
+                    <Link
+                      to={`/app/eventos/${nextEvent.slug}/carreras`}
+                      className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-[#e10600]/40 hover:bg-white/10"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Carreras</p>
+                      <p className="mt-2 text-lg font-black uppercase text-white">Captura deportiva</p>
+                      <p className="mt-1 text-sm text-white/55">Series, resultados y operación en pista.</p>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-2xl font-black text-white">No hay eventos abiertos o en curso.</p>
+                  <p className="max-w-xl text-sm leading-7 text-white/60">
+                    Cuando exista una fecha accionable, aparecerá aquí arriba con accesos directos para evitar navegación innecesaria.
+                  </p>
+                  <Link
+                    to="/app/eventos"
+                    className="inline-flex rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold uppercase tracking-widest text-white/80 transition-colors hover:border-white/30 hover:text-white"
+                  >
+                    Ir a eventos
+                  </Link>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {loading
           ? Array.from({ length: 6 }, (_, index) => <DashboardStatSkeleton key={index} />)
           : stats.map((stat) => (
             <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3 flex items-center justify-between">
                 <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
               <p className="text-3xl font-black text-white">{stat.value}</p>
@@ -220,28 +332,6 @@ export function Dashboard() {
             </div>
           ))}
       </div>
-
-      {/* Active event banner */}
-      {activeEvent && (
-        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-1 flex items-center gap-2">
-                <Flag className="h-3.5 w-3.5" />
-                Evento en curso
-              </p>
-              <h2 className="text-xl font-bold text-white">{activeEvent.name}</h2>
-              <p className="text-sm text-white/60 mt-0.5">{formatDate(activeEvent.date)}</p>
-            </div>
-            <Link
-              to={`/app/eventos/${activeEvent.slug}`}
-              className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-black hover:bg-yellow-400 transition-colors"
-            >
-              Gestionar
-            </Link>
-          </div>
-        </div>
-      )}
 
       {/* Food / comensales section */}
       {foodByEvent.length > 0 && (

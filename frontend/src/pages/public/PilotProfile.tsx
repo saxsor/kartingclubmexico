@@ -42,6 +42,7 @@ export function PilotProfile() {
         description={`Perfil de ${pilot.name} en Karting Club México. Historial de eventos, resultados y puntos del campeonato.`}
         image={pilot.photoUrl ? resolveMediaUrl(pilot.photoUrl) ?? undefined : undefined}
         url={`/pilotos/${id}`}
+        noIndex
       />
       <Link to="/" className="text-sm text-white/50 hover:text-white mb-6 block">
         ← Inicio

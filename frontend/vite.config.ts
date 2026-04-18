@@ -12,12 +12,13 @@ export default defineConfig({
       manifest: {
         name: 'Karting Club México',
         short_name: 'KCM',
-        description: 'Gestión de carreras de karting - Karting Club México',
+        description: 'Eventos, parrillas, resultados y campeonato de Karting Club México',
         theme_color: '#dc2626',
         background_color: '#0f0f0f',
         display: 'standalone',
         scope: '/',
         start_url: '/',
+        lang: 'es-MX',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },

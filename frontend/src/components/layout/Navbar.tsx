@@ -13,6 +13,8 @@ const publicLinks: NavLink[] = [
   { label: 'Inicio', to: '/' },
   { label: 'Eventos', to: '/eventos' },
   { label: 'Campeonato', to: '/campeonato' },
+  { label: 'FAQ', to: '/preguntas-frecuentes' },
+  { label: 'Contacto', to: '/contacto' },
 ];
 
 export function Navbar() {
@@ -46,7 +48,7 @@ export function Navbar() {
                 to={link.to}
                 end={link.to === '/'}
                 className={({ isActive }) => cn(
-                  'text-xs font-bold uppercase tracking-widest transition-colors relative',
+                  'group relative text-xs font-bold uppercase tracking-widest transition-colors',
                   isActive ? 'text-white' : 'text-white/60 hover:text-white',
                 )}
               >

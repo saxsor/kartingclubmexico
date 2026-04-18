@@ -17,6 +17,13 @@ RUN printf 'server {\n\
   listen 80;\n\
   root /usr/share/nginx/html;\n\
 \n\
+  # Serve the generated web manifest with the correct MIME type for Android/WebAPK install flows\n\
+  location = /manifest.webmanifest {\n\
+    default_type application/manifest+json;\n\
+    add_header Cache-Control "no-cache";\n\
+    try_files $uri =404;\n\
+  }\n\
+\n\
   # Service worker must never be cached so updates are detected immediately\n\
   location = /sw.js {\n\
     add_header Cache-Control "no-cache, no-store, must-revalidate";\n\

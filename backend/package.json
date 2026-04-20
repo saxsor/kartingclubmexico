@@ -1,6 +1,7 @@
 {
   "name": "edel-racing-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Edel Racing / Karting Club México - Backend API",
   "main": "dist/index.js",
   "scripts": {

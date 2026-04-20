@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import slugify from 'slugify';
 import { prisma } from '../lib/prisma.js';
-import { uploadToDrive, deleteFromDrive, isDriveValue } from '../lib/drive.service.js';
+import { uploadToDrive, deleteFromDrive, isDriveValue, getOrCreateFolder } from '../lib/drive.service.js';
 import { Category } from '@prisma/client';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 import { config } from '../config/index.js';
@@ -62,7 +62,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
 }
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, categories, championshipId, diplomaNameX, diplomaNameY, diplomaFontSize, diplomaTextColor } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, categories, championshipId, diplomaNameX, diplomaNameY, diplomaNameWidth, diplomaNameHeight, diplomaFontSize, diplomaTextColor, diplomaTextAlign } = req.body;
 
   const baseSlug = slugify(name, { lower: true, strict: true });
   let slug = baseSlug;
@@ -85,8 +85,11 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
       transferInfo: transferInfo ?? null,
       diplomaNameX: diplomaNameX ?? 0.5,
       diplomaNameY: diplomaNameY ?? 0.58,
+      diplomaNameWidth: diplomaNameWidth ?? 0.7,
+      diplomaNameHeight: diplomaNameHeight ?? 0.1,
       diplomaFontSize: diplomaFontSize ?? 28,
       diplomaTextColor: diplomaTextColor ?? '#111111',
+      diplomaTextAlign: diplomaTextAlign ?? 'center',
       track: track ?? null,
       championshipId: championshipId ?? null,
       eventCategories: {
@@ -108,15 +111,18 @@ export async function getEvent(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, championshipId, diplomaNameX, diplomaNameY, diplomaFontSize, diplomaTextColor } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, championshipId, diplomaNameX, diplomaNameY, diplomaNameWidth, diplomaNameHeight, diplomaFontSize, diplomaTextColor, diplomaTextAlign } = req.body;
   const existing = await prisma.event.findUnique({ where: { slug: req.params.slug } });
   if (!existing) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
 
   const shouldClearDiplomas =
     (diplomaNameX !== undefined && diplomaNameX !== existing.diplomaNameX) ||
     (diplomaNameY !== undefined && diplomaNameY !== existing.diplomaNameY) ||
+    (diplomaNameWidth !== undefined && diplomaNameWidth !== existing.diplomaNameWidth) ||
+    (diplomaNameHeight !== undefined && diplomaNameHeight !== existing.diplomaNameHeight) ||
     (diplomaFontSize !== undefined && diplomaFontSize !== existing.diplomaFontSize) ||
-    (diplomaTextColor !== undefined && diplomaTextColor !== existing.diplomaTextColor);
+    (diplomaTextColor !== undefined && diplomaTextColor !== existing.diplomaTextColor) ||
+    (diplomaTextAlign !== undefined && diplomaTextAlign !== existing.diplomaTextAlign);
 
   const event = await prisma.event.update({
     where: { slug: req.params.slug },
@@ -134,8 +140,11 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
       ...('championshipId' in req.body && { championshipId: championshipId || null }),
       ...(diplomaNameX !== undefined && { diplomaNameX }),
       ...(diplomaNameY !== undefined && { diplomaNameY }),
+      ...(diplomaNameWidth !== undefined && { diplomaNameWidth }),
+      ...(diplomaNameHeight !== undefined && { diplomaNameHeight }),
       ...(diplomaFontSize !== undefined && { diplomaFontSize }),
       ...(diplomaTextColor !== undefined && { diplomaTextColor }),
+      ...(diplomaTextAlign !== undefined && { diplomaTextAlign }),
     },
     include: { eventCategories: true },
   });
@@ -195,7 +204,10 @@ export async function uploadEventDiplomaTemplate(req: Request, res: Response): P
     await deleteFromDrive(event.diplomaTemplateUrl);
   }
 
-  const diplomaTemplateUrl = await uploadToDrive('diplomas', req.file.buffer, req.file.originalname, req.file.mimetype, true);
+  const diplomasKcmFolderId = await getOrCreateFolder('Diplomas_KCM', '1ENaBUFRPAVPVL18leMP3_JuTVoXOkZPB');
+  const templatesFolderId = await getOrCreateFolder('Plantillas', diplomasKcmFolderId);
+  const diplomaTemplateUrl = await uploadToDrive(templatesFolderId, req.file.buffer, req.file.originalname, req.file.mimetype, true);
+  
   const updated = await prisma.event.update({
     where: { slug: req.params.slug },
     data: { diplomaTemplateUrl },

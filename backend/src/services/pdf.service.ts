@@ -18,8 +18,11 @@ interface ParticipationDiplomaInput {
   templateMimeType: string;
   nameXRatio?: number;
   nameYRatio?: number;
+  nameWidthRatio?: number;
+  nameHeightRatio?: number;
   fontSize?: number;
   textColor?: string;
+  textAlign?: string;
 }
 
 function resolveFittedDiplomaFontSize(
@@ -27,25 +30,27 @@ function resolveFittedDiplomaFontSize(
   text: string,
   desiredFontSize: number,
   maxWidth: number,
+  maxHeight: number,
 ): number {
-  const minFontSize = 12;
+  const minFontSize = 14; // Aumentado de 8
   doc.font('Helvetica-Bold');
 
   let currentSize = desiredFontSize;
   doc.fontSize(currentSize);
-  let measuredWidth = doc.widthOfString(text);
+  
+  const checkFit = () => {
+    const width = doc.widthOfString(text);
+    // Be more permissive with height, allowing up to 20% overflow if width fits
+    const height = doc.currentLineHeight() * 0.8; 
+    return width <= maxWidth && height <= maxHeight;
+  };
 
-  if (measuredWidth <= maxWidth) return currentSize;
+  if (checkFit()) return currentSize;
 
-  const proportionalSize = Math.floor((desiredFontSize * maxWidth) / measuredWidth);
-  currentSize = Math.max(minFontSize, proportionalSize);
-  doc.fontSize(currentSize);
-  measuredWidth = doc.widthOfString(text);
-
-  while (currentSize > minFontSize && measuredWidth > maxWidth) {
+  while (currentSize > minFontSize) {
     currentSize -= 1;
     doc.fontSize(currentSize);
-    measuredWidth = doc.widthOfString(text);
+    if (checkFit()) break;
   }
 
   return currentSize;
@@ -137,39 +142,61 @@ export async function generateParticipationDiplomaPdf({
   pilotName,
   templateBuffer,
   templateMimeType,
-  nameXRatio = 0.5,
+  nameXRatio = 0.15,
   nameYRatio = 0.58,
+  nameWidthRatio = 0.7,
+  nameHeightRatio = 0.1,
   fontSize = 28,
   textColor = '#111111',
+  textAlign = 'center',
 }: ParticipationDiplomaInput): Promise<Buffer> {
-  const imageOptions = templateMimeType.includes('png') ? { fit: [842, 595] as [number, number] } : { fit: [842, 595] as [number, number] };
-
   return await new Promise<Buffer>((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 0 });
+    // Create document without an initial page to determine size first
+    const doc = new PDFDocument({ autoFirstPage: false, margin: 0 });
     const chunks: Buffer[] = [];
 
     doc.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
-    doc.image(templateBuffer, 0, 0, imageOptions);
-    doc.fillColor(textColor).font('Helvetica-Bold');
+    try {
+      const img = (doc as any).openImage(templateBuffer);
+      
+      // Add page with the EXACT same size as the image
+      doc.addPage({ size: [img.width, img.height], margin: 0 });
+      doc.image(img, 0, 0);
 
-    const pageWidth = doc.page.width;
-    const maxTextWidth = pageWidth * 0.72;
-    const fittedFontSize = resolveFittedDiplomaFontSize(doc, pilotName, fontSize, maxTextWidth);
-    doc.fontSize(fittedFontSize);
-    const minX = 24;
-    const maxX = pageWidth - maxTextWidth - 24;
-    const textX = Math.max(minX, Math.min(maxX, pageWidth * nameXRatio - maxTextWidth / 2));
-    const textY = doc.page.height * nameYRatio;
+      doc.fillColor(textColor).font('Helvetica-Bold');
 
-    doc.text(pilotName, textX, textY, {
-      width: maxTextWidth,
-      align: 'center',
-      lineBreak: false,
-    });
+      const pageWidth = img.width;
+      const pageHeight = img.height;
 
-    doc.end();
+      // Position box relative to actual image dimensions
+      const boxX = pageWidth * nameXRatio;
+      const boxY = pageHeight * nameYRatio;
+      const boxWidth = pageWidth * nameWidthRatio;
+      const boxHeight = pageHeight * nameHeightRatio;
+
+      // Scale font size based on image width vs standard 842pt width
+      const resolutionScale = pageWidth / 842;
+      const scaledFontSize = fontSize * resolutionScale;
+
+      const fittedFontSize = resolveFittedDiplomaFontSize(doc, pilotName, scaledFontSize, boxWidth, boxHeight);
+      doc.fontSize(fittedFontSize);
+
+      // Center text vertically within the box
+      const textHeight = doc.currentLineHeight();
+      const verticalOffset = Math.max(0, (boxHeight - textHeight) / 2);
+
+      doc.text(pilotName, boxX, boxY + verticalOffset, {
+        width: boxWidth,
+        align: (textAlign as any) || 'center',
+        lineBreak: false,
+      });
+
+      doc.end();
+    } catch (err) {
+      reject(err);
+    }
   });
 }

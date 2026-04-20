@@ -185,8 +185,11 @@ model Event {
   diplomaTemplateUrl String?
   diplomaNameX       Float       @default(0.5)
   diplomaNameY       Float       @default(0.58)
+  diplomaNameWidth   Float       @default(0.7)
+  diplomaNameHeight  Float       @default(0.1)
   diplomaFontSize    Int         @default(28)
   diplomaTextColor   String      @default("#111111")
+  diplomaTextAlign   String      @default("center")
   track              String?
   championshipId     String?
   createdAt          DateTime    @default(now())

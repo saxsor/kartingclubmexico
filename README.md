@@ -1,6 +1,6 @@
 # Edel Racing — Karting Club México
 
-Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in, campeonato acumulado por pilotos y constructores, portal de piloto con magic link, gestión de comensales y notas de kart, y SEO optimizado.
+Sistema completo de gestión de carreras de karting con resultados en tiempo real, parrilla de salida, auto-inscripción de pilotos, control de pagos con comprobantes, check-in, campeonato acumulado por pilotos y constructores, portal de piloto con magic link, gestión de comensales y notas de kart, generación de diplomas de participación con editor visual y SEO optimizado.
 
 ## Stack
 
@@ -198,6 +198,36 @@ Durante el check-in, los administradores pueden agregar una nota descriptiva al 
 - Se muestra debajo del nombre del piloto en la **captura de resultados** de carrera
 
 Permite identificar a los pilotos cuando no tienen número visible en el kart.
+
+---
+
+## Diplomas de participación
+
+Al cerrar un evento, el admin puede generar y descargar diplomas en PDF personalizados para cada piloto.
+
+### Configuración del template
+
+- Se sube una imagen de fondo (JPG o PNG) desde el formulario del evento — soporta orientación horizontal y vertical
+- El admin posiciona el nombre del piloto arrastrando y redimensionando un recuadro directamente sobre la preview del template
+- Los parámetros se guardan por evento en la base de datos
+
+### Campos configurables
+
+| Campo | Descripción | Default |
+|-------|-------------|---------|
+| `diplomaNameX` | Posición X del recuadro (ratio 0–1) | 0.15 |
+| `diplomaNameY` | Posición Y del recuadro (ratio 0–1) | 0.58 |
+| `diplomaNameWidth` | Ancho del recuadro (ratio 0–1) | 0.70 |
+| `diplomaNameHeight` | Alto del recuadro (ratio 0–1) | 0.10 |
+| `diplomaFontSize` | Tamaño base de fuente (8–128) | 28 |
+| `diplomaTextColor` | Color hex del texto | `#111111` |
+| `diplomaTextAlign` | Alineación: `left`, `center`, `right` | `center` |
+
+### Generación del PDF
+
+- Se usa [PDFKit](https://pdfkit.org/) en el backend — el tamaño de página se adapta al aspect ratio del template
+- El texto se auto-ajusta al recuadro: si el nombre es largo, el font size se reduce proporcionalmente hasta el mínimo de 14pt
+- Los diplomas se descargan directamente desde la pantalla de resultados del evento, sin salir de la página
 
 ---
 

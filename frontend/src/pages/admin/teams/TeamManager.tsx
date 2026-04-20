@@ -9,6 +9,7 @@ import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
 export function TeamManager() {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -18,6 +19,7 @@ export function TeamManager() {
     queryKey: ['teams'],
     queryFn: () => teamsApi.list(),
   });
+  
   const teams = search
     ? allTeams.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
     : allTeams;
@@ -106,7 +108,7 @@ export function TeamManager() {
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30" />
         <input
           type="text"
@@ -154,71 +156,132 @@ export function TeamManager() {
           {teams.map((team) => (
             <div
               key={team.id}
-              className={`flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+              className={`flex flex-col rounded-lg border transition-colors ${
                 team.active ? 'border-white/10 bg-white/5' : 'border-white/5 bg-white/2 opacity-50'
               }`}
             >
-              <Users className="h-4 w-4 text-white/30 flex-shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3">
+                <Users className="h-4 w-4 text-white/30 flex-shrink-0" />
 
-              {editingId === team.id ? (
-                <input
-                  autoFocus
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSave(team.id); if (e.key === 'Escape') setEditingId(null); }}
-                  className="flex-1 rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-white focus:border-racing-red focus:outline-none"
-                />
-              ) : (
-                <span className="flex-1 text-sm text-white font-medium">{team.name}</span>
-              )}
+                {editingId === team.id ? (
+                  <input
+                    autoFocus
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSave(team.id); if (e.key === 'Escape') setEditingId(null); }}
+                    className="flex-1 rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-white focus:border-racing-red focus:outline-none"
+                  />
+                ) : (
+                  <button
+                    onClick={() => setExpandedId(expandedId === team.id ? null : team.id)}
+                    className="flex-1 text-left text-sm text-white font-medium hover:text-racing-red transition-colors"
+                  >
+                    {team.name}
+                  </button>
+                )}
 
-              <span className="text-xs text-white/30">{team._count?.pilots ?? 0} piloto(s)</span>
+                <button
+                  onClick={() => setExpandedId(expandedId === team.id ? null : team.id)}
+                  className="text-xs text-white/30 hover:text-white/60 transition-colors"
+                >
+                  {team._count?.pilots ?? 0} piloto(s)
+                </button>
 
-              {editingId === team.id ? (
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleSave(team.id)}
-                    disabled={updateMutation.isPending}
-                    className="p-1.5 rounded text-green-400 hover:bg-green-500/20 transition-colors"
-                  >
-                    <Check className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="p-1.5 rounded text-white/40 hover:bg-white/10 transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleEdit(team)}
-                    className="p-1.5 rounded text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-                    title="Renombrar"
-                    aria-label={`Renombrar equipo ${team.name}`}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleToggleActive(team)}
-                    disabled={updateMutation.isPending}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      team.active
-                        ? 'text-white/40 hover:text-red-400 hover:bg-red-500/10'
-                        : 'text-green-400 hover:bg-green-500/10'
-                    }`}
-                    title={team.active ? 'Desactivar' : 'Activar'}
-                  >
-                    {team.active ? 'Desactivar' : 'Activar'}
-                  </button>
+                {editingId === team.id ? (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleSave(team.id)}
+                      disabled={updateMutation.isPending}
+                      className="p-1.5 rounded text-green-400 hover:bg-green-500/20 transition-colors"
+                    >
+                      <Check className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="p-1.5 rounded text-white/40 hover:bg-white/10 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleEdit(team)}
+                      className="p-1.5 rounded text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                      title="Renombrar"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleToggleActive(team)}
+                      disabled={updateMutation.isPending}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        team.active
+                          ? 'text-white/40 hover:text-red-400 hover:bg-red-500/10'
+                          : 'text-green-400 hover:bg-green-500/10'
+                      }`}
+                      title={team.active ? 'Desactivar' : 'Activar'}
+                    >
+                      {team.active ? 'Desactivar' : 'Activar'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {expandedId === team.id && (
+                <div className="px-4 pb-4">
+                  <TeamPilotsList teamId={team.id} />
                 </div>
               )}
             </div>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function TeamPilotsList({ teamId }: { teamId: string }) {
+  const { data: team, isLoading } = useQuery({
+    queryKey: ['teams', teamId],
+    queryFn: () => teamsApi.get(teamId),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="mt-2 flex flex-wrap gap-2 px-1">
+        {[1, 2].map((i) => (
+          <div key={i} className="h-6 w-24 animate-pulse rounded bg-white/5" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!team || !team.pilots.length) {
+    return <p className="mt-2 px-1 text-[10px] text-white/20 italic text-center">Sin pilotos activos vinculados.</p>;
+  }
+
+  return (
+    <div className="mt-1 flex flex-wrap gap-2 px-1 border-t border-white/5 pt-3">
+      {team.pilots.map((pilot) => (
+        <div
+          key={pilot.id}
+          className="flex items-center gap-2 rounded-full border border-white/5 bg-white/5 py-1 pl-1 pr-2.5"
+        >
+          <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10 border border-white/5">
+            {pilot.photoUrl ? (
+              <img src={pilot.photoUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Users className="h-2.5 w-2.5 text-white/20" />
+            )}
+          </div>
+          <span className="text-[11px] font-medium text-white/70">{pilot.name}</span>
+          {pilot.kartNumber && (
+            <span className="text-[9px] font-black text-racing-red">#{pilot.kartNumber}</span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

@@ -22,8 +22,38 @@ function getAuth() {
   return oauth2;
 }
 
+/**
+ * Finds or creates a folder with the given name inside a parent folder
+ */
+export async function getOrCreateFolder(name: string, parentId: string): Promise<string> {
+  const drive = google.drive({ version: 'v3', auth: getAuth() });
+  
+  // Search for existing folder
+  const search = await drive.files.list({
+    q: `name = '${name.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder' and '${parentId}' in parents and trashed = false`,
+    fields: 'files(id)',
+    spaces: 'drive',
+  });
+
+  if (search.data.files && search.data.files.length > 0) {
+    return search.data.files[0].id!;
+  }
+
+  // Create if not found
+  const folder = await drive.files.create({
+    requestBody: {
+      name,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: [parentId],
+    },
+    fields: 'id',
+  });
+
+  return folder.data.id!;
+}
+
 export async function uploadToDrive(
-  folder: DriveFolder,
+  folder: DriveFolder | string,
   buffer: Buffer,
   originalName: string,
   mimetype: string,
@@ -33,8 +63,11 @@ export async function uploadToDrive(
   const ext = path.extname(originalName) || '';
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
 
+  // If folder matches a key in FOLDER_IDS use that, otherwise assume it's a raw folder ID
+  const parentId = (FOLDER_IDS as any)[folder] || folder;
+
   const res = await drive.files.create({
-    requestBody: { name: filename, parents: [FOLDER_IDS[folder]] },
+    requestBody: { name: filename, parents: [parentId] },
     media: { mimeType: mimetype, body: Readable.from(buffer) },
     fields: 'id',
   });

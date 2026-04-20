@@ -24,10 +24,13 @@ export function EventForm() {
     foodFee: '0',
     blockCheckInOnDebt: false,
     transferInfo: '',
-    diplomaNameX: '0.50',
+    diplomaNameX: '0.15',
     diplomaNameY: '0.58',
+    diplomaNameWidth: '0.70',
+    diplomaNameHeight: '0.10',
     diplomaFontSize: '28',
     diplomaTextColor: '#111111',
+    diplomaTextAlign: 'center',
     categories: [] as Category[],
     championshipId: '' as string,
   });
@@ -80,10 +83,13 @@ export function EventForm() {
       foodFee: event.foodFee,
       blockCheckInOnDebt: event.blockCheckInOnDebt,
       transferInfo: event.transferInfo ?? '',
-      diplomaNameX: String(event.diplomaNameX ?? 0.5),
+      diplomaNameX: String(event.diplomaNameX ?? 0.15),
       diplomaNameY: String(event.diplomaNameY ?? 0.58),
+      diplomaNameWidth: String(event.diplomaNameWidth ?? 0.70),
+      diplomaNameHeight: String(event.diplomaNameHeight ?? 0.10),
       diplomaFontSize: String(event.diplomaFontSize ?? 28),
       diplomaTextColor: event.diplomaTextColor ?? '#111111',
+      diplomaTextAlign: event.diplomaTextAlign ?? 'center',
       categories: event.eventCategories.filter((c) => c.active).map((c) => c.category),
       championshipId: event.championshipId ?? '',
     });
@@ -155,26 +161,48 @@ export function EventForm() {
     }
   };
 
-  const updateDiplomaPositionFromPointer = (clientX: number, clientY: number) => {
+  const startDraggingDiplomaBox = (
+    event: React.PointerEvent<HTMLDivElement>,
+    mode: 'move' | 'resize' = 'move'
+  ) => {
+    event.stopPropagation();
+    event.preventDefault();
     const canvas = diplomaCanvasRef.current;
     if (!canvas) return;
-
     const rect = canvas.getBoundingClientRect();
-    const x = Math.min(0.95, Math.max(0.05, (clientX - rect.left) / rect.width));
-    const y = Math.min(0.95, Math.max(0.1, (clientY - rect.top) / rect.height));
 
-    setForm((prev) => ({
-      ...prev,
-      diplomaNameX: x.toFixed(2),
-      diplomaNameY: y.toFixed(2),
-    }));
-  };
+    const initialX = parseFloat(form.diplomaNameX);
+    const initialY = parseFloat(form.diplomaNameY);
+    const initialW = parseFloat(form.diplomaNameWidth);
+    const initialH = parseFloat(form.diplomaNameHeight);
+    const startPointerX = (event.clientX - rect.left) / rect.width;
+    const startPointerY = (event.clientY - rect.top) / rect.height;
 
-  const startDraggingDiplomaName = (event: React.PointerEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    updateDiplomaPositionFromPointer(event.clientX, event.clientY);
+    const onMove = (moveEvent: PointerEvent) => {
+      const currentPointerX = (moveEvent.clientX - rect.left) / rect.width;
+      const currentPointerY = (moveEvent.clientY - rect.top) / rect.height;
+      const deltaX = currentPointerX - startPointerX;
+      const deltaY = currentPointerY - startPointerY;
 
-    const onMove = (moveEvent: PointerEvent) => updateDiplomaPositionFromPointer(moveEvent.clientX, moveEvent.clientY);
+      if (mode === 'move') {
+        const nextX = Math.min(1 - initialW, Math.max(0, initialX + deltaX));
+        const nextY = Math.min(1 - initialH, Math.max(0, initialY + deltaY));
+        setForm((prev) => ({
+          ...prev,
+          diplomaNameX: nextX.toFixed(3),
+          diplomaNameY: nextY.toFixed(3),
+        }));
+      } else {
+        const nextW = Math.min(1 - initialX, Math.max(0.05, initialW + deltaX));
+        const nextH = Math.min(1 - initialY, Math.max(0.02, initialH + deltaY));
+        setForm((prev) => ({
+          ...prev,
+          diplomaNameWidth: nextW.toFixed(3),
+          diplomaNameHeight: nextH.toFixed(3),
+        }));
+      }
+    };
+
     const onUp = () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
@@ -209,8 +237,11 @@ export function EventForm() {
         transferInfo: form.transferInfo || undefined,
         diplomaNameX: parseFloat(form.diplomaNameX),
         diplomaNameY: parseFloat(form.diplomaNameY),
+        diplomaNameWidth: parseFloat(form.diplomaNameWidth),
+        diplomaNameHeight: parseFloat(form.diplomaNameHeight),
         diplomaFontSize: parseInt(form.diplomaFontSize, 10),
         diplomaTextColor: form.diplomaTextColor,
+        diplomaTextAlign: form.diplomaTextAlign,
         categories: form.categories,
         championshipId: form.championshipId || null,
       };
@@ -400,9 +431,24 @@ export function EventForm() {
               <div className="mb-4 overflow-hidden rounded-xl border border-[#38383f] bg-[#111318]">
                 <div
                   ref={diplomaCanvasRef}
-                  className="relative mx-auto w-full max-w-full"
+                  className="relative mx-auto w-full max-w-full overflow-hidden"
                   style={{ aspectRatio: `${diplomaPreviewRatio}`, maxHeight: '70vh' }}
-                  onPointerDown={startDraggingDiplomaName}
+                  onPointerDown={(e) => {
+                    // Si pulsa directamente en el canvas (fuera de la caja), movemos el centro de la caja allí
+                    if (e.target === e.currentTarget || (e.target as HTMLElement).tagName === 'IMG') {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = (e.clientX - rect.left) / rect.width;
+                      const y = (e.clientY - rect.top) / rect.height;
+                      const w = parseFloat(form.diplomaNameWidth);
+                      const h = parseFloat(form.diplomaNameHeight);
+                      
+                      setForm(prev => ({
+                        ...prev,
+                        diplomaNameX: Math.min(1 - w, Math.max(0, x - w / 2)).toFixed(3),
+                        diplomaNameY: Math.min(1 - h, Math.max(0, y - h / 2)).toFixed(3),
+                      }));
+                    }
+                  }}
                 >
                   <img
                     src={diplomaPreviewUrl}
@@ -416,34 +462,32 @@ export function EventForm() {
                     }}
                   />
                   <div
-                    className="absolute px-4 text-center font-bold cursor-grab active:cursor-grabbing select-none"
+                    className="absolute border-2 border-dashed border-yellow-400 flex items-center justify-center cursor-move select-none group z-10"
                     style={{
                       left: `${Number(form.diplomaNameX) * 100}%`,
                       top: `${Number(form.diplomaNameY) * 100}%`,
+                      width: `${Number(form.diplomaNameWidth) * 100}%`,
+                      height: `${Number(form.diplomaNameHeight) * 100}%`,
                       color: form.diplomaTextColor,
-                      fontSize: `${Math.max(18, Number(form.diplomaFontSize) * 0.65)}px`,
+                      fontSize: `${Math.max(10, Number(form.diplomaFontSize) * 0.65)}px`,
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      textShadow: '0 2px 8px rgba(0,0,0,0.35)',
-                      transform: 'translate(-50%, -50%)',
                       touchAction: 'none',
-                      width: diplomaPreviewTextWidth,
-                      maxWidth: diplomaPreviewTextWidth,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      backgroundColor: 'rgba(250, 204, 21, 0.05)',
                     }}
-                    onPointerDown={startDraggingDiplomaName}
+                    onPointerDown={(e) => startDraggingDiplomaBox(e, 'move')}
                   >
-                    NOMBRE DEL PILOTO
+                    <span className="w-full px-2 truncate leading-tight uppercase font-bold text-center pointer-events-none" style={{ textAlign: form.diplomaTextAlign as any }}>
+                      Nombre del Piloto
+                    </span>
+                    
+                    {/* Resize Handle - More visible */}
+                    <div 
+                      className="absolute bottom-0 right-0 w-6 h-6 bg-yellow-400 cursor-se-resize flex items-center justify-center z-20"
+                      onPointerDown={(e) => startDraggingDiplomaBox(e, 'resize')}
+                    >
+                      <div className="w-2 h-2 bg-black rounded-sm transform rotate-45" />
+                    </div>
                   </div>
-                  <div
-                    className="pointer-events-none absolute left-8 right-8 border-t border-dashed border-yellow-400/70"
-                    style={{ top: `${Number(form.diplomaNameY) * 100}%` }}
-                  />
-                  <div
-                    className="pointer-events-none absolute top-8 bottom-8 border-l border-dashed border-yellow-400/50"
-                    style={{ left: `${Number(form.diplomaNameX) * 100}%` }}
-                  />
                 </div>
               </div>
             ) : (
@@ -459,9 +503,9 @@ export function EventForm() {
                   type="range"
                   value={form.diplomaNameX}
                   onChange={(e) => setForm({ ...form, diplomaNameX: e.target.value })}
-                  min="0.05"
-                  max="0.95"
-                  step="0.01"
+                  min="0"
+                  max="1"
+                  step="0.001"
                   className="w-full accent-yellow-500"
                 />
                 <div className="mt-1 flex items-center justify-between text-xs text-white/40">
@@ -477,9 +521,9 @@ export function EventForm() {
                   type="range"
                   value={form.diplomaNameY}
                   onChange={(e) => setForm({ ...form, diplomaNameY: e.target.value })}
-                  min="0.1"
-                  max="0.95"
-                  step="0.01"
+                  min="0"
+                  max="1"
+                  step="0.001"
                   className="w-full accent-yellow-500"
                 />
                 <div className="mt-1 flex items-center justify-between text-xs text-white/40">
@@ -490,7 +534,7 @@ export function EventForm() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-white/70">Tamaño del nombre</label>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Tamaño de fuente</label>
                 <input
                   type="range"
                   value={form.diplomaFontSize}
@@ -508,24 +552,62 @@ export function EventForm() {
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-white/10 bg-[#111318] px-3 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-white/50">Edición directa</p>
-                <p className="mt-1 text-sm text-white/70">Arrastra el texto sobre la plantilla para colocarlo donde quieras.</p>
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3 border-t border-white/5 pt-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Ancho de caja</label>
+                <input
+                  type="range"
+                  value={form.diplomaNameWidth}
+                  onChange={(e) => setForm({ ...form, diplomaNameWidth: e.target.value })}
+                  min="0.05"
+                  max="1"
+                  step="0.001"
+                  className="w-full accent-yellow-500"
+                />
+                <div className="mt-1 flex items-center justify-between text-xs text-white/40">
+                  <span>Estrecho</span>
+                  <span>{Math.round(Number(form.diplomaNameWidth) * 100)}%</span>
+                  <span>Ancho</span>
+                </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-white/70">Color del nombre</label>
-                <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-[#111318] px-3 py-2">
-                  <input
-                    type="color"
-                    value={form.diplomaTextColor}
-                    onChange={(e) => setForm({ ...form, diplomaTextColor: e.target.value })}
-                    className="h-10 w-14 rounded border border-white/10 bg-transparent p-1"
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-white">{form.diplomaTextColor}</p>
-                    <p className="text-xs text-white/40">Usa un color con buen contraste contra la plantilla.</p>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Alto de caja</label>
+                <input
+                  type="range"
+                  value={form.diplomaNameHeight}
+                  onChange={(e) => setForm({ ...form, diplomaNameHeight: e.target.value })}
+                  min="0.01"
+                  max="0.5"
+                  step="0.001"
+                  className="w-full accent-yellow-500"
+                />
+                <div className="mt-1 flex items-center justify-between text-xs text-white/40">
+                  <span>Bajo</span>
+                  <span>{Math.round(Number(form.diplomaNameHeight) * 100)}%</span>
+                  <span>Alto</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Alineación y Color</label>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={form.diplomaTextAlign}
+                    onChange={(e) => setForm({ ...form, diplomaTextAlign: e.target.value })}
+                    className="flex-1 rounded-lg border border-white/10 bg-[#111318] px-3 py-2 text-sm text-white focus:border-yellow-500 outline-none"
+                  >
+                    <option value="left">Izquierda</option>
+                    <option value="center">Centro</option>
+                    <option value="right">Derecha</option>
+                  </select>
+                  <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#111318] px-3 py-2">
+                    <input
+                      type="color"
+                      value={form.diplomaTextColor}
+                      onChange={(e) => setForm({ ...form, diplomaTextColor: e.target.value })}
+                      className="h-6 w-8 cursor-pointer border-none bg-transparent"
+                    />
                   </div>
                 </div>
               </div>

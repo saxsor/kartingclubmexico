@@ -4,7 +4,7 @@ import { sseManager } from '../lib/sse.js';
 import { calculatePoints } from '../services/points.service.js';
 import { recalculateChampionship, recalculateConstructorStandings } from '../services/championship.service.js';
 import { generateResultsPdf, generateCsvResults, generateParticipationDiplomaPdf } from '../services/pdf.service.js';
-import { deleteFromDrive, isDriveValue, streamFromDrive, uploadToDrive } from '../lib/drive.service.js';
+import { deleteFromDrive, isDriveValue, streamFromDrive, uploadToDrive, getOrCreateFolder } from '../lib/drive.service.js';
 import { Category, ResultStatus } from '@prisma/client';
 
 interface ResultInput {
@@ -420,11 +420,16 @@ export async function downloadParticipationDiploma(req: Request, res: Response):
     templateMimeType: mimeType,
     nameXRatio: event.diplomaNameX,
     nameYRatio: event.diplomaNameY,
+    nameWidthRatio: event.diplomaNameWidth,
+    nameHeightRatio: event.diplomaNameHeight,
     fontSize: event.diplomaFontSize,
     textColor: event.diplomaTextColor,
+    textAlign: event.diplomaTextAlign,
   });
 
-  const fileUrl = await uploadToDrive('diplomas', pdfBuffer, filename, 'application/pdf', false);
+  const diplomasKcmFolderId = await getOrCreateFolder('Diplomas_KCM', '1ENaBUFRPAVPVL18leMP3_JuTVoXOkZPB');
+  const eventFolderId = await getOrCreateFolder(event.name, diplomasKcmFolderId);
+  const fileUrl = await uploadToDrive(eventFolderId, pdfBuffer, filename, 'application/pdf', false);
 
   if (existing && isDriveValue(existing.fileUrl)) {
     await deleteFromDrive(existing.fileUrl);

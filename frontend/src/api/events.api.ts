@@ -29,8 +29,11 @@ export interface KartEvent {
   diplomaTemplateUrl: string | null;
   diplomaNameX: number;
   diplomaNameY: number;
+  diplomaNameWidth: number;
+  diplomaNameHeight: number;
   diplomaFontSize: number;
   diplomaTextColor: string;
+  diplomaTextAlign: string;
   track: string | null;
   championshipId: string | null;
   championship: { id: string; name: string } | null;

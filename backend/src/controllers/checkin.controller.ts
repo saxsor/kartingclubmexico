@@ -23,7 +23,12 @@ export async function doCheckIn(req: Request, res: Response): Promise<void> {
 
   const inscription = await prisma.inscription.findUnique({
     where: { id: req.params.id },
-    include: { event: true, payments: true, checkIn: true },
+    include: {
+      event: true,
+      payments: true,
+      checkIn: true,
+      pilot: { select: { kartNumber: true } },
+    },
   });
   if (!inscription) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
 
@@ -33,15 +38,19 @@ export async function doCheckIn(req: Request, res: Response): Promise<void> {
   }
 
   const hasDebt = inscription.status !== 'PAID';
+  const resolvedKartNumber = kartNumber ?? inscription.kartNumber ?? inscription.pilot.kartNumber ?? undefined;
 
   const checkIn = await prisma.$transaction(async (tx) => {
     const checkIn = await tx.checkIn.create({
-      data: { inscriptionId: inscription.id, kartNumber, confirmedBy, hasDebt },
+      data: { inscriptionId: inscription.id, kartNumber: resolvedKartNumber, confirmedBy, hasDebt },
     });
 
     await tx.inscription.update({
       where: { id: inscription.id },
-      data: { kartNumber, ...(kartNotes !== undefined && { kartNotes: kartNotes || null }) },
+      data: {
+        ...(resolvedKartNumber !== undefined && { kartNumber: resolvedKartNumber }),
+        ...(kartNotes !== undefined && { kartNotes: kartNotes || null }),
+      },
     });
 
     return checkIn;

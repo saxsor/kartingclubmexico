@@ -44,7 +44,7 @@ export interface Payment {
 export interface CheckIn {
   id: string;
   inscriptionId: string;
-  kartNumber: number;
+  kartNumber: number | null;
   confirmedAt: string;
   confirmedBy: string | null;
   hasDebt: boolean;

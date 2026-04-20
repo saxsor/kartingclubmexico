@@ -256,7 +256,7 @@ model Payment {
 model CheckIn {
   id            String   @id @default(uuid())
   inscriptionId String   @unique
-  kartNumber    Int
+  kartNumber    Int?
   confirmedAt   DateTime @default(now())
   confirmedBy   String?
   hasDebt       Boolean  @default(false)

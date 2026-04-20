@@ -454,7 +454,7 @@ export function InscriptionManager() {
                 <td className="px-4 py-3 text-center"><StatusBadge status={i.status} /></td>
                 <td className="px-4 py-3 text-center">
                   {i.checkIn ? (
-                    <span className="text-xs text-green-400 font-medium">Sí #{i.checkIn.kartNumber}</span>
+                    <span className="text-xs text-green-400 font-medium">{i.checkIn.kartNumber ? `Sí #${i.checkIn.kartNumber}` : 'Sí'}</span>
                   ) : (
                     <span className="text-xs text-white/30">No</span>
                   )}

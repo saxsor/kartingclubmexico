@@ -7,7 +7,7 @@ import { listCheckIns, doCheckIn, undoCheckIn } from '../controllers/checkin.con
 const router = Router({ mergeParams: true });
 
 const checkInSchema = z.object({
-  kartNumber: z.number().int().positive(),
+  kartNumber: z.number().int().positive().optional(),
   kartNotes: z.string().optional(),
 });
 

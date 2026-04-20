@@ -1,0 +1,2 @@
+ALTER TABLE "CheckIn"
+ALTER COLUMN "kartNumber" DROP NOT NULL;

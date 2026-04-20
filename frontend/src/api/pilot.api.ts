@@ -31,7 +31,7 @@ export interface PilotInscription {
     foodFee: string;
   };
   payments: { id: string; type: string; amount: string; paidAt: string }[];
-  checkIn: { id: string; kartNumber: number; confirmedAt: string } | null;
+  checkIn: { id: string; kartNumber: number | null; confirmedAt: string } | null;
 }
 
 export interface PilotStanding {

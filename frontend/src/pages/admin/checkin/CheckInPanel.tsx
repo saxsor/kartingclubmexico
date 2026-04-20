@@ -31,7 +31,7 @@ export function CheckInPanel() {
     enabled: !!slug,
   });
   const checkInMutation = useMutation({
-    mutationFn: ({ inscriptionId, kartNumber, kartNotes }: { inscriptionId: string; kartNumber: number; kartNotes?: string }) =>
+    mutationFn: ({ inscriptionId, kartNumber, kartNotes }: { inscriptionId: string; kartNumber?: number; kartNotes?: string }) =>
       checkinApi.checkIn(slug!, inscriptionId, kartNumber, kartNotes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.checkin.all });
@@ -71,11 +71,11 @@ export function CheckInPanel() {
 
   const handleCheckIn = async (insc: Inscription) => {
     if (!slug) return;
-    const kart = parseInt(kartInputs[insc.id] ?? insc.kartNumber?.toString() ?? '0');
-    if (!kart) {
-      setError((e) => ({ ...e, [insc.id]: 'Ingresa número de kart' }));
-      return;
-    }
+    const currentKart = insc.kartNumber ?? insc.pilot.kartNumber ?? null;
+    const rawKartInput = kartInputs[insc.id];
+    const kart = rawKartInput !== undefined
+      ? (rawKartInput.trim() ? parseInt(rawKartInput, 10) : undefined)
+      : (currentKart ?? undefined);
     const notes = kartNotesInputs[insc.id] ?? insc.kartNotes ?? '';
     try {
       await checkInMutation.mutateAsync({ inscriptionId: insc.id, kartNumber: kart, kartNotes: notes || undefined });
@@ -144,77 +144,87 @@ export function CheckInPanel() {
             Pendientes ({notCheckedIn.length})
           </h2>
           <div className="space-y-2">
-            {notCheckedIn.map((insc) => (
-              <div key={insc.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white">{insc.pilot.name}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <CategoryBadge category={insc.category} />
-                      <StatusBadge status={insc.status} />
+            {notCheckedIn.map((insc) => {
+              const currentKart = insc.kartNumber ?? insc.pilot.kartNumber ?? null;
+              const currentKartText = currentKart?.toString() ?? '';
+              const inputValue = kartInputs[insc.id] ?? currentKartText;
+              const kartChanged = kartInputs[insc.id] !== undefined && kartInputs[insc.id] !== currentKartText;
+
+              return (
+                <div key={insc.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white">{insc.pilot.name}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <CategoryBadge category={insc.category} />
+                        <StatusBadge status={insc.status} />
+                        {insc.pilot.kartNumber && !insc.kartNumber && (
+                          <span className="text-xs text-white/40">Perfil: #{insc.pilot.kartNumber}</span>
+                        )}
+                      </div>
+                      {error[insc.id] && (
+                        <p className="text-xs text-red-400 mt-1">{error[insc.id]}</p>
+                      )}
                     </div>
-                    {error[insc.id] && (
-                      <p className="text-xs text-red-400 mt-1">{error[insc.id]}</p>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2 items-end">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={kartInputs[insc.id] ?? insc.kartNumber?.toString() ?? ''}
-                        onChange={(e) => setKartInputs((k) => ({ ...k, [insc.id]: e.target.value }))}
-                        placeholder="Kart #"
-                        className="w-20 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white text-center focus:border-racing-red focus:outline-none"
-                      />
-                      {(kartInputs[insc.id] !== undefined && kartInputs[insc.id] !== (insc.kartNumber?.toString() ?? '')) && (
+                    <div className="flex flex-col gap-2 items-end">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={inputValue}
+                          onChange={(e) => setKartInputs((k) => ({ ...k, [insc.id]: e.target.value }))}
+                          placeholder="Kart # opcional"
+                          className="w-28 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white text-center focus:border-racing-red focus:outline-none"
+                        />
+                        {kartChanged && inputValue.trim() && (
+                          <button
+                            onClick={() => {
+                              const n = parseInt(inputValue, 10);
+                              if (n) saveKartNumberMutation.mutate({ inscriptionId: insc.id, kartNumber: n });
+                            }}
+                            disabled={saveKartNumberMutation.isPending}
+                            title="Guardar número de kart"
+                            aria-label={`Guardar número de kart para ${insc.pilot.name}`}
+                            className="flex-shrink-0 rounded-lg bg-white/10 p-2 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-40"
+                          >
+                            <Save className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
-                          onClick={() => {
-                            const n = parseInt(kartInputs[insc.id]);
-                            if (n) saveKartNumberMutation.mutate({ inscriptionId: insc.id, kartNumber: n });
+                          onClick={() => handleCheckIn(insc)}
+                          className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
+                        >
+                          <CheckSquare className="h-4 w-4" />
+                          Check-in
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-1.5 w-full">
+                        <input
+                          type="text"
+                          value={kartNotesInputs[insc.id] ?? insc.kartNotes ?? ''}
+                          onChange={(e) => setKartNotesInputs((k) => ({ ...k, [insc.id]: e.target.value }))}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveNotesMutation.mutate({ inscriptionId: insc.id, kartNotes: kartNotesInputs[insc.id] ?? insc.kartNotes ?? '' });
                           }}
-                          disabled={saveKartNumberMutation.isPending}
-                          title="Guardar número de kart"
-                          aria-label={`Guardar número de kart para ${insc.pilot.name}`}
-                          className="flex-shrink-0 rounded-lg bg-white/10 p-2 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-40"
-                        >
-                          <Save className="h-4 w-4" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleCheckIn(insc)}
-                        className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
-                      >
-                        <CheckSquare className="h-4 w-4" />
-                        Check-in
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-1.5 w-full">
-                      <input
-                        type="text"
-                        value={kartNotesInputs[insc.id] ?? insc.kartNotes ?? ''}
-                        onChange={(e) => setKartNotesInputs((k) => ({ ...k, [insc.id]: e.target.value }))}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveNotesMutation.mutate({ inscriptionId: insc.id, kartNotes: kartNotesInputs[insc.id] ?? insc.kartNotes ?? '' });
-                        }}
-                        placeholder="Ej: kart azul, pontones blancos"
-                        className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white placeholder-white/25 focus:border-racing-red focus:outline-none"
-                      />
-                      {(kartNotesInputs[insc.id] !== undefined && kartNotesInputs[insc.id] !== (insc.kartNotes ?? '')) && (
-                        <button
-                          onClick={() => saveNotesMutation.mutate({ inscriptionId: insc.id, kartNotes: kartNotesInputs[insc.id] })}
-                          disabled={saveNotesMutation.isPending}
-                          title="Guardar nota"
-                          aria-label={`Guardar nota de kart para ${insc.pilot.name}`}
-                          className="flex-shrink-0 rounded-lg bg-white/10 p-1.5 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-40"
-                        >
-                          <Save className="h-3.5 w-3.5" />
-                        </button>
-                      )}
+                          placeholder="Ej: kart azul, pontones blancos"
+                          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white placeholder-white/25 focus:border-racing-red focus:outline-none"
+                        />
+                        {(kartNotesInputs[insc.id] !== undefined && kartNotesInputs[insc.id] !== (insc.kartNotes ?? '')) && (
+                          <button
+                            onClick={() => saveNotesMutation.mutate({ inscriptionId: insc.id, kartNotes: kartNotesInputs[insc.id] })}
+                            disabled={saveNotesMutation.isPending}
+                            title="Guardar nota"
+                            aria-label={`Guardar nota de kart para ${insc.pilot.name}`}
+                            className="flex-shrink-0 rounded-lg bg-white/10 p-1.5 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-40"
+                          >
+                            <Save className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -233,7 +243,7 @@ export function CheckInPanel() {
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <CategoryBadge category={insc.category} />
                       <span className="text-xs text-green-400 font-medium">
-                        Kart #{insc.checkIn!.kartNumber}
+                        {insc.checkIn!.kartNumber ? `Kart #${insc.checkIn!.kartNumber}` : 'Sin kart asignado'}
                       </span>
                       {insc.checkIn?.hasDebt && (
                         <span className="text-xs font-bold text-orange-400 bg-orange-400/10 border border-orange-400/30 px-1.5 py-0.5 rounded">

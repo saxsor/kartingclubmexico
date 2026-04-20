@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 import { Category, InscriptionStatus } from '@prisma/client';
-import { recalculateChampionship } from '../services/championship.service.js';
+import { recalculateChampionship, recalculateConstructorStandings } from '../services/championship.service.js';
 
 async function getEventOrFail(slug: string, res: Response) {
   const event = await prisma.event.findUnique({ where: { slug } });
@@ -98,10 +98,40 @@ export async function getInscription(req: Request, res: Response): Promise<void>
 
 export async function updateInscription(req: Request, res: Response): Promise<void> {
   const { category, kartNumber, kartNotes, notes, status, companions, engine, exentoCarrera, exentoComida } = req.body;
+  const existing = await prisma.inscription.findUnique({
+    where: { id: req.params.id },
+    include: {
+      event: true,
+      checkIn: true,
+      raceResults: {
+        include: {
+          race: {
+            include: { event: true },
+          },
+        },
+      },
+    },
+  });
+  if (!existing) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
+
+  const categoryChanged = category !== undefined && category !== existing.category;
+  const affected = new Set<string>();
+  for (const result of existing.raceResults) {
+    affected.add(`${result.race.event.year}:${result.race.category}`);
+  }
+  if (categoryChanged) {
+    affected.add(`${existing.event.year}:${existing.category}`);
+    affected.add(`${existing.event.year}:${category}`);
+  }
 
   const inscription = await prisma.$transaction(async (tx) => {
+    if (categoryChanged) {
+      await tx.startGridPosition.deleteMany({ where: { inscriptionId: existing.id } });
+      await tx.raceResult.deleteMany({ where: { inscriptionId: existing.id } });
+    }
+
     const updated = await tx.inscription.update({
-      where: { id: req.params.id },
+      where: { id: existing.id },
       data: {
         ...(category !== undefined && { category }),
         ...(kartNumber !== undefined && { kartNumber }),
@@ -143,8 +173,43 @@ export async function updateInscription(req: Request, res: Response): Promise<vo
       });
     }
 
+    if (categoryChanged && updated.checkIn) {
+      const newEventCategory = await tx.eventCategory.findUnique({
+        where: {
+          eventId_category: {
+            eventId: updated.eventId,
+            category: updated.category,
+          },
+        },
+      });
+
+      if (newEventCategory) {
+        const newGrid = await tx.startGrid.findUnique({
+          where: { eventCategoryId: newEventCategory.id },
+          include: { positions: { orderBy: { position: 'desc' }, take: 1 } },
+        });
+
+        if (newGrid) {
+          const nextPosition = (newGrid.positions[0]?.position ?? 0) + 1;
+          await tx.startGridPosition.create({
+            data: {
+              startGridId: newGrid.id,
+              inscriptionId: updated.id,
+              position: nextPosition,
+            },
+          });
+        }
+      }
+    }
+
     return updated;
   });
+
+  for (const key of affected) {
+    const [year, affectedCategory] = key.split(':');
+    await recalculateChampionship(parseInt(year, 10), affectedCategory as Category);
+    await recalculateConstructorStandings(parseInt(year, 10), affectedCategory as Category);
+  }
 
   const { event: _event, ...rest } = inscription;
   res.json(rest);

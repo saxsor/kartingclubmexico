@@ -5,11 +5,12 @@ Sistema completo de gestión de carreras de karting con resultados en tiempo rea
 ## Stack
 
 ### Backend
-- **Runtime**: Node.js 20 + TypeScript
+- **Runtime**: Node.js 20 + ES Modules (ESM)
 - **Framework**: Express + express-async-errors
 - **ORM**: Prisma
 - **Base de datos**: [Neon](https://neon.tech) — PostgreSQL serverless
 - **Almacenamiento de archivos**: [Google Drive API v3](https://developers.google.com/drive) — fotos de pilotos, posters de eventos y comprobantes de pago
+- **Procesamiento de Imágenes**: [Sharp](https://sharp.pixelplumbing.com/) — marcas de agua y optimización
 - **Auth Google**: OAuth2 con refresh token (`googleapis` + `google-auth-library`)
 - **Email**: SMTP via [Resend](https://resend.com) (`nodemailer`) — magic links para portal de piloto
 - **Auth usuarios admin**: JWT doble cookie (access 7d + refresh 30d), roles ADMIN / ORGANIZER / VALIDATOR
@@ -231,6 +232,18 @@ Al cerrar un evento, el admin puede generar y descargar diplomas en PDF personal
 
 ---
 
+## Galería de Fotos
+
+El sistema permite gestionar álbumes de fotos por evento con marcas de agua automáticas y descarga optimizada.
+
+### Características
+- **Organización Automática**: Al subir fotos de un evento, el sistema crea automáticamente una carpeta con el nombre del evento dentro de Google Drive.
+- **Marca de Agua**: Al descargar fotos, se aplica dinámicamente una marca de agua (logo de KCM) en la esquina inferior derecha usando Sharp.
+- **Lightbox**: Visor de fotos integrado en el frontend para una experiencia de usuario fluida.
+- **Portadas Dinámicas**: La primera foto subida se establece automáticamente como portada del álbum (configurable).
+
+---
+
 ## Campeonato de constructores
 
 Además del campeonato individual, el sistema calcula standings por equipo/constructor:
@@ -249,10 +262,12 @@ Todos los archivos se almacenan en Google Drive usando la API v3 con OAuth2:
 |------|---------------|-------------|
 | Fotos de pilotos | `pilots/` | Pública (anyone reader) |
 | Posters de eventos | `posters/` | Pública (anyone reader) |
+| Fotos de eventos | `photos/` (dinámico) | Pública (anyone reader) |
 | Comprobantes de pago | `receipts/` | Privada (solo admin via proxy) |
 
 - Los campos en BD almacenan `drive:FILE_ID`
 - El frontend resuelve a `https://lh3.googleusercontent.com/d/FILE_ID` para imágenes públicas
+- El sistema crea subcarpetas automáticamente por evento en la carpeta de `photos/` para mantener el Drive organizado.
 - Los comprobantes se sirven via proxy en el backend (`GET /api/events/:slug/inscriptions/:id/receipt`)
 - Script de migración one-time: `backend/scripts/migrate-uploads-to-drive.mjs`
 

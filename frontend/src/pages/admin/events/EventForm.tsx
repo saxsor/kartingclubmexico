@@ -93,6 +93,7 @@ export function EventForm() {
   const diplomaPreviewUrl = currentEvent?.diplomaTemplateUrl
     ? `${resolveMediaUrl(currentEvent.diplomaTemplateUrl) ?? ''}?t=${currentEvent.updatedAt}`
     : null;
+  const diplomaPreviewTextWidth = '72%';
 
   const handlePosterChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -425,6 +426,11 @@ export function EventForm() {
                       textShadow: '0 2px 8px rgba(0,0,0,0.35)',
                       transform: 'translate(-50%, -50%)',
                       touchAction: 'none',
+                      width: diplomaPreviewTextWidth,
+                      maxWidth: diplomaPreviewTextWidth,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
                     }}
                     onPointerDown={startDraggingDiplomaName}
                   >

@@ -22,6 +22,35 @@ interface ParticipationDiplomaInput {
   textColor?: string;
 }
 
+function resolveFittedDiplomaFontSize(
+  doc: PDFKit.PDFDocument,
+  text: string,
+  desiredFontSize: number,
+  maxWidth: number,
+): number {
+  const minFontSize = 12;
+  doc.font('Helvetica-Bold');
+
+  let currentSize = desiredFontSize;
+  doc.fontSize(currentSize);
+  let measuredWidth = doc.widthOfString(text);
+
+  if (measuredWidth <= maxWidth) return currentSize;
+
+  const proportionalSize = Math.floor((desiredFontSize * maxWidth) / measuredWidth);
+  currentSize = Math.max(minFontSize, proportionalSize);
+  doc.fontSize(currentSize);
+  measuredWidth = doc.widthOfString(text);
+
+  while (currentSize > minFontSize && measuredWidth > maxWidth) {
+    currentSize -= 1;
+    doc.fontSize(currentSize);
+    measuredWidth = doc.widthOfString(text);
+  }
+
+  return currentSize;
+}
+
 export function generateResultsPdf(
   eventName: string,
   category: string,
@@ -124,17 +153,19 @@ export async function generateParticipationDiplomaPdf({
     doc.on('error', reject);
 
     doc.image(templateBuffer, 0, 0, imageOptions);
-    doc.fillColor(textColor).font('Helvetica-Bold').fontSize(fontSize);
+    doc.fillColor(textColor).font('Helvetica-Bold');
 
     const pageWidth = doc.page.width;
-    const textWidth = Math.min(pageWidth - 120, doc.widthOfString(pilotName) + 24);
+    const maxTextWidth = pageWidth * 0.72;
+    const fittedFontSize = resolveFittedDiplomaFontSize(doc, pilotName, fontSize, maxTextWidth);
+    doc.fontSize(fittedFontSize);
     const minX = 24;
-    const maxX = pageWidth - textWidth - 24;
-    const textX = Math.max(minX, Math.min(maxX, pageWidth * nameXRatio - textWidth / 2));
+    const maxX = pageWidth - maxTextWidth - 24;
+    const textX = Math.max(minX, Math.min(maxX, pageWidth * nameXRatio - maxTextWidth / 2));
     const textY = doc.page.height * nameYRatio;
 
     doc.text(pilotName, textX, textY, {
-      width: textWidth,
+      width: maxTextWidth,
       align: 'center',
       lineBreak: false,
     });

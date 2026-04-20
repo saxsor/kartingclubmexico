@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { BarChart2 } from 'lucide-react';
+import { Award, BarChart2 } from 'lucide-react';
 import { resultsApi } from '../../api/results.api';
 import { eventsApi, Category } from '../../api/events.api';
 import { useSSE } from '../../hooks/useSSE';
@@ -46,6 +46,7 @@ export function EventResults() {
   if (loading) return <PageLoadingState rows={3} />;
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
+  const canDownloadDiplomas = event?.status === 'FINISHED' && !!event?.diplomaTemplateUrl;
 
   return (
     <div>
@@ -104,6 +105,17 @@ export function EventResults() {
               rows={results.classification}
               raceNumbers={results.races}
               showGap
+              renderAction={canDownloadDiplomas ? (row) => (
+                row.pilotId ? (
+                  <a
+                    href={resultsApi.diplomaUrl(slug!, row.pilotId)}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-yellow-200 transition-colors hover:bg-yellow-500/20"
+                  >
+                    <Award className="h-3.5 w-3.5" />
+                    Descargar diploma
+                  </a>
+                ) : null
+              ) : undefined}
             />
           )}
         </div>

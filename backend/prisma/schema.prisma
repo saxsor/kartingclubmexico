@@ -152,6 +152,7 @@ model Pilot {
   standings     ChampionshipStanding[]
   user          User?
   magicTokens   PilotMagicToken[]
+  diplomas      ParticipationDiploma[]
 
   @@index([active])
   @@index([kartNumber])
@@ -181,6 +182,10 @@ model Event {
   blockCheckInOnDebt Boolean     @default(false)
   transferInfo       String?
   posterUrl          String?
+  diplomaTemplateUrl String?
+  diplomaNameY       Float       @default(0.58)
+  diplomaFontSize    Int         @default(28)
+  diplomaTextColor   String      @default("#111111")
   track              String?
   championshipId     String?
   createdAt          DateTime    @default(now())
@@ -191,6 +196,7 @@ model Event {
   inscriptions    Inscription[]
   races           Race[]
   eventGuests     EventGuest[]
+  diplomas        ParticipationDiploma[]
 
   @@index([status])
   @@index([year])
@@ -233,6 +239,7 @@ model Inscription {
   checkIn       CheckIn?
   raceResults   RaceResult[]
   gridPositions StartGridPosition[]
+  diplomas      ParticipationDiploma[]
 
   @@unique([eventId, pilotId, category])
   @@index([eventId])
@@ -277,6 +284,25 @@ model EventGuest {
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([eventId])
+}
+
+model ParticipationDiploma {
+  id            String   @id @default(uuid())
+  eventId       String
+  pilotId       String
+  inscriptionId String
+  fileUrl       String
+  generatedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  pilot       Pilot       @relation(fields: [pilotId], references: [id])
+  inscription Inscription @relation(fields: [inscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, pilotId])
+  @@index([eventId])
+  @@index([pilotId])
+  @@index([inscriptionId])
 }
 
 model StartGrid {

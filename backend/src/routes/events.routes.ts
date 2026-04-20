@@ -6,8 +6,9 @@ import {
   listEvents, createEvent, getEvent, updateEvent, deleteEvent,
   patchEventStatus, getEventCategories, updateEventCategories,
   uploadEventPoster, deleteEventPoster, getPublicPilots,
+  uploadEventDiplomaTemplate, deleteEventDiplomaTemplate,
 } from '../controllers/events.controller.js';
-import { uploadPoster } from '../lib/upload.js';
+import { uploadDiplomaTemplate, uploadPoster } from '../lib/upload.js';
 
 const router = Router();
 
@@ -26,6 +27,9 @@ const createSchema = z.object({
   staffCount: z.number().int().min(0).optional(),
   blockCheckInOnDebt: z.boolean().optional(),
   transferInfo: z.string().optional(),
+  diplomaNameY: z.number().min(0.1).max(0.95).optional(),
+  diplomaFontSize: z.number().int().min(16).max(96).optional(),
+  diplomaTextColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   categories: z.array(categoryEnum).optional(),
   championshipId: z.string().optional().nullable(),
 });
@@ -41,6 +45,9 @@ const updateSchema = z.object({
   staffCount: z.number().int().min(0).optional(),
   blockCheckInOnDebt: z.boolean().optional(),
   transferInfo: z.string().optional(),
+  diplomaNameY: z.number().min(0.1).max(0.95).optional(),
+  diplomaFontSize: z.number().int().min(16).max(96).optional(),
+  diplomaTextColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   categories: z.array(categoryEnum).optional(),
   championshipId: z.string().optional().nullable(),
 });
@@ -65,5 +72,7 @@ router.patch('/:slug/status', authenticate, requireRole('ADMIN', 'ORGANIZER'), v
 router.put('/:slug/categories', authenticate, requireRole('ADMIN'), validate(categoriesSchema), updateEventCategories);
 router.post('/:slug/poster', authenticate, requireRole('ADMIN', 'ORGANIZER'), uploadPoster.single('poster'), uploadEventPoster);
 router.delete('/:slug/poster', authenticate, requireRole('ADMIN', 'ORGANIZER'), deleteEventPoster);
+router.post('/:slug/diploma-template', authenticate, requireRole('ADMIN', 'ORGANIZER'), uploadDiplomaTemplate.single('template'), uploadEventDiplomaTemplate);
+router.delete('/:slug/diploma-template', authenticate, requireRole('ADMIN', 'ORGANIZER'), deleteEventDiplomaTemplate);
 
 export default router;

@@ -3,7 +3,8 @@ import { prisma } from '../lib/prisma.js';
 import { sseManager } from '../lib/sse.js';
 import { calculatePoints } from '../services/points.service.js';
 import { recalculateChampionship, recalculateConstructorStandings } from '../services/championship.service.js';
-import { generateResultsPdf, generateCsvResults } from '../services/pdf.service.js';
+import { generateResultsPdf, generateCsvResults, generateParticipationDiplomaPdf } from '../services/pdf.service.js';
+import { deleteFromDrive, isDriveValue, streamFromDrive, uploadToDrive } from '../lib/drive.service.js';
 import { Category, ResultStatus } from '@prisma/client';
 
 interface ResultInput {
@@ -11,6 +12,14 @@ interface ResultInput {
   position: number | null;
   lapsCompleted: number;
   status: ResultStatus;
+}
+
+async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
 }
 
 export async function saveRaceResults(req: Request, res: Response): Promise<void> {
@@ -363,6 +372,77 @@ export async function getEventResultsByCategory(req: Request, res: Response): Pr
   }));
 
   res.json({ category, races: races.map((r) => r.number), classification });
+}
+
+export async function downloadParticipationDiploma(req: Request, res: Response): Promise<void> {
+  const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
+  if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+  if (event.status !== 'FINISHED') { res.status(403).json({ error: 'Los diplomas se habilitan al finalizar el evento' }); return; }
+  if (!event.diplomaTemplateUrl) { res.status(404).json({ error: 'Este evento no tiene diploma configurado' }); return; }
+
+  const inscription = await prisma.inscription.findFirst({
+    where: {
+      eventId: event.id,
+      pilotId: req.params.pilotId,
+      checkIn: { isNot: null },
+    },
+    include: {
+      pilot: { select: { id: true, name: true } },
+      checkIn: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  if (!inscription) {
+    res.status(404).json({ error: 'No hay diploma disponible para este piloto' });
+    return;
+  }
+
+  const existing = await prisma.participationDiploma.findUnique({
+    where: { eventId_pilotId: { eventId: event.id, pilotId: inscription.pilotId } },
+  });
+
+  const filename = `${event.slug}-${inscription.pilot.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-diploma.pdf`;
+
+  if (existing && isDriveValue(existing.fileUrl)) {
+    const { stream } = await streamFromDrive(existing.fileUrl);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    stream.pipe(res);
+    return;
+  }
+
+  const { stream: templateStream, mimeType } = await streamFromDrive(event.diplomaTemplateUrl);
+  const templateBuffer = await streamToBuffer(templateStream);
+  const pdfBuffer = await generateParticipationDiplomaPdf({
+    pilotName: inscription.pilot.name,
+    templateBuffer,
+    templateMimeType: mimeType,
+    nameYRatio: event.diplomaNameY,
+    fontSize: event.diplomaFontSize,
+    textColor: event.diplomaTextColor,
+  });
+
+  const fileUrl = await uploadToDrive('diplomas', pdfBuffer, filename, 'application/pdf', false);
+
+  if (existing && isDriveValue(existing.fileUrl)) {
+    await deleteFromDrive(existing.fileUrl);
+  }
+
+  await prisma.participationDiploma.upsert({
+    where: { eventId_pilotId: { eventId: event.id, pilotId: inscription.pilotId } },
+    update: { inscriptionId: inscription.id, fileUrl },
+    create: {
+      eventId: event.id,
+      pilotId: inscription.pilotId,
+      inscriptionId: inscription.id,
+      fileUrl,
+    },
+  });
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(pdfBuffer);
 }
 
 export async function exportResults(req: Request, res: Response): Promise<void> {

@@ -26,6 +26,10 @@ export interface KartEvent {
   blockCheckInOnDebt: boolean;
   transferInfo: string | null;
   posterUrl: string | null;
+  diplomaTemplateUrl: string | null;
+  diplomaNameY: number;
+  diplomaFontSize: number;
+  diplomaTextColor: string;
   track: string | null;
   championshipId: string | null;
   championship: { id: string; name: string } | null;
@@ -47,6 +51,12 @@ export const eventsApi = {
     return uploadWithAuth<KartEvent>(`/events/${slug}/poster`, fd);
   },
   deletePoster: (slug: string) => api.delete<KartEvent>(`/events/${slug}/poster`),
+  uploadDiplomaTemplate: (slug: string, file: File) => {
+    const fd = new FormData();
+    fd.append('template', file);
+    return uploadWithAuth<KartEvent>(`/events/${slug}/diploma-template`, fd);
+  },
+  deleteDiplomaTemplate: (slug: string) => api.delete<KartEvent>(`/events/${slug}/diploma-template`),
   patchStatus: (slug: string, status: EventStatus) =>
     api.patch<KartEvent>(`/events/${slug}/status`, { status }),
   getCategories: (slug: string) => api.get<EventCategory[]>(`/events/${slug}/categories`),

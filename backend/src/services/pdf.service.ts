@@ -12,6 +12,15 @@ interface ResultRow {
   total: number;
 }
 
+interface ParticipationDiplomaInput {
+  pilotName: string;
+  templateBuffer: Buffer;
+  templateMimeType: string;
+  nameYRatio?: number;
+  fontSize?: number;
+  textColor?: string;
+}
+
 export function generateResultsPdf(
   eventName: string,
   category: string,
@@ -92,4 +101,40 @@ export function generateCsvResults(
     );
   }
   return lines.join('\n');
+}
+
+export async function generateParticipationDiplomaPdf({
+  pilotName,
+  templateBuffer,
+  templateMimeType,
+  nameYRatio = 0.58,
+  fontSize = 28,
+  textColor = '#111111',
+}: ParticipationDiplomaInput): Promise<Buffer> {
+  const imageOptions = templateMimeType.includes('png') ? { fit: [842, 595] as [number, number] } : { fit: [842, 595] as [number, number] };
+
+  return await new Promise<Buffer>((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 0 });
+    const chunks: Buffer[] = [];
+
+    doc.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    doc.image(templateBuffer, 0, 0, imageOptions);
+    doc.fillColor(textColor).font('Helvetica-Bold').fontSize(fontSize);
+
+    const pageWidth = doc.page.width;
+    const textWidth = Math.min(pageWidth - 120, doc.widthOfString(pilotName) + 24);
+    const textX = (pageWidth - textWidth) / 2;
+    const textY = doc.page.height * nameYRatio;
+
+    doc.text(pilotName, textX, textY, {
+      width: textWidth,
+      align: 'center',
+      lineBreak: false,
+    });
+
+    doc.end();
+  });
 }

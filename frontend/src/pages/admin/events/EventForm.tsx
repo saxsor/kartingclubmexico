@@ -24,13 +24,18 @@ export function EventForm() {
     foodFee: '0',
     blockCheckInOnDebt: false,
     transferInfo: '',
+    diplomaNameY: '0.58',
+    diplomaFontSize: '28',
+    diplomaTextColor: '#111111',
     categories: [] as Category[],
     championshipId: '' as string,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [posterUploading, setPosterUploading] = useState(false);
+  const [diplomaUploading, setDiplomaUploading] = useState(false);
   const posterInputRef = useRef<HTMLInputElement>(null);
+  const diplomaInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const eventQuery = useQuery({
     queryKey: isEdit && slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'new'],
@@ -72,6 +77,9 @@ export function EventForm() {
       foodFee: event.foodFee,
       blockCheckInOnDebt: event.blockCheckInOnDebt,
       transferInfo: event.transferInfo ?? '',
+      diplomaNameY: String(event.diplomaNameY ?? 0.58),
+      diplomaFontSize: String(event.diplomaFontSize ?? 28),
+      diplomaTextColor: event.diplomaTextColor ?? '#111111',
       categories: event.eventCategories.filter((c) => c.active).map((c) => c.category),
       championshipId: event.championshipId ?? '',
     });
@@ -107,6 +115,38 @@ export function EventForm() {
     }
   };
 
+  const handleDiplomaTemplateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !slug) return;
+    setDiplomaUploading(true);
+    try {
+      const updated = await eventsApi.uploadDiplomaTemplate(slug, file);
+      queryClient.setQueryData(queryKeys.events.detail(slug), updated);
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+      toast.success('Plantilla de diploma actualizada');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al subir plantilla de diploma');
+    } finally {
+      setDiplomaUploading(false);
+      if (diplomaInputRef.current) diplomaInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteDiplomaTemplate = async () => {
+    if (!slug || !confirm('¿Eliminar la plantilla de diploma?')) return;
+    setDiplomaUploading(true);
+    try {
+      const updated = await eventsApi.deleteDiplomaTemplate(slug);
+      queryClient.setQueryData(queryKeys.events.detail(slug), updated);
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+      toast.success('Plantilla de diploma eliminada');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar plantilla de diploma');
+    } finally {
+      setDiplomaUploading(false);
+    }
+  };
+
   const toggleCategory = (cat: Category) => {
     setForm((f) => ({
       ...f,
@@ -130,6 +170,9 @@ export function EventForm() {
         foodFee: parseFloat(form.foodFee),
         blockCheckInOnDebt: form.blockCheckInOnDebt,
         transferInfo: form.transferInfo || undefined,
+        diplomaNameY: parseFloat(form.diplomaNameY),
+        diplomaFontSize: parseInt(form.diplomaFontSize, 10),
+        diplomaTextColor: form.diplomaTextColor,
         categories: form.categories,
         championshipId: form.championshipId || null,
       };
@@ -235,6 +278,80 @@ export function EventForm() {
         </div>
       )}
 
+      {isEdit && (
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-1 h-5 bg-yellow-500" />
+            <span className="text-xs font-bold uppercase tracking-widest text-white/50">Diploma de participación</span>
+          </div>
+
+          {currentEvent?.diplomaTemplateUrl ? (
+            <div>
+              <div className="relative overflow-hidden border border-[#38383f]" style={{ aspectRatio: '16/9' }}>
+                <img
+                  key={currentEvent.diplomaTemplateUrl}
+                  src={`${resolveMediaUrl(currentEvent.diplomaTemplateUrl) ?? ''}?t=${Date.now()}`}
+                  alt="Plantilla de diploma"
+                  className="w-full h-full object-cover"
+                />
+                {diplomaUploading && (
+                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-2">
+                    <div className="h-6 w-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    <span className="text-xs text-white/60 uppercase tracking-widest">Subiendo...</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => diplomaInputRef.current?.click()}
+                  disabled={diplomaUploading}
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#2a2a35] hover:bg-[#38383f] border border-[#38383f] text-white/70 hover:text-white transition-colors disabled:opacity-40"
+                >
+                  <ImagePlus className="h-3.5 w-3.5" /> Cambiar plantilla
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteDiplomaTemplate}
+                  disabled={diplomaUploading}
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-colors disabled:opacity-40"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Eliminar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => diplomaInputRef.current?.click()}
+              disabled={diplomaUploading}
+              className="w-full flex flex-col items-center justify-center gap-3 border-2 border-dashed border-yellow-500/20 hover:border-yellow-500/50 bg-transparent hover:bg-yellow-500/5 transition-colors py-12 text-white/40 hover:text-white/70 disabled:opacity-40"
+            >
+              {diplomaUploading ? (
+                <>
+                  <div className="h-8 w-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+                  <span className="text-sm font-medium">Subiendo plantilla...</span>
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="h-8 w-8" />
+                  <span className="text-sm font-medium">Subir plantilla de diploma</span>
+                  <span className="text-xs text-white/30">JPG o PNG · máx. 10 MB · recomendado formato horizontal</span>
+                </>
+              )}
+            </button>
+          )}
+
+          <input
+            ref={diplomaInputRef}
+            type="file"
+            accept="image/jpeg,image/png"
+            className="hidden"
+            onChange={handleDiplomaTemplateChange}
+          />
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
@@ -300,6 +417,45 @@ export function EventForm() {
           />
           <p className="mt-1 text-xs text-white/40">
             Se mostrará al piloto después de inscribirse.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-1.5">Posición nombre</label>
+            <input
+              type="number"
+              value={form.diplomaNameY}
+              onChange={(e) => setForm({ ...form, diplomaNameY: e.target.value })}
+              min="0.1"
+              max="0.95"
+              step="0.01"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-racing-red focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-1.5">Tamaño nombre</label>
+            <input
+              type="number"
+              value={form.diplomaFontSize}
+              onChange={(e) => setForm({ ...form, diplomaFontSize: e.target.value })}
+              min="16"
+              max="96"
+              step="1"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-racing-red focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-1.5">Color texto</label>
+            <input
+              type="color"
+              value={form.diplomaTextColor}
+              onChange={(e) => setForm({ ...form, diplomaTextColor: e.target.value })}
+              className="h-[42px] w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1"
+            />
+          </div>
+          <p className="col-span-3 text-xs text-white/40">
+            El diploma se genera automáticamente para pilotos con check-in y se publica en resultados al finalizar el evento.
           </p>
         </div>
 

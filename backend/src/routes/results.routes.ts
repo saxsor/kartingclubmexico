@@ -4,13 +4,14 @@ import { validate } from '../middleware/validate.middleware.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import {
   saveRaceResults, addPenalty, deletePenalty,
-  getEventResults, getEventResultsByCategory, exportResults,
+  getEventResults, getEventResultsByCategory, exportResults, downloadParticipationDiploma,
 } from '../controllers/results.controller.js';
 
 const eventRouter = Router({ mergeParams: true });
 
 eventRouter.get('/results', getEventResults);
 eventRouter.get('/results/export', authenticate, requireRole('ADMIN', 'ORGANIZER'), exportResults);
+eventRouter.get('/results/diploma/:pilotId', downloadParticipationDiploma);
 eventRouter.get('/results/:category', getEventResultsByCategory);
 
 // Race-level results (mounted at /api/races)

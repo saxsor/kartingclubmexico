@@ -31,6 +31,16 @@ export const uploadPilotPhoto = multer({
   fileFilter: imageFilter,
 });
 
+export const uploadDiplomaTemplate = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = /jpeg|jpg|png/;
+    const ok = allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype);
+    cb(null, ok);
+  },
+});
+
 export const uploadCsv = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024 },

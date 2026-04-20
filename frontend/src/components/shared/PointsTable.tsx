@@ -1,8 +1,10 @@
 import { User } from 'lucide-react';
+import { ReactNode } from 'react';
 import { cn, getPositionClass, resolveMediaUrl } from '../../lib/utils';
 
-interface Row {
+export interface PointsTableRow {
   position: number;
+  pilotId?: string;
   pilotName: string;
   alias?: string | null;
   kartNumber?: number | null;
@@ -13,10 +15,11 @@ interface Row {
 }
 
 interface Props {
-  rows: Row[];
+  rows: PointsTableRow[];
   raceNumbers?: number[];
   showGap?: boolean;
   className?: string;
+  renderAction?: (row: PointsTableRow) => ReactNode;
 }
 
 function PilotAvatar({ photoUrl, name }: { photoUrl?: string | null; name: string }) {
@@ -43,7 +46,7 @@ const positionBorder = (idx: number) =>
   idx === 2 ? 'border-l-[3px] border-l-orange-400/40' :
   'border-l-[3px] border-l-transparent';
 
-export function PointsTable({ rows, raceNumbers = [], showGap = true, className }: Props) {
+export function PointsTable({ rows, raceNumbers = [], showGap = true, className, renderAction }: Props) {
   return (
     <div className={cn('border border-[#38383f]', className)}>
       {/* Desktop table */}
@@ -62,6 +65,9 @@ export function PointsTable({ rows, raceNumbers = [], showGap = true, className 
               <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Total</th>
               {showGap && (
                 <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Gap</th>
+              )}
+              {renderAction && (
+                <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Diploma</th>
               )}
             </tr>
           </thead>
@@ -108,6 +114,11 @@ export function PointsTable({ rows, raceNumbers = [], showGap = true, className 
                     {row.gap === 0 ? '—' : `-${row.gap}`}
                   </td>
                 )}
+                {renderAction && (
+                  <td className="px-4 py-2.5 text-center">
+                    {renderAction(row)}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -120,46 +131,49 @@ export function PointsTable({ rows, raceNumbers = [], showGap = true, className 
           <div
             key={idx}
             className={cn(
-              'flex items-center gap-3 px-4 py-3 transition-colors',
+              'px-4 py-3 transition-colors',
               idx === 0 && 'bg-yellow-500/5',
               positionBorder(idx),
             )}
           >
-            {/* Position */}
-            <span className={cn('font-black text-2xl w-7 flex-shrink-0 text-center', getPositionClass(row.position))}
-              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-              {row.position}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={cn('font-black text-2xl w-7 flex-shrink-0 text-center', getPositionClass(row.position))}
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                {row.position}
+              </span>
 
-            {/* Avatar */}
-            <PilotAvatar photoUrl={row.photoUrl} name={row.pilotName} />
+              <PilotAvatar photoUrl={row.photoUrl} name={row.pilotName} />
 
-            {/* Pilot info */}
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-white uppercase text-sm truncate leading-tight"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
-                {row.pilotName}
-              </p>
-              <div className="flex items-center gap-2 mt-0.5">
-                {row.alias && <span className="text-[10px] text-white/40 italic">"{row.alias}"</span>}
-                {raceNumbers.length > 0 && (
-                  <span className="text-[10px] text-white/30">
-                    {raceNumbers.map((n) => `C${n}: ${row.races?.[n] ?? '—'}`).join(' · ')}
-                  </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-white uppercase text-sm truncate leading-tight"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+                  {row.pilotName}
+                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {row.alias && <span className="text-[10px] text-white/40 italic">"{row.alias}"</span>}
+                  {raceNumbers.length > 0 && (
+                    <span className="text-[10px] text-white/30">
+                      {raceNumbers.map((n) => `C${n}: ${row.races?.[n] ?? '—'}`).join(' · ')}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-right flex-shrink-0">
+                <p className="font-black text-white text-xl leading-none"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                  {row.total}
+                </p>
+                {showGap && row.gap !== undefined && row.gap > 0 && (
+                  <p className="text-[10px] text-white/30 font-bold">-{row.gap}</p>
                 )}
               </div>
             </div>
-
-            {/* Score */}
-            <div className="text-right flex-shrink-0">
-              <p className="font-black text-white text-xl leading-none"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                {row.total}
-              </p>
-              {showGap && row.gap !== undefined && row.gap > 0 && (
-                <p className="text-[10px] text-white/30 font-bold">-{row.gap}</p>
-              )}
-            </div>
+            {renderAction && (
+              <div className="mt-3">
+                {renderAction(row)}
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -8,6 +8,23 @@ import { config } from '../config/index.js';
 import { sendResultsPublishedEmail } from '../services/email.service.js';
 import { CATEGORY_LABELS } from '../lib/category-labels.js';
 
+async function clearGeneratedDiplomas(eventId: string): Promise<void> {
+  const diplomas = await prisma.participationDiploma.findMany({
+    where: { eventId },
+    select: { id: true, fileUrl: true },
+  });
+
+  await Promise.all(
+    diplomas
+      .filter((d) => isDriveValue(d.fileUrl))
+      .map((d) => deleteFromDrive(d.fileUrl)),
+  );
+
+  if (diplomas.length > 0) {
+    await prisma.participationDiploma.deleteMany({ where: { eventId } });
+  }
+}
+
 export async function listEvents(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
   const publicOnly = req.query.public === 'true';
@@ -45,7 +62,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
 }
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, categories, championshipId } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, categories, championshipId, diplomaNameY, diplomaFontSize, diplomaTextColor } = req.body;
 
   const baseSlug = slugify(name, { lower: true, strict: true });
   let slug = baseSlug;
@@ -66,6 +83,9 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
       staffCount: staffCount ?? 0,
       blockCheckInOnDebt: blockCheckInOnDebt ?? false,
       transferInfo: transferInfo ?? null,
+      diplomaNameY: diplomaNameY ?? 0.58,
+      diplomaFontSize: diplomaFontSize ?? 28,
+      diplomaTextColor: diplomaTextColor ?? '#111111',
       track: track ?? null,
       championshipId: championshipId ?? null,
       eventCategories: {
@@ -87,7 +107,15 @@ export async function getEvent(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, championshipId } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, championshipId, diplomaNameY, diplomaFontSize, diplomaTextColor } = req.body;
+  const existing = await prisma.event.findUnique({ where: { slug: req.params.slug } });
+  if (!existing) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+
+  const shouldClearDiplomas =
+    (diplomaNameY !== undefined && diplomaNameY !== existing.diplomaNameY) ||
+    (diplomaFontSize !== undefined && diplomaFontSize !== existing.diplomaFontSize) ||
+    (diplomaTextColor !== undefined && diplomaTextColor !== existing.diplomaTextColor);
+
   const event = await prisma.event.update({
     where: { slug: req.params.slug },
     data: {
@@ -102,9 +130,17 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
       ...(transferInfo !== undefined && { transferInfo }),
       ...(track !== undefined && { track: track || null }),
       ...('championshipId' in req.body && { championshipId: championshipId || null }),
+      ...(diplomaNameY !== undefined && { diplomaNameY }),
+      ...(diplomaFontSize !== undefined && { diplomaFontSize }),
+      ...(diplomaTextColor !== undefined && { diplomaTextColor }),
     },
     include: { eventCategories: true },
   });
+
+  if (shouldClearDiplomas) {
+    await clearGeneratedDiplomas(event.id);
+  }
+
   res.json(event);
 }
 
@@ -142,6 +178,44 @@ export async function deleteEventPoster(req: Request, res: Response): Promise<vo
   const updated = await prisma.event.update({
     where: { slug: req.params.slug },
     data: { posterUrl: null },
+    include: { eventCategories: true },
+  });
+  res.json(updated);
+}
+
+export async function uploadEventDiplomaTemplate(req: Request, res: Response): Promise<void> {
+  const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
+  if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+  if (!req.file) { res.status(400).json({ error: 'No se recibió ningún archivo' }); return; }
+
+  if (event.diplomaTemplateUrl && isDriveValue(event.diplomaTemplateUrl)) {
+    await deleteFromDrive(event.diplomaTemplateUrl);
+  }
+
+  const diplomaTemplateUrl = await uploadToDrive('diplomas', req.file.buffer, req.file.originalname, req.file.mimetype, true);
+  const updated = await prisma.event.update({
+    where: { slug: req.params.slug },
+    data: { diplomaTemplateUrl },
+    include: { eventCategories: true },
+  });
+
+  await clearGeneratedDiplomas(event.id);
+  res.json(updated);
+}
+
+export async function deleteEventDiplomaTemplate(req: Request, res: Response): Promise<void> {
+  const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
+  if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+
+  if (event.diplomaTemplateUrl && isDriveValue(event.diplomaTemplateUrl)) {
+    await deleteFromDrive(event.diplomaTemplateUrl);
+  }
+
+  await clearGeneratedDiplomas(event.id);
+
+  const updated = await prisma.event.update({
+    where: { slug: req.params.slug },
+    data: { diplomaTemplateUrl: null },
     include: { eventCategories: true },
   });
   res.json(updated);

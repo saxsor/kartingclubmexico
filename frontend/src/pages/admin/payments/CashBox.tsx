@@ -2,13 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useParams } from 'react-router-dom';
-import { Plus, CheckCircle, XCircle, FileText, Download, Trash2, Users, Pencil, X, UtensilsCrossed, Search } from 'lucide-react';
+import { Plus, CheckCircle, CheckSquare, XCircle, FileText, Download, Trash2, Users, Pencil, X, UtensilsCrossed, Search, Save } from 'lucide-react';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { CATEGORY_LABELS } from '../../../lib/utils';
 import { downloadCsv } from '../../../lib/download';
 import { paymentsApi } from '../../../api/payments.api';
 import { eventsApi } from '../../../api/events.api';
 import { inscriptionsApi, type Inscription } from '../../../api/inscriptions.api';
+import { checkinApi } from '../../../api/checkin.api';
 import { eventGuestsApi, type EventGuest } from '../../../api/eventGuests.api';
 import { formatCurrency, resolveMediaUrl } from '../../../lib/utils';
 import { PaginationMeta } from '../../../api/pagination';
@@ -31,10 +32,12 @@ export function CashBox() {
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [guestForm, setGuestForm] = useState({ name: '', count: 1, notes: '' });
   const [editingGuest, setEditingGuest] = useState<EventGuest | null>(null);
+  const [cashboxKartInputs, setCashboxKartInputs] = useState<Record<string, string>>({});
   const [inscriptionsPage, setInscriptionsPage] = useState(1);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [inscSearch, setInscSearch] = useState('');
   const [inscCategory, setInscCategory] = useState('');
+  const [processingCheckIn, setProcessingCheckIn] = useState<string | null>(null);
   const debouncedInscSearch = useDebounce(inscSearch, 300);
   const queryClient = useQueryClient();
   const cashboxQuery = useQuery({
@@ -85,6 +88,33 @@ export function CashBox() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+    },
+  });
+  const saveKartNumberMutation = useMutation({
+    mutationFn: ({ inscriptionId, kartNumber }: { inscriptionId: string; kartNumber: number }) =>
+      inscriptionsApi.update(slug!, inscriptionId, { kartNumber }),
+    onSuccess: (_data, { inscriptionId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.checkin.all });
+      setCashboxKartInputs((current) => {
+        const next = { ...current };
+        delete next[inscriptionId];
+        return next;
+      });
+    },
+  });
+  const checkInMutation = useMutation({
+    mutationFn: ({ inscriptionId, kartNumber }: { inscriptionId: string; kartNumber?: number }) =>
+      checkinApi.checkIn(slug!, inscriptionId, kartNumber),
+    onSuccess: (_data, { inscriptionId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.checkin.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.grids.all });
+      setCashboxKartInputs((current) => {
+        const next = { ...current };
+        delete next[inscriptionId];
+        return next;
+      });
     },
   });
   const updateCompanionsMutation = useMutation({
@@ -172,6 +202,16 @@ export function CashBox() {
     };
   };
 
+  const getCashboxKartText = (inscription: Inscription) =>
+    cashboxKartInputs[inscription.id] ?? (inscription.kartNumber ?? inscription.pilot.kartNumber)?.toString() ?? '';
+
+  const getCashboxKartNumber = (inscription: Inscription) => {
+    const raw = getCashboxKartText(inscription).trim();
+    if (!raw) return undefined;
+    const parsed = parseInt(raw, 10);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  };
+
   const handleApproveReceipt = async (id: string) => {
     if (!slug) return;
     setProcessingReceipt(id);
@@ -233,6 +273,19 @@ export function CashBox() {
       }
     } finally {
       setProcessingCashPayment(null);
+    }
+  };
+
+  const handleCashboxCheckIn = async (inscription: Inscription) => {
+    if (!slug || inscription.checkIn) return;
+    setProcessingCheckIn(inscription.id);
+    try {
+      await checkInMutation.mutateAsync({
+        inscriptionId: inscription.id,
+        kartNumber: getCashboxKartNumber(inscription),
+      });
+    } finally {
+      setProcessingCheckIn(null);
     }
   };
 
@@ -539,6 +592,9 @@ export function CashBox() {
           {inscriptions.map((insc) => {
             const paymentSummary = getPaymentSummary(insc);
             const canMarkCashPaid = insc.status !== 'PAID' && paymentSummary.outstanding > 0;
+            const kartInputValue = getCashboxKartText(insc);
+            const savedKartText = (insc.kartNumber ?? insc.pilot.kartNumber)?.toString() ?? '';
+            const kartChanged = cashboxKartInputs[insc.id] !== undefined && cashboxKartInputs[insc.id] !== savedKartText;
 
             return (
               <div key={insc.id} className="rounded-lg border border-white/10 bg-white/5 p-4">
@@ -605,8 +661,53 @@ export function CashBox() {
                         </button>
                       )}
                     </div>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className="text-xs text-white/40">Kart</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={kartInputValue}
+                        onChange={(e) => setCashboxKartInputs((current) => ({ ...current, [insc.id]: e.target.value }))}
+                        placeholder="Opcional"
+                        className="w-24 rounded border border-white/20 bg-white/10 px-2 py-1 text-xs text-white text-center focus:border-racing-red focus:outline-none"
+                      />
+                      {insc.pilot.kartNumber && !insc.kartNumber && (
+                        <span className="text-xs text-white/35">Perfil #{insc.pilot.kartNumber}</span>
+                      )}
+                      {kartChanged && kartInputValue.trim() && (
+                        <button
+                          onClick={() => {
+                            const parsed = parseInt(kartInputValue, 10);
+                            if (parsed) {
+                              saveKartNumberMutation.mutate({ inscriptionId: insc.id, kartNumber: parsed });
+                            }
+                          }}
+                          title="Guardar número de kart"
+                          aria-label={`Guardar número de kart para ${insc.pilot.name}`}
+                          className="rounded bg-white/10 p-1.5 text-white/60 hover:bg-white/20 hover:text-white transition-colors disabled:opacity-50"
+                          disabled={saveKartNumberMutation.isPending}
+                        >
+                          <Save className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
+                    {insc.checkIn ? (
+                      <span className="flex items-center gap-1.5 rounded-lg bg-blue-500/15 border border-blue-500/30 px-3 py-1.5 text-xs text-blue-300">
+                        <CheckSquare className="h-3.5 w-3.5" />
+                        Check-in hecho
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleCashboxCheckIn(insc)}
+                        disabled={processingCheckIn === insc.id || checkInMutation.isPending}
+                        className="flex items-center gap-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 text-xs text-blue-300 hover:bg-blue-500/30 transition-colors disabled:opacity-60"
+                      >
+                        <CheckSquare className="h-3.5 w-3.5" />
+                        {processingCheckIn === insc.id ? 'Registrando...' : 'Check-in'}
+                      </button>
+                    )}
                     {canMarkCashPaid && (
                       <button
                         onClick={() => handleMarkCashPaid(insc)}

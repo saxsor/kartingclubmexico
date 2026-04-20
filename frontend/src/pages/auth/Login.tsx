@@ -59,7 +59,7 @@ export function Login() {
         </div>
 
         {/* Form card */}
-        <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 space-y-4">
           {error && (
             <div className="border-l-4 border-red-500 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {error}
@@ -107,12 +107,11 @@ export function Login() {
           <button
             type="submit"
             disabled={loading}
-            onClick={handleSubmit}
             className="w-full bg-[#e10600] hover:bg-[#b30500] py-3 text-xs font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
-        </div>
+        </form>
 
         <div className="flex justify-center mt-4">
           <Link to="/recuperar-contrasena" className="text-xs text-white/30 hover:text-white/60 transition-colors">

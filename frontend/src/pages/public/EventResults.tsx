@@ -149,11 +149,11 @@ export function EventResults() {
                     type="button"
                     onClick={() => handleDownloadDiploma(row.pilotId!)}
                     disabled={downloadingPilotId === row.pilotId}
-                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-md bg-yellow-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-yellow-500 transition-all hover:bg-yellow-500 hover:text-black disabled:opacity-50"
+                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-md bg-yellow-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-yellow-500 transition-all hover:text-black disabled:opacity-50"
                   >
-                    <Award className="h-3.5 w-3.5" />
-                    <span>{downloadingPilotId === row.pilotId ? 'Descargando' : 'Diploma'}</span>
-                    <div className="absolute inset-0 translate-y-full bg-yellow-500 transition-transform group-hover:translate-y-0" />
+                    <Award className="h-3.5 w-3.5 relative z-10" />
+                    <span className="relative z-10">{downloadingPilotId === row.pilotId ? 'Descargando' : 'Diploma'}</span>
+                    <div className="absolute inset-0 translate-y-full bg-yellow-500 transition-transform duration-300 group-hover:translate-y-0" />
                   </button>
                 ) : null
               ) : undefined}

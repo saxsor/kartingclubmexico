@@ -2,6 +2,7 @@ import { useEffect, useCallback, useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Download, Share2, MessageCircle, Facebook, Twitter, Link2, Loader2 } from 'lucide-react';
 import { Photo } from '../../api/photos.api';
 import { resolveMediaUrl, cn } from '../../lib/utils';
+import { toast } from '../../store/toast.store';
 
 interface Props {
   photos: Photo[];
@@ -78,7 +79,7 @@ export function PhotoLightbox({ photos, currentIndex, onClose, onNavigate, event
   const copyToClipboard = async () => {
     const url = `${window.location.origin}${window.location.pathname}?photo=${currentIndex}`;
     await navigator.clipboard.writeText(url);
-    alert('Enlace copiado al portapapeles');
+    toast.success('Enlace copiado al portapapeles');
     setIsShareMenuOpen(false);
   };
 

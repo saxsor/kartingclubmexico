@@ -10,10 +10,12 @@ import { PointsTable } from '../../components/shared/PointsTable';
 import { queryKeys } from '../../lib/react-query';
 import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
+import { toast } from '../../store/toast.store';
 
 export function EventResults() {
   const { slug } = useParams<{ slug: string }>();
   const [selectedCat, setSelectedCat] = useState<Category | null>(null);
+  const [downloadingPilotId, setDownloadingPilotId] = useState<string | null>(null);
   const { on } = useSSE(slug ?? null);
   const eventQuery = useQuery({
     queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
@@ -47,6 +49,38 @@ export function EventResults() {
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
   const canDownloadDiplomas = event?.status === 'FINISHED' && !!event?.diplomaTemplateUrl;
+
+  const handleDownloadDiploma = async (pilotId: string) => {
+    if (!slug) return;
+    setDownloadingPilotId(pilotId);
+    try {
+      const response = await fetch(resultsApi.diplomaUrl(slug, pilotId), {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'No se pudo descargar el diploma');
+      }
+
+      const blob = await response.blob();
+      const disposition = response.headers.get('content-disposition') ?? '';
+      const match = disposition.match(/filename="([^"]+)"/i);
+      const filename = match?.[1] ?? `diploma-${pilotId}.pdf`;
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo descargar el diploma');
+    } finally {
+      setDownloadingPilotId(null);
+    }
+  };
 
   return (
     <div>
@@ -107,13 +141,15 @@ export function EventResults() {
               showGap
               renderAction={canDownloadDiplomas ? (row) => (
                 row.pilotId ? (
-                  <a
-                    href={resultsApi.diplomaUrl(slug!, row.pilotId)}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadDiploma(row.pilotId!)}
+                    disabled={downloadingPilotId === row.pilotId}
                     className="inline-flex items-center justify-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-yellow-200 transition-colors hover:bg-yellow-500/20"
                   >
                     <Award className="h-3.5 w-3.5" />
-                    Descargar diploma
-                  </a>
+                    {downloadingPilotId === row.pilotId ? 'Descargando...' : 'Descargar diploma'}
+                  </button>
                 ) : null
               ) : undefined}
             />

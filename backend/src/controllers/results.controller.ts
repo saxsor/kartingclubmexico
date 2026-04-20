@@ -418,6 +418,7 @@ export async function downloadParticipationDiploma(req: Request, res: Response):
     pilotName: inscription.pilot.name,
     templateBuffer,
     templateMimeType: mimeType,
+    nameXRatio: event.diplomaNameX,
     nameYRatio: event.diplomaNameY,
     fontSize: event.diplomaFontSize,
     textColor: event.diplomaTextColor,

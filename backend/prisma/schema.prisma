@@ -183,6 +183,7 @@ model Event {
   transferInfo       String?
   posterUrl          String?
   diplomaTemplateUrl String?
+  diplomaNameX       Float       @default(0.5)
   diplomaNameY       Float       @default(0.58)
   diplomaFontSize    Int         @default(28)
   diplomaTextColor   String      @default("#111111")

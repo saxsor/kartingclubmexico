@@ -62,7 +62,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
 }
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, categories, championshipId, diplomaNameY, diplomaFontSize, diplomaTextColor } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, categories, championshipId, diplomaNameX, diplomaNameY, diplomaFontSize, diplomaTextColor } = req.body;
 
   const baseSlug = slugify(name, { lower: true, strict: true });
   let slug = baseSlug;
@@ -83,6 +83,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
       staffCount: staffCount ?? 0,
       blockCheckInOnDebt: blockCheckInOnDebt ?? false,
       transferInfo: transferInfo ?? null,
+      diplomaNameX: diplomaNameX ?? 0.5,
       diplomaNameY: diplomaNameY ?? 0.58,
       diplomaFontSize: diplomaFontSize ?? 28,
       diplomaTextColor: diplomaTextColor ?? '#111111',
@@ -107,11 +108,12 @@ export async function getEvent(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, championshipId, diplomaNameY, diplomaFontSize, diplomaTextColor } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, championshipId, diplomaNameX, diplomaNameY, diplomaFontSize, diplomaTextColor } = req.body;
   const existing = await prisma.event.findUnique({ where: { slug: req.params.slug } });
   if (!existing) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
 
   const shouldClearDiplomas =
+    (diplomaNameX !== undefined && diplomaNameX !== existing.diplomaNameX) ||
     (diplomaNameY !== undefined && diplomaNameY !== existing.diplomaNameY) ||
     (diplomaFontSize !== undefined && diplomaFontSize !== existing.diplomaFontSize) ||
     (diplomaTextColor !== undefined && diplomaTextColor !== existing.diplomaTextColor);
@@ -130,6 +132,7 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
       ...(transferInfo !== undefined && { transferInfo }),
       ...(track !== undefined && { track: track || null }),
       ...('championshipId' in req.body && { championshipId: championshipId || null }),
+      ...(diplomaNameX !== undefined && { diplomaNameX }),
       ...(diplomaNameY !== undefined && { diplomaNameY }),
       ...(diplomaFontSize !== undefined && { diplomaFontSize }),
       ...(diplomaTextColor !== undefined && { diplomaTextColor }),

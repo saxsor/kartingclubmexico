@@ -27,6 +27,7 @@ export interface KartEvent {
   transferInfo: string | null;
   posterUrl: string | null;
   diplomaTemplateUrl: string | null;
+  diplomaNameX: number;
   diplomaNameY: number;
   diplomaFontSize: number;
   diplomaTextColor: string;

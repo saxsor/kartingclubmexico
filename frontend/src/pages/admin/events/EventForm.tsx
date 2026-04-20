@@ -24,6 +24,7 @@ export function EventForm() {
     foodFee: '0',
     blockCheckInOnDebt: false,
     transferInfo: '',
+    diplomaNameX: '0.50',
     diplomaNameY: '0.58',
     diplomaFontSize: '28',
     diplomaTextColor: '#111111',
@@ -37,6 +38,7 @@ export function EventForm() {
   const [diplomaPreviewRatio, setDiplomaPreviewRatio] = useState(16 / 9);
   const posterInputRef = useRef<HTMLInputElement>(null);
   const diplomaInputRef = useRef<HTMLInputElement>(null);
+  const diplomaCanvasRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const eventQuery = useQuery({
     queryKey: isEdit && slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'new'],
@@ -78,6 +80,7 @@ export function EventForm() {
       foodFee: event.foodFee,
       blockCheckInOnDebt: event.blockCheckInOnDebt,
       transferInfo: event.transferInfo ?? '',
+      diplomaNameX: String(event.diplomaNameX ?? 0.5),
       diplomaNameY: String(event.diplomaNameY ?? 0.58),
       diplomaFontSize: String(event.diplomaFontSize ?? 28),
       diplomaTextColor: event.diplomaTextColor ?? '#111111',
@@ -151,6 +154,35 @@ export function EventForm() {
     }
   };
 
+  const updateDiplomaPositionFromPointer = (clientX: number, clientY: number) => {
+    const canvas = diplomaCanvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.min(0.95, Math.max(0.05, (clientX - rect.left) / rect.width));
+    const y = Math.min(0.95, Math.max(0.1, (clientY - rect.top) / rect.height));
+
+    setForm((prev) => ({
+      ...prev,
+      diplomaNameX: x.toFixed(2),
+      diplomaNameY: y.toFixed(2),
+    }));
+  };
+
+  const startDraggingDiplomaName = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    updateDiplomaPositionFromPointer(event.clientX, event.clientY);
+
+    const onMove = (moveEvent: PointerEvent) => updateDiplomaPositionFromPointer(moveEvent.clientX, moveEvent.clientY);
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   const toggleCategory = (cat: Category) => {
     setForm((f) => ({
       ...f,
@@ -174,6 +206,7 @@ export function EventForm() {
         foodFee: parseFloat(form.foodFee),
         blockCheckInOnDebt: form.blockCheckInOnDebt,
         transferInfo: form.transferInfo || undefined,
+        diplomaNameX: parseFloat(form.diplomaNameX),
         diplomaNameY: parseFloat(form.diplomaNameY),
         diplomaFontSize: parseInt(form.diplomaFontSize, 10),
         diplomaTextColor: form.diplomaTextColor,
@@ -365,8 +398,10 @@ export function EventForm() {
             {diplomaPreviewUrl ? (
               <div className="mb-4 overflow-hidden rounded-xl border border-[#38383f] bg-[#111318]">
                 <div
+                  ref={diplomaCanvasRef}
                   className="relative mx-auto w-full max-w-full"
                   style={{ aspectRatio: `${diplomaPreviewRatio}`, maxHeight: '70vh' }}
+                  onPointerDown={startDraggingDiplomaName}
                 >
                   <img
                     src={diplomaPreviewUrl}
@@ -380,21 +415,28 @@ export function EventForm() {
                     }}
                   />
                   <div
-                    className="pointer-events-none absolute left-1/2 -translate-x-1/2 px-4 text-center font-bold"
+                    className="absolute px-4 text-center font-bold cursor-grab active:cursor-grabbing select-none"
                     style={{
+                      left: `${Number(form.diplomaNameX) * 100}%`,
                       top: `${Number(form.diplomaNameY) * 100}%`,
                       color: form.diplomaTextColor,
                       fontSize: `${Math.max(18, Number(form.diplomaFontSize) * 0.65)}px`,
                       fontFamily: "'Barlow Condensed', sans-serif",
                       textShadow: '0 2px 8px rgba(0,0,0,0.35)',
                       transform: 'translate(-50%, -50%)',
+                      touchAction: 'none',
                     }}
+                    onPointerDown={startDraggingDiplomaName}
                   >
                     NOMBRE DEL PILOTO
                   </div>
                   <div
                     className="pointer-events-none absolute left-8 right-8 border-t border-dashed border-yellow-400/70"
                     style={{ top: `${Number(form.diplomaNameY) * 100}%` }}
+                  />
+                  <div
+                    className="pointer-events-none absolute top-8 bottom-8 border-l border-dashed border-yellow-400/50"
+                    style={{ left: `${Number(form.diplomaNameX) * 100}%` }}
                   />
                 </div>
               </div>
@@ -406,7 +448,25 @@ export function EventForm() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-white/70">Altura del nombre</label>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Posición horizontal</label>
+                <input
+                  type="range"
+                  value={form.diplomaNameX}
+                  onChange={(e) => setForm({ ...form, diplomaNameX: e.target.value })}
+                  min="0.05"
+                  max="0.95"
+                  step="0.01"
+                  className="w-full accent-yellow-500"
+                />
+                <div className="mt-1 flex items-center justify-between text-xs text-white/40">
+                  <span>Izquierda</span>
+                  <span>{form.diplomaNameX}</span>
+                  <span>Derecha</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Posición vertical</label>
                 <input
                   type="range"
                   value={form.diplomaNameY}
@@ -439,6 +499,13 @@ export function EventForm() {
                   <span>{form.diplomaFontSize}px</span>
                   <span>Grande</span>
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-lg border border-white/10 bg-[#111318] px-3 py-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/50">Edición directa</p>
+                <p className="mt-1 text-sm text-white/70">Arrastra el texto sobre la plantilla para colocarlo donde quieras.</p>
               </div>
 
               <div>

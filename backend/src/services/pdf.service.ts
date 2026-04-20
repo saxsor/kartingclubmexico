@@ -16,6 +16,7 @@ interface ParticipationDiplomaInput {
   pilotName: string;
   templateBuffer: Buffer;
   templateMimeType: string;
+  nameXRatio?: number;
   nameYRatio?: number;
   fontSize?: number;
   textColor?: string;
@@ -107,6 +108,7 @@ export async function generateParticipationDiplomaPdf({
   pilotName,
   templateBuffer,
   templateMimeType,
+  nameXRatio = 0.5,
   nameYRatio = 0.58,
   fontSize = 28,
   textColor = '#111111',
@@ -126,7 +128,9 @@ export async function generateParticipationDiplomaPdf({
 
     const pageWidth = doc.page.width;
     const textWidth = Math.min(pageWidth - 120, doc.widthOfString(pilotName) + 24);
-    const textX = (pageWidth - textWidth) / 2;
+    const minX = 24;
+    const maxX = pageWidth - textWidth - 24;
+    const textX = Math.max(minX, Math.min(maxX, pageWidth * nameXRatio - textWidth / 2));
     const textY = doc.page.height * nameYRatio;
 
     doc.text(pilotName, textX, textY, {

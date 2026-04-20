@@ -12,6 +12,7 @@ import { EventRegister } from '../pages/public/EventRegister';
 import { EventGrid } from '../pages/public/EventGrid';
 import { EventPilots } from '../pages/public/EventPilots';
 import { EventResults } from '../pages/public/EventResults';
+import { EventGallery } from '../pages/public/EventGallery';
 import { Championship, ChampionshipDetailPublic } from '../pages/public/Championship';
 import { PilotProfile } from '../pages/public/PilotProfile';
 import { ContactPage, FAQPage, PrivacyPage, TermsPage } from '../pages/public/SiteInfo';
@@ -25,6 +26,7 @@ import { EventList } from '../pages/admin/events/EventList';
 import { EventForm } from '../pages/admin/events/EventForm';
 import { EventHub } from '../pages/admin/events/EventHub';
 import { InscriptionManager } from '../pages/admin/inscriptions/InscriptionManager';
+import { PhotoAlbumManager } from '../pages/admin/photos/PhotoAlbumManager';
 import { CashBox } from '../pages/admin/payments/CashBox';
 import { CheckInPanel } from '../pages/admin/checkin/CheckInPanel';
 import { GridDraw } from '../pages/admin/grid/GridDraw';
@@ -46,6 +48,7 @@ export const router = createBrowserRouter([
       { path: 'eventos/:slug', element: <EventDetail /> },
       { path: 'eventos/:slug/inscribirse', element: <EventRegister /> },
       { path: 'eventos/:slug/pilotos', element: <EventPilots /> },
+      { path: 'eventos/:slug/fotos', element: <EventGallery /> },
       { path: 'eventos/:slug/parrilla', element: <EventGrid /> },
       { path: 'eventos/:slug/resultados', element: <EventResults /> },
       { path: 'campeonato', element: <Championship /> },
@@ -72,6 +75,7 @@ export const router = createBrowserRouter([
       { path: 'eventos/nuevo', element: <EventForm /> },
       { path: 'eventos/:slug', element: <EventHub /> },
       { path: 'eventos/:slug/editar', element: <EventForm /> },
+      { path: 'eventos/:slug/fotos', element: <PhotoAlbumManager /> },
       { path: 'eventos/:slug/inscripciones', element: <InscriptionManager /> },
       { path: 'eventos/:slug/caja', element: <CashBox /> },
       { path: 'eventos/:slug/checkin', element: <CheckInPanel /> },

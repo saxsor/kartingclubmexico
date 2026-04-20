@@ -201,6 +201,7 @@ model Event {
   races           Race[]
   eventGuests     EventGuest[]
   diplomas        ParticipationDiploma[]
+  photoAlbum      PhotoAlbum?
 
   @@index([status])
   @@index([year])
@@ -432,4 +433,30 @@ model AuditLog {
   @@index([userId])
   @@index([eventId])
   @@index([createdAt])
+}
+
+model PhotoAlbum {
+  id          String   @id @default(uuid())
+  eventId     String   @unique
+  title       String
+  description String?
+  isPublished Boolean  @default(false)
+  coverUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  photos Photo[]
+}
+
+model Photo {
+  id        String   @id @default(uuid())
+  albumId   String
+  fileUrl   String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  album PhotoAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@index([albumId, order])
 }

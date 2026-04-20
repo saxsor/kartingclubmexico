@@ -17,6 +17,7 @@ import pilotPortalRoutes from './pilot-portal.routes.js';
 import teamsRoutes from './teams.routes.js';
 import auditRoutes from './audit.routes.js';
 import eventGuestsRoutes from './eventGuests.routes.js';
+import photoAlbumsRoutes from './photo-albums.routes.js';
 import { sseManager } from '../lib/sse.js';
 
 const router = Router();
@@ -44,6 +45,7 @@ router.use('/analytics', analyticsRoutes);
 router.use('/pilot', pilotPortalRoutes);
 router.use('/teams', teamsRoutes);
 router.use('/admin/audit-log', auditRoutes);
+router.use('/', photoAlbumsRoutes);
 
 // SSE stream endpoint
 router.get('/events/:slug/stream', (req: Request, res: Response) => {

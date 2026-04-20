@@ -15,6 +15,8 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().default('Edel Racing <no-reply@edelracing.mx>'),
+  GOOGLE_DRIVE_PHOTOS_FOLDER_ID: z.string().optional(),
+  GOOGLE_DRIVE_DIPLOMAS_FOLDER_ID: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

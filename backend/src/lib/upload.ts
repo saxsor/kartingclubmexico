@@ -41,6 +41,12 @@ export const uploadDiplomaTemplate = multer({
   },
 });
 
+export const uploadPhotos = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: imageFilter,
+});
+
 export const uploadCsv = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024 },

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { ClipboardList, DollarSign, CheckSquare, Shuffle, Flag, BarChart2, Settings } from 'lucide-react';
+import { ClipboardList, DollarSign, CheckSquare, Shuffle, Flag, BarChart2, Settings, Camera } from 'lucide-react';
 import { eventsApi } from '../../../api/events.api';
 import { formatDate } from '../../../lib/utils';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
@@ -13,6 +13,7 @@ const actions = [
   { label: 'Inscripciones', to: 'inscripciones', icon: ClipboardList, description: 'Gestionar inscripciones de pilotos' },
   { label: 'Caja', to: 'caja', icon: DollarSign, description: 'Control de pagos y cobros' },
   { label: 'Check-in', to: 'checkin', icon: CheckSquare, description: 'Confirmación de llegada' },
+  { label: 'Fotos', to: 'fotos', icon: Camera, description: 'Galería de fotos del evento' },
   { label: 'Parrilla', to: 'parrilla', icon: Shuffle, description: 'Sorteo de parrilla de salida', adminOnly: true },
   { label: 'Carreras', to: 'carreras', icon: Flag, description: 'Control de carreras y tiempos', adminOnly: true },
   { label: 'Clasificación', to: 'clasificacion', icon: BarChart2, description: 'Resultados y clasificación', adminOnly: true },

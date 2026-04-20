@@ -1,12 +1,14 @@
 import { google } from 'googleapis';
 import { Readable } from 'stream';
 import path from 'path';
+import { config } from '../config/index.js';
 
-const FOLDER_IDS = {
+export const FOLDER_IDS = {
   posters:  '1ENaBUFRPAVPVL18leMP3_JuTVoXOkZPB',
   pilots:   '1OmeK8vzkG8klZLahzwFEpPrAkLEZC6bt',
   receipts: '1VvwJxUTdUooAz5d8Knxl0gt8PoAOB1eL',
-  diplomas: process.env.GOOGLE_DRIVE_DIPLOMAS_FOLDER_ID || '1ENaBUFRPAVPVL18leMP3_JuTVoXOkZPB',
+  diplomas: config.GOOGLE_DRIVE_DIPLOMAS_FOLDER_ID || '1ENaBUFRPAVPVL18leMP3_JuTVoXOkZPB',
+  photos:   config.GOOGLE_DRIVE_PHOTOS_FOLDER_ID || '1ENaBUFRPAVPVL18leMP3_JuTVoXOkZPB',
 } as const;
 
 export type DriveFolder = keyof typeof FOLDER_IDS;

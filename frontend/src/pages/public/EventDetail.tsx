@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight, MapPin, Users } from 'lucide-react';
+import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight, MapPin, Users, Camera } from 'lucide-react';
 import { SEO } from '../../components/shared/SEO';
 import { eventsApi } from '../../api/events.api';
+import { photosApi } from '../../api/photos.api';
 import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { CategoryBadge } from '../../components/shared/CategoryBadge';
@@ -20,6 +21,12 @@ export function EventDetail() {
   const event = eventQuery.data ?? null;
   const loading = eventQuery.isLoading;
 
+  const albumQuery = useQuery({
+    queryKey: ['photos', 'public', slug, 'exists'],
+    queryFn: () => photosApi.getAlbum(slug!).then(a => a.isPublished ? a : null).catch(() => null),
+    enabled: !!slug,
+  });
+
   if (loading) return (
     <HeroLoadingState sections={3} />
   );
@@ -29,6 +36,7 @@ export function EventDetail() {
 
   const actions = [
     { label: 'Inscribirme', to: `/eventos/${slug}/inscribirse`, icon: ClipboardList, show: event.status === 'OPEN', highlight: true },
+    { label: 'Ver Fotos', to: `/eventos/${slug}/fotos`, icon: Camera, show: !!albumQuery.data, highlight: true },
     { label: 'Pilotos inscritos', to: `/eventos/${slug}/pilotos`, icon: Users, show: event.status !== 'DRAFT', highlight: false },
     { label: 'Parrilla de salida', to: `/eventos/${slug}/parrilla`, icon: Grid, show: event.status !== 'DRAFT', highlight: false },
     { label: 'Resultados', to: `/eventos/${slug}/resultados`, icon: BarChart2, show: event.status === 'FINISHED' || event.status === 'IN_PROGRESS', highlight: false },

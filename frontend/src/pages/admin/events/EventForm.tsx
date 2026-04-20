@@ -86,6 +86,9 @@ export function EventForm() {
   }, [eventQuery.data]);
 
   const currentEvent = eventQuery.data ?? null;
+  const diplomaPreviewUrl = currentEvent?.diplomaTemplateUrl
+    ? `${resolveMediaUrl(currentEvent.diplomaTemplateUrl) ?? ''}?t=${currentEvent.updatedAt}`
+    : null;
 
   const handlePosterChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -349,6 +352,102 @@ export function EventForm() {
             className="hidden"
             onChange={handleDiplomaTemplateChange}
           />
+
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="mb-3">
+              <p className="text-sm font-semibold text-white">Ajuste visual del nombre</p>
+              <p className="text-xs text-white/45">
+                Mueve el nombre en la plantilla y ajusta tamaño y color. La vista previa usa un nombre de ejemplo para ubicarlo.
+              </p>
+            </div>
+
+            {diplomaPreviewUrl ? (
+              <div className="mb-4 overflow-hidden rounded-xl border border-[#38383f] bg-[#111318]">
+                <div className="relative" style={{ aspectRatio: '16 / 9' }}>
+                  <img
+                    src={diplomaPreviewUrl}
+                    alt="Vista previa del diploma"
+                    className="h-full w-full object-cover"
+                  />
+                  <div
+                    className="pointer-events-none absolute left-1/2 -translate-x-1/2 px-4 text-center font-bold"
+                    style={{
+                      top: `${Number(form.diplomaNameY) * 100}%`,
+                      color: form.diplomaTextColor,
+                      fontSize: `${Math.max(18, Number(form.diplomaFontSize) * 0.65)}px`,
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      textShadow: '0 2px 8px rgba(0,0,0,0.35)',
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                  >
+                    NOMBRE DEL PILOTO
+                  </div>
+                  <div
+                    className="pointer-events-none absolute left-8 right-8 border-t border-dashed border-yellow-400/70"
+                    style={{ top: `${Number(form.diplomaNameY) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4 rounded-xl border border-dashed border-white/10 bg-[#111318] px-4 py-6 text-sm text-white/40">
+                Sube primero la plantilla del diploma para ver la posición del nombre sobre el diseño real.
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Altura del nombre</label>
+                <input
+                  type="range"
+                  value={form.diplomaNameY}
+                  onChange={(e) => setForm({ ...form, diplomaNameY: e.target.value })}
+                  min="0.1"
+                  max="0.95"
+                  step="0.01"
+                  className="w-full accent-yellow-500"
+                />
+                <div className="mt-1 flex items-center justify-between text-xs text-white/40">
+                  <span>Arriba</span>
+                  <span>{form.diplomaNameY}</span>
+                  <span>Abajo</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Tamaño del nombre</label>
+                <input
+                  type="range"
+                  value={form.diplomaFontSize}
+                  onChange={(e) => setForm({ ...form, diplomaFontSize: e.target.value })}
+                  min="16"
+                  max="96"
+                  step="1"
+                  className="w-full accent-yellow-500"
+                />
+                <div className="mt-1 flex items-center justify-between text-xs text-white/40">
+                  <span>Pequeño</span>
+                  <span>{form.diplomaFontSize}px</span>
+                  <span>Grande</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-white/70">Color del nombre</label>
+                <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-[#111318] px-3 py-2">
+                  <input
+                    type="color"
+                    value={form.diplomaTextColor}
+                    onChange={(e) => setForm({ ...form, diplomaTextColor: e.target.value })}
+                    className="h-10 w-14 rounded border border-white/10 bg-transparent p-1"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-white">{form.diplomaTextColor}</p>
+                    <p className="text-xs text-white/40">Usa un color con buen contraste contra la plantilla.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -420,45 +519,6 @@ export function EventForm() {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Posición nombre</label>
-            <input
-              type="number"
-              value={form.diplomaNameY}
-              onChange={(e) => setForm({ ...form, diplomaNameY: e.target.value })}
-              min="0.1"
-              max="0.95"
-              step="0.01"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-racing-red focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Tamaño nombre</label>
-            <input
-              type="number"
-              value={form.diplomaFontSize}
-              onChange={(e) => setForm({ ...form, diplomaFontSize: e.target.value })}
-              min="16"
-              max="96"
-              step="1"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-racing-red focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Color texto</label>
-            <input
-              type="color"
-              value={form.diplomaTextColor}
-              onChange={(e) => setForm({ ...form, diplomaTextColor: e.target.value })}
-              className="h-[42px] w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1"
-            />
-          </div>
-          <p className="col-span-3 text-xs text-white/40">
-            El diploma se genera automáticamente para pilotos con check-in y se publica en resultados al finalizar el evento.
-          </p>
-        </div>
-
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-white/70 mb-1.5">Cuota de servicio ($)</label>
@@ -482,19 +542,6 @@ export function EventForm() {
               className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white focus:border-racing-red focus:outline-none"
             />
           </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <input
-            id="blockCheckIn"
-            type="checkbox"
-            checked={form.blockCheckInOnDebt}
-            onChange={(e) => setForm({ ...form, blockCheckInOnDebt: e.target.checked })}
-            className="h-4 w-4 rounded border-white/20 bg-white/10 accent-racing-red"
-          />
-          <label htmlFor="blockCheckIn" className="text-sm text-white/70">
-            Bloquear check-in si hay deuda pendiente
-          </label>
         </div>
 
         <div>

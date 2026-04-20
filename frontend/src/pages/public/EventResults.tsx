@@ -95,33 +95,36 @@ export function EventResults() {
         </Link>
       </div>
 
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-1 h-6 bg-[#e10600]" />
-          <span className="text-xs font-bold uppercase tracking-widest text-white/50">
-            <BarChart2 className="inline h-3 w-3 mr-1.5" />
+      <div className="mb-8 relative">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
             {event?.name}
           </span>
         </div>
         <h1
-          className="text-4xl font-black text-white uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+          className="text-5xl font-black text-white uppercase italic tracking-tighter"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          Resultados
+          Resultados <span className="text-[#e10600]">Finales</span>
         </h1>
+        <div className="absolute top-0 right-0 hidden md:block opacity-10">
+          <BarChart2 className="w-24 h-24 text-white" />
+        </div>
       </div>
 
       {/* Category tabs */}
-      <div className="flex flex-wrap gap-px mb-6 bg-[#38383f]">
+      <div className="flex flex-wrap gap-2 mb-8 p-1 bg-[#1a1a21] border border-[#38383f] rounded-lg">
         {activeCategories.map((c) => (
           <button
             key={c.id}
             onClick={() => setSelectedCat(c.category)}
-            className={`px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors ${
+            className={`flex-1 min-w-[120px] px-6 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-md ${
               selectedCat === c.category
-                ? 'bg-[#e10600] text-white'
-                : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]'
+                ? 'bg-[#e10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.3)]'
+                : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
           >
             {CATEGORY_LABELS[c.category]}
           </button>
@@ -129,10 +132,11 @@ export function EventResults() {
       </div>
 
       {results ? (
-        <div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           {results.classification.length === 0 ? (
-            <div className="text-center py-10 text-white/40">
-              No hay resultados publicados para esta categoría.
+            <div className="text-center py-20 bg-[#1a1a21] border border-dashed border-[#38383f] rounded-xl text-white/20">
+              <BarChart2 className="w-12 h-12 mx-auto mb-4 opacity-10" />
+              <p className="font-bold uppercase tracking-widest text-sm">Sin resultados publicados</p>
             </div>
           ) : (
             <PointsTable
@@ -145,16 +149,18 @@ export function EventResults() {
                     type="button"
                     onClick={() => handleDownloadDiploma(row.pilotId!)}
                     disabled={downloadingPilotId === row.pilotId}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-yellow-200 transition-colors hover:bg-yellow-500/20"
+                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-md bg-yellow-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-yellow-500 transition-all hover:bg-yellow-500 hover:text-black disabled:opacity-50"
                   >
                     <Award className="h-3.5 w-3.5" />
-                    {downloadingPilotId === row.pilotId ? 'Descargando...' : 'Descargar diploma'}
+                    <span>{downloadingPilotId === row.pilotId ? 'Descargando' : 'Diploma'}</span>
+                    <div className="absolute inset-0 translate-y-full bg-yellow-500 transition-transform group-hover:translate-y-0" />
                   </button>
                 ) : null
               ) : undefined}
             />
           )}
         </div>
+
       ) : (
         <div className="text-center py-10 text-white/40">
           Selecciona una categoría para ver los resultados.

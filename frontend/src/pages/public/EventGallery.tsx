@@ -79,28 +79,29 @@ export function EventGallery() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-12 relative">
           <Link 
             to={`/eventos/${slug}`}
-            className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-colors mb-6 group"
+            className="inline-flex items-center gap-2 text-white/30 hover:text-[#e10600] transition-colors mb-8 group uppercase text-[10px] font-black tracking-[0.2em]"
           >
-            <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            <ChevronLeft className="h-3 w-3 transition-transform group-hover:-translate-x-1" />
             Volver al evento
           </Link>
           
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <h1 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter">
-                Galería de <span className="text-racing-red">Fotos</span>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="relative">
+              <div className="absolute -left-4 top-0 w-1.5 h-full bg-[#e10600] skew-x-[-15deg] hidden md:block" />
+              <h1 className="text-5xl md:text-7xl font-black text-white uppercase italic tracking-tighter leading-[0.9]">
+                Galería <span className="text-[#e10600]">Pro</span>
               </h1>
-              <p className="text-white/60 text-lg mt-2 font-medium">
-                {event.name} — {formatDate(event.date)}
+              <p className="text-white/50 text-base md:text-xl mt-4 font-bold uppercase tracking-widest italic">
+                {event.name} <span className="mx-2 text-white/20">|</span> {formatDate(event.date)}
               </p>
             </div>
-            <div className="flex items-center gap-4">
-               <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                  <span className="text-white font-bold">{photos.length}</span>
-                  <span className="text-white/40 ml-1.5 text-sm uppercase tracking-wider">Fotos</span>
+            <div className="flex items-center gap-6">
+               <div className="flex flex-col items-end">
+                  <span className="text-4xl font-black text-white italic tabular-nums leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{photos.length}</span>
+                  <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em] mt-1">Imágenes Totales</span>
                </div>
             </div>
           </div>
@@ -108,33 +109,39 @@ export function EventGallery() {
 
         {/* Description if any */}
         {album.description && (
-          <p className="text-white/50 max-w-2xl mb-12 text-lg italic leading-relaxed">
-            "{album.description}"
-          </p>
+          <div className="max-w-3xl mb-16 p-6 border-l-2 border-white/10 bg-white/[0.02]">
+            <p className="text-white/60 text-lg italic leading-relaxed">
+              "{album.description}"
+            </p>
+          </div>
         )}
 
         {/* Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {photos.map((photo, index) => (
             <div
               key={photo.id}
               onClick={() => handleOpenLightbox(index)}
-              className="group relative aspect-square overflow-hidden bg-white/5 cursor-pointer rounded-lg md:rounded-xl"
+              className="group relative aspect-[3/4] overflow-hidden bg-[#1a1a21] cursor-pointer rounded-lg shadow-xl"
             >
               <img
                 src={resolveMediaUrl(photo.fileUrl) || ''}
                 alt=""
                 loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                className="h-full w-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
               />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                 <div className="h-10 w-10 rounded-full bg-racing-red text-white flex items-center justify-center scale-75 group-hover:scale-100 transition-transform">
-                    <Share2 className="h-5 w-5" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
+                 <div className="flex items-center justify-between translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <div className="h-8 w-8 rounded-full bg-[#e10600] text-white flex items-center justify-center shadow-lg">
+                       <Camera className="h-4 w-4" />
+                    </div>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Ver foto</span>
                  </div>
               </div>
             </div>
           ))}
         </div>
+
 
         {photos.length === 0 && (
           <div className="py-20 text-center text-white/20">

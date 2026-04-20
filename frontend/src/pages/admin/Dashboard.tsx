@@ -203,8 +203,10 @@ export function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-black text-white">Dashboard</h1>
-        <p className="text-white/50 text-sm mt-1">Resumen general del sistema</p>
+        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+          Command <span className="text-[#e10600]">Center</span>
+        </h1>
+        <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">Status Report — {new Date().toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}</p>
       </div>
 
       {/* Action-first event section */}
@@ -212,104 +214,90 @@ export function Dashboard() {
         <DashboardChartSkeleton />
       ) : (
         <div className="grid gap-4">
-          <section className="overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(135deg,rgba(225,6,0,0.18),rgba(255,255,255,0.03)_35%,rgba(255,255,255,0.02))]">
-            <div className="border-b border-white/10 bg-black/15 px-6 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">
-                {activeEvent ? 'Evento en curso' : nextEvent ? 'Siguiente evento disponible' : 'Sin evento activo'}
-              </p>
+          <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] relative shadow-2xl">
+            {/* Background Accent */}
+            <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(225,6,0,0.15),transparent_70%)] pointer-events-none" />
+            
+            <div className="border-b border-white/5 bg-white/[0.02] px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#e10600] animate-pulse" />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">
+                  {activeEvent ? 'Live Session: Operación en curso' : nextEvent ? 'Próximo Evento Programado' : 'Monitor de Sistema'}
+                </p>
+              </div>
+              {nextEvent && <StatusBadge status={nextEvent.status} className="scale-90" />}
             </div>
-            <div className="p-6">
+
+            <div className="p-8 relative">
               {nextEvent ? (
-                <div className="space-y-6">
-                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-8">
+                  <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     <div className="max-w-2xl">
-                      <StatusBadge status={nextEvent.status} className="mb-3" />
                       <h2
-                        className="text-4xl font-black uppercase leading-none text-white"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+                        className="text-6xl font-black uppercase leading-[0.8] text-white italic tracking-tighter mb-4"
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                       >
                         {nextEvent.name}
                       </h2>
-                      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
-                        <span className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-[#e10600]" />
-                          {formatDate(nextEvent.date)}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                          <Calendar className="h-3.5 w-3.5 text-[#e10600]" />
+                          <span className="text-xs font-bold text-white/70 uppercase tracking-wider">{formatDate(nextEvent.date)}</span>
+                        </div>
                         {nextEvent.track && (
-                          <span className="flex items-center gap-2">
-                            <Flag className="h-4 w-4 text-[#e10600]" />
-                            {nextEvent.track}
-                          </span>
+                          <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                            <Flag className="h-3.5 w-3.5 text-[#e10600]" />
+                            <span className="text-xs font-bold text-white/70 uppercase tracking-wider">{nextEvent.track}</span>
+                          </div>
                         )}
                       </div>
-                      <p className="mt-5 max-w-xl text-sm leading-7 text-white/68">
-                        {activeEvent
-                          ? 'Este es el foco operativo del día. Las acciones críticas deben estar visibles sin depender de scroll profundo.'
-                          : 'Este es el siguiente evento accionable. Debe estar al frente para acelerar acceso a inscripción, caja, check-in y operación de carrera.'}
-                      </p>
                     </div>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[280px] lg:grid-cols-1">
+                    <div className="flex flex-col sm:flex-row gap-3 lg:min-w-[320px]">
                       <Link
                         to={`/app/eventos/${nextEvent.slug}`}
-                        className="rounded-xl bg-[#e10600] px-5 py-4 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-[#b30500]"
+                        className="flex-1 flex items-center justify-center rounded-lg bg-[#e10600] px-6 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-[#ff0700] hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(225,6,0,0.3)]"
                       >
-                        Abrir hub del evento
+                        Gestionar Hub
                       </Link>
                       <Link
                         to={`/app/eventos/${nextEvent.slug}/inscripciones`}
-                        className="rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-bold uppercase tracking-widest text-white/80 transition-colors hover:border-white/30 hover:text-white"
+                        className="flex-1 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-white/10"
                       >
-                        Ver inscripciones
+                        Inscripciones
                       </Link>
                     </div>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <Link
-                      to={`/app/eventos/${nextEvent.slug}/caja`}
-                      className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-[#e10600]/40 hover:bg-white/10"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Caja</p>
-                      <p className="mt-2 text-lg font-black uppercase text-white">Pagos y saldo</p>
-                      <p className="mt-1 text-sm text-white/55">Cobros, comprobantes y control financiero.</p>
-                    </Link>
-                    <Link
-                      to={`/app/eventos/${nextEvent.slug}/checkin`}
-                      className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-[#e10600]/40 hover:bg-white/10"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Check-in</p>
-                      <p className="mt-2 text-lg font-black uppercase text-white">Acceso operativo</p>
-                      <p className="mt-1 text-sm text-white/55">Llegadas, asistencia y validación de pilotos.</p>
-                    </Link>
-                    <Link
-                      to={`/app/eventos/${nextEvent.slug}/parrilla`}
-                      className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-[#e10600]/40 hover:bg-white/10"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Parrilla</p>
-                      <p className="mt-2 text-lg font-black uppercase text-white">Orden de salida</p>
-                      <p className="mt-1 text-sm text-white/55">Sorteo, revisión y publicación operativa.</p>
-                    </Link>
-                    <Link
-                      to={`/app/eventos/${nextEvent.slug}/carreras`}
-                      className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-[#e10600]/40 hover:bg-white/10"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Carreras</p>
-                      <p className="mt-2 text-lg font-black uppercase text-white">Captura deportiva</p>
-                      <p className="mt-1 text-sm text-white/55">Series, resultados y operación en pista.</p>
-                    </Link>
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {[
+                      { to: 'caja', label: 'Caja', desc: 'Control de Pagos', icon: DollarSign },
+                      { to: 'checkin', label: 'Check-in', desc: 'Acceso Operativo', icon: Users },
+                      { to: 'parrilla', label: 'Parrilla', desc: 'Orden de Salida', icon: Flag },
+                      { to: 'carreras', label: 'Carreras', desc: 'Captura Deportiva', icon: Trophy },
+                    ].map((item) => (
+                      <Link
+                        key={item.to}
+                        to={`/app/eventos/${nextEvent.slug}/${item.to}`}
+                        className="group relative overflow-hidden rounded-xl border border-white/5 bg-white/[0.03] p-5 transition-all hover:border-[#e10600]/50 hover:bg-white/[0.06]"
+                      >
+                        <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                          <item.icon className="w-20 h-20 text-white" />
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:text-[#e10600] transition-colors">{item.label}</p>
+                        <p className="mt-1 text-lg font-black uppercase text-white leading-tight italic tracking-tight">{item.desc}</p>
+                      </Link>
+                    ))}
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <p className="text-2xl font-black text-white">No hay eventos abiertos o en curso.</p>
-                  <p className="max-w-xl text-sm leading-7 text-white/60">
-                    Cuando exista una fecha accionable, aparecerá aquí arriba con accesos directos para evitar navegación innecesaria.
-                  </p>
+                <div className="text-center py-12">
+                  <Flag className="w-12 h-12 text-white/10 mx-auto mb-4" />
+                  <p className="text-xl font-black text-white italic uppercase">Sin Operaciones Activas</p>
                   <Link
                     to="/app/eventos"
-                    className="inline-flex rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold uppercase tracking-widest text-white/80 transition-colors hover:border-white/30 hover:text-white"
+                    className="mt-6 inline-flex rounded-lg border border-white/10 bg-white/5 px-8 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all"
                   >
-                    Ir a eventos
+                    Ir a Eventos
                   </Link>
                 </div>
               )}
@@ -323,35 +311,45 @@ export function Dashboard() {
         {loading
           ? Array.from({ length: 6 }, (_, index) => <DashboardStatSkeleton key={index} />)
           : stats.map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+            <div key={stat.label} className="group relative overflow-hidden rounded-xl border border-white/10 bg-[#1a1a21] p-6 transition-all hover:border-white/20">
+              <div className="mb-4 flex items-center justify-between">
+                <stat.icon className={`h-5 w-5 ${stat.color} opacity-60 group-hover:opacity-100 transition-opacity`} />
+                <div className="w-8 h-px bg-white/5 group-hover:w-12 transition-all" />
               </div>
-              <p className="text-3xl font-black text-white">{stat.value}</p>
-              <p className="text-sm text-white/50 mt-1">{stat.label}</p>
+              <p className="text-4xl font-black text-white italic tabular-nums" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{stat.value}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">{stat.label}</p>
             </div>
           ))}
       </div>
 
       {/* Food / comensales section */}
       {foodByEvent.length > 0 && (
-        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <UtensilsCrossed className="h-4 w-4 text-orange-400" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-orange-400">Comensales</h2>
+        <div className="rounded-xl border border-[#e10600]/20 bg-[#e10600]/5 p-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <UtensilsCrossed className="w-16 h-16 text-white" />
+          </div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1.5 h-5 bg-[#e10600]" />
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#e10600]">Logística de Alimentos</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {foodByEvent.map((ev) => (
-              <Link key={ev.slug} to={`/app/eventos/${ev.slug}/caja`} className="group rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-orange-500/30 transition-colors p-4">
-                <p className="text-xs text-white/40 uppercase tracking-wide mb-1 truncate">{ev.name}</p>
-                <div className="flex items-end justify-between gap-2 mt-2">
-                  <div className="space-y-1 text-xs text-white/50">
-                    <p>Pilotos: <span className="text-white font-semibold">{ev.pilotos}</span></p>
-                    <p>Staff: <span className="text-white font-semibold">{ev.staff}</span></p>
+              <Link key={ev.slug} to={`/app/eventos/${ev.slug}/caja`} className="group rounded-lg border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] hover:border-[#e10600]/30 transition-all p-5">
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 truncate group-hover:text-white/60">{ev.name}</p>
+                <div className="flex items-end justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                      <p className="text-xs font-bold text-white/60">Pilotos: <span className="text-white font-black tabular-nums">{ev.pilotos}</span></p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                      <p className="text-xs font-bold text-white/60">Staff: <span className="text-white font-black tabular-nums">{ev.staff}</span></p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-3xl font-black text-orange-400">{ev.total}</p>
-                    <p className="text-[10px] text-white/30 uppercase tracking-wide">total</p>
+                    <p className="text-4xl font-black text-white italic tabular-nums" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{ev.total}</p>
+                    <p className="text-[9px] font-black text-[#e10600] uppercase tracking-tighter">comensales</p>
                   </div>
                 </div>
               </Link>
@@ -364,34 +362,43 @@ export function Dashboard() {
       {loading ? (
         <DashboardChartSkeleton />
       ) : revenueChartData.length > 0 && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-green-400" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60">Recaudación por evento</h2>
+        <div className="rounded-xl border border-white/10 bg-[#1a1a21] p-6 space-y-6 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <DollarSign className="h-4 w-4 text-green-400" />
+              </div>
+              <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Recaudación por evento</h2>
+            </div>
+            <div className="px-3 py-1 bg-white/5 rounded-full border border-white/10">
+              <span className="text-[10px] font-bold text-white/40 uppercase">Global Stats</span>
+            </div>
           </div>
-          <div className="h-56">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={revenueChartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+              <BarChart data={revenueChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                  tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: 700 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                  tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: 700 }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-                  width={40}
                 />
-                <Tooltip content={<RevenueTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                <Tooltip content={<RevenueTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
                 <Legend
-                  wrapperStyle={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', paddingTop: 8 }}
+                  verticalAlign="top"
+                  align="right"
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', paddingBottom: 20 }}
                 />
                 <Bar dataKey="Inscripción" stackId="a" fill="#e10600" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="Alimentos" stackId="a" fill="#f59e0b" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="Otro" stackId="a" fill="#6b7280" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="Otro" stackId="a" fill="#3b82f6" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -402,30 +409,36 @@ export function Dashboard() {
       {loading ? (
         <DashboardChartSkeleton />
       ) : participationChartData.length > 0 && participationCategories.length > 0 && (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-blue-400" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60">Participación por evento</h2>
+        <div className="rounded-xl border border-white/10 bg-[#1a1a21] p-6 space-y-6 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <TrendingUp className="h-4 w-4 text-blue-400" />
+              </div>
+              <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Inscripciones por Categoría</h2>
+            </div>
           </div>
-          <div className="h-56">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={participationChartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+              <BarChart data={participationChartData} margin={{ top: 10, right: 10, bottom: 0, left: -30 }}>
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                  tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: 700 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                  tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: 700 }}
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
-                  width={28}
                 />
-                <Tooltip content={<ParticipationTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                <Tooltip content={<ParticipationTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
                 <Legend
-                  wrapperStyle={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', paddingTop: 8 }}
+                  verticalAlign="top"
+                  align="right"
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', paddingBottom: 20 }}
                 />
                 {participationCategories.map((cat) => (
                   <Bar
@@ -440,6 +453,7 @@ export function Dashboard() {
           </div>
         </div>
       )}
+
 
       {/* Teams per event chart */}
       {(analytics?.teamsPerEvent ?? []).length > 0 && (

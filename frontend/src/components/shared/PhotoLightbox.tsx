@@ -88,117 +88,115 @@ export function PhotoLightbox({ photos, currentIndex, onClose, onNavigate, event
   const shareText = `Mira esta foto del evento ${eventName}`;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black/98 backdrop-blur-xl animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 text-white">
-        <div className="flex flex-col">
-           <span className="text-sm font-bold uppercase tracking-widest text-white/40">
-             {eventName}
-           </span>
-           <span className="text-xs text-white/60">
-             Foto {currentIndex + 1} de {photos.length}
-           </span>
+      <div className="flex items-center justify-between px-6 py-6 text-white z-20">
+        <div className="flex items-center gap-4">
+           <div className="w-1 h-8 bg-[#e10600] skew-x-[-15deg]" />
+           <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 leading-none">
+                {eventName}
+              </span>
+              <span className="text-sm font-black italic text-white uppercase mt-1">
+                Media Viewer <span className="text-white/30 ml-2 font-mono not-italic">{currentIndex + 1} <span className="text-white/10">/</span> {photos.length}</span>
+              </span>
+           </div>
         </div>
         <button
           onClick={onClose}
-          className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+          className="group h-12 w-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-[#e10600] transition-all duration-300 shadow-xl"
         >
-          <X className="h-6 w-6" />
+          <X className="h-6 w-6 transition-transform group-hover:rotate-90" />
         </button>
       </div>
 
       {/* Main Content */}
-      <div className="relative flex-1 flex items-center justify-center overflow-hidden p-4 md:p-8">
+      <div className="relative flex-1 flex items-center justify-center overflow-hidden px-4 md:px-20 py-4">
         <button
           onClick={handlePrevious}
-          className="absolute left-4 z-10 h-12 w-12 hidden md:flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all"
+          className="absolute left-6 z-10 h-16 w-16 hidden md:flex items-center justify-center rounded-full bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all border border-white/5 hover:border-white/20 active:scale-90"
         >
-          <ChevronLeft className="h-8 w-8" />
+          <ChevronLeft className="h-10 w-10" />
         </button>
 
-        <img
-          src={resolveMediaUrl(currentPhoto.fileUrl) || ''}
-          alt=""
-          className="max-h-full max-w-full object-contain shadow-2xl animate-in zoom-in-95 duration-300"
-        />
+        <div className="relative group max-h-full max-w-full">
+          <img
+            key={currentPhoto.id}
+            src={resolveMediaUrl(currentPhoto.fileUrl) || ''}
+            alt=""
+            className="max-h-[80vh] max-w-full object-contain shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 fade-in duration-500 rounded-sm"
+          />
+          {/* Subtle watermark hint or overlay could go here */}
+        </div>
 
         <button
           onClick={handleNext}
-          className="absolute right-4 z-10 h-12 w-12 hidden md:flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all"
+          className="absolute right-6 z-10 h-16 w-16 hidden md:flex items-center justify-center rounded-full bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all border border-white/5 hover:border-white/20 active:scale-90"
         >
-          <ChevronRight className="h-8 w-8" />
+          <ChevronRight className="h-10 w-10" />
         </button>
       </div>
 
       {/* Footer / Controls */}
-      <div className="p-6 flex flex-col items-center gap-6 relative">
+      <div className="p-8 flex flex-col items-center gap-8 relative z-20">
         {/* Mobile Navigation */}
-        <div className="flex md:hidden items-center gap-8 text-white/60">
-           <button onClick={handlePrevious} className="p-2 hover:text-white"><ChevronLeft className="h-8 w-8" /></button>
-           <span className="text-sm font-mono">{currentIndex + 1} / {photos.length}</span>
-           <button onClick={handleNext} className="p-2 hover:text-white"><ChevronRight className="h-8 w-8" /></button>
+        <div className="flex md:hidden items-center gap-12 text-white/40 mb-2">
+           <button onClick={handlePrevious} className="p-2 hover:text-[#e10600] active:scale-75 transition-all"><ChevronLeft className="h-10 w-10" /></button>
+           <span className="text-sm font-black italic tracking-widest">{currentIndex + 1} <span className="text-white/10">OF</span> {photos.length}</span>
+           <button onClick={handleNext} className="p-2 hover:text-[#e10600] active:scale-75 transition-all"><ChevronRight className="h-10 w-10" /></button>
         </div>
 
         {/* Fallback Share Menu */}
         {isShareMenuOpen && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-zinc-900 border border-white/10 rounded-2xl p-2 flex flex-col gap-1 w-64 shadow-2xl animate-in slide-in-from-bottom-4 duration-200">
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-white transition-colors"
-              onClick={() => setIsShareMenuOpen(false)}
-            >
-              <MessageCircle className="h-5 w-5 text-green-500" />
-              <span className="font-medium">WhatsApp</span>
-            </a>
-            <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-white transition-colors"
-              onClick={() => setIsShareMenuOpen(false)}
-            >
-              <Facebook className="h-5 w-5 text-blue-500" />
-              <span className="font-medium">Facebook</span>
-            </a>
-            <a
-              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-white transition-colors"
-              onClick={() => setIsShareMenuOpen(false)}
-            >
-              <Twitter className="h-5 w-5 text-sky-500" />
-              <span className="font-medium">X (Twitter)</span>
-            </a>
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 bg-[#141419] border border-white/10 rounded-2xl p-2 flex flex-col gap-1 w-72 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-4 duration-300">
+            {[
+              { label: 'WhatsApp', icon: MessageCircle, color: 'text-green-500', href: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}` },
+              { label: 'Facebook', icon: Facebook, color: 'text-blue-500', href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}` },
+              { label: 'X (Twitter)', icon: Twitter, color: 'text-sky-500', href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}` }
+            ].map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-4 px-5 py-4 rounded-xl hover:bg-white/5 text-white transition-all group"
+                onClick={() => setIsShareMenuOpen(false)}
+              >
+                <social.icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", social.color)} />
+                <span className="text-sm font-bold uppercase tracking-widest">{social.label}</span>
+              </a>
+            ))}
             <button
               onClick={copyToClipboard}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-white transition-colors"
+              className="flex items-center gap-4 px-5 py-4 rounded-xl hover:bg-white/5 text-white transition-all group border-t border-white/5 mt-1"
             >
-              <Link2 className="h-5 w-5 text-zinc-400" />
-              <span className="font-medium">Copiar Enlace</span>
+              <Link2 className="h-5 w-5 text-white/30 group-hover:text-white transition-colors" />
+              <span className="text-sm font-bold uppercase tracking-widest">Copiar Enlace</span>
             </button>
           </div>
         )}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <a
             href={`/api/photos/${currentPhoto.id}/download`}
             download
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-racing-red text-white font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-600/20 active:scale-95"
+            className="group relative flex items-center gap-3 px-10 py-4 overflow-hidden rounded-lg bg-[#e10600] text-white font-black uppercase tracking-[0.15em] transition-all hover:scale-[1.05] active:scale-[0.95] shadow-[0_10px_30px_rgba(225,6,0,0.3)]"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
           >
             <Download className="h-5 w-5" />
-            Descargar
+            <span className="relative z-10 italic">Descargar Foto</span>
+            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-[-20deg]" />
           </a>
           
           <button
             onClick={handleShare}
             disabled={isSharing}
-            className="h-12 w-12 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all active:scale-95 disabled:opacity-50"
+            className="h-14 w-14 flex items-center justify-center rounded-lg bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white transition-all active:scale-95 disabled:opacity-50"
             title="Compartir"
           >
             {isSharing ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#e10600]" />
             ) : (
-              <Share2 className="h-5 w-5" />
+              <Share2 className="h-6 w-6" />
             )}
           </button>
         </div>

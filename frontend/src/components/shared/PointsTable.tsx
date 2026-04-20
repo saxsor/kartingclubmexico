@@ -41,82 +41,101 @@ function PilotAvatar({ photoUrl, name }: { photoUrl?: string | null; name: strin
 }
 
 const positionBorder = (idx: number) =>
-  idx === 0 ? 'border-l-[3px] border-l-yellow-500' :
-  idx === 1 ? 'border-l-[3px] border-l-white/20' :
-  idx === 2 ? 'border-l-[3px] border-l-orange-400/40' :
-  'border-l-[3px] border-l-transparent';
+  idx === 0 ? 'border-l-4 border-l-yellow-500 bg-yellow-500/5' :
+  idx === 1 ? 'border-l-4 border-l-slate-300 bg-slate-300/5' :
+  idx === 2 ? 'border-l-4 border-l-amber-600/60 bg-amber-600/5' :
+  'border-l-4 border-l-transparent';
+
+const positionColor = (pos: number) =>
+  pos === 1 ? 'text-yellow-400' :
+  pos === 2 ? 'text-slate-300' :
+  pos === 3 ? 'text-amber-500' :
+  'text-white/40';
 
 export function PointsTable({ rows, raceNumbers = [], showGap = true, className, renderAction }: Props) {
   return (
-    <div className={cn('border border-[#38383f]', className)}>
+    <div className={cn('overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 shadow-2xl', className)}>
       {/* Desktop table */}
       <div className="hidden sm:block overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-[#38383f] bg-[#1f1f27]">
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40 w-12">Pos</th>
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Piloto</th>
-              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">#</th>
+            <tr className="border-b border-[#38383f] bg-[#1a1a21]">
+              <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-16">Pos</th>
+              <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Piloto</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-16">#</th>
               {raceNumbers.map((n) => (
-                <th key={n} className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">
+                <th key={n} className="px-3 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-16">
                   C{n}
                 </th>
               ))}
-              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Total</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#e10600] w-24">PTS</th>
               {showGap && (
-                <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Gap</th>
+                <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-20">Gap</th>
               )}
               {renderAction && (
-                <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Diploma</th>
+                <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Diploma</th>
               )}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-[#38383f]/30">
             {rows.map((row, idx) => (
               <tr
                 key={idx}
                 className={cn(
-                  'border-b border-[#38383f]/50 transition-colors hover:bg-[#2a2a35]',
-                  idx === 0 && 'bg-yellow-500/5',
+                  'group transition-all duration-200 hover:bg-white/[0.03]',
                   positionBorder(idx),
                 )}
               >
-                <td className="px-4 py-2.5">
-                  <span className={cn('font-black text-xl', getPositionClass(row.position))}
+                <td className="px-4 py-3.5">
+                  <span className={cn('font-black text-2xl italic', positionColor(row.position))}
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                    {row.position}
+                    {row.position.toString().padStart(2, '0')}
                   </span>
                 </td>
-                <td className="px-4 py-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <PilotAvatar photoUrl={row.photoUrl} name={row.pilotName} />
+                <td className="px-4 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <PilotAvatar photoUrl={row.photoUrl} name={row.pilotName} />
+                      {idx < 3 && (
+                        <div className={cn(
+                          "absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#1f1f27]",
+                          idx === 0 ? "bg-yellow-500" : idx === 1 ? "bg-slate-300" : "bg-amber-600"
+                        )} />
+                      )}
+                    </div>
                     <div>
-                      <p className="font-bold text-white uppercase text-sm leading-tight"
+                      <p className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#e10600] transition-colors"
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
                         {row.pilotName}
                       </p>
-                      {row.alias && <p className="text-[10px] text-white/40 italic">"{row.alias}"</p>}
+                      {row.alias && <p className="text-[10px] text-white/30 italic mt-0.5 tracking-wider font-medium">"{row.alias}"</p>}
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-2.5 text-center font-mono text-white/50 text-xs">{row.kartNumber ?? '—'}</td>
+                <td className="px-4 py-3.5 text-center font-mono text-white/40 text-sm font-bold">{row.kartNumber ?? '—'}</td>
                 {raceNumbers.map((n) => (
-                  <td key={n} className="px-3 py-2.5 text-center text-white/70 text-sm">
+                  <td key={n} className="px-3 py-3.5 text-center text-white/60 font-mono text-sm">
                     {row.races?.[n] ?? '—'}
                   </td>
                 ))}
-                <td className="px-4 py-2.5 text-center font-black text-white text-lg"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                  {row.total}
+                <td className="px-4 py-3.5 text-center">
+                  <span className="font-black text-white text-xl tabular-nums italic"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                    {row.total}
+                  </span>
                 </td>
                 {showGap && (
-                  <td className="px-4 py-2.5 text-center text-white/40 text-xs font-bold">
-                    {row.gap === 0 ? '—' : `-${row.gap}`}
+                  <td className="px-4 py-3.5 text-center">
+                    <span className="text-[11px] text-white/30 font-mono font-bold bg-white/5 px-2 py-0.5 rounded-sm">
+                      {row.gap === 0 ? 'LEADER' : `-${row.gap}`}
+                    </span>
                   </td>
                 )}
                 {renderAction && (
-                  <td className="px-4 py-2.5 text-center">
-                    {renderAction(row)}
+                  <td className="px-4 py-3.5 text-center">
+                    <div className="flex justify-center">
+                      {renderAction(row)}
+                    </div>
                   </td>
                 )}
               </tr>
@@ -126,51 +145,60 @@ export function PointsTable({ rows, raceNumbers = [], showGap = true, className,
       </div>
 
       {/* Mobile card layout */}
-      <div className="sm:hidden divide-y divide-[#38383f]/50">
+      <div className="sm:hidden divide-y divide-[#38383f]/30">
         {rows.map((row, idx) => (
           <div
             key={idx}
             className={cn(
-              'px-4 py-3 transition-colors',
-              idx === 0 && 'bg-yellow-500/5',
+              'px-4 py-4 transition-all',
               positionBorder(idx),
             )}
           >
-            <div className="flex items-center gap-3">
-              <span className={cn('font-black text-2xl w-7 flex-shrink-0 text-center', getPositionClass(row.position))}
+            <div className="flex items-center gap-4">
+              <span className={cn('font-black text-3xl italic w-8 flex-shrink-0 text-center', positionColor(row.position))}
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 {row.position}
               </span>
 
-              <PilotAvatar photoUrl={row.photoUrl} name={row.pilotName} />
+              <div className="relative flex-shrink-0">
+                <PilotAvatar photoUrl={row.photoUrl} name={row.pilotName} />
+                {idx < 3 && (
+                  <div className={cn(
+                    "absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#1f1f27]",
+                    idx === 0 ? "bg-yellow-500" : idx === 1 ? "bg-slate-300" : "bg-amber-600"
+                  )} />
+                )}
+              </div>
 
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-white uppercase text-sm truncate leading-tight"
+                <p className="font-bold text-white uppercase text-base truncate leading-none tracking-tight"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
                   {row.pilotName}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  {row.alias && <span className="text-[10px] text-white/40 italic">"{row.alias}"</span>}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] text-white/30 font-mono font-bold bg-white/5 px-1.5 py-0.5 rounded-sm">#{row.kartNumber ?? '—'}</span>
                   {raceNumbers.length > 0 && (
-                    <span className="text-[10px] text-white/30">
-                      {raceNumbers.map((n) => `C${n}: ${row.races?.[n] ?? '—'}`).join(' · ')}
+                    <span className="text-[10px] text-white/20 font-mono">
+                      {raceNumbers.map((n) => `${row.races?.[n] ?? '0'}`).join('·')}
                     </span>
                   )}
                 </div>
               </div>
 
               <div className="text-right flex-shrink-0">
-                <p className="font-black text-white text-xl leading-none"
+                <p className="font-black text-white text-2xl italic leading-none"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                   {row.total}
                 </p>
-                {showGap && row.gap !== undefined && row.gap > 0 && (
-                  <p className="text-[10px] text-white/30 font-bold">-{row.gap}</p>
+                {showGap && row.gap !== undefined && (
+                  <p className="text-[10px] text-white/30 font-mono font-bold mt-1 uppercase tracking-tighter">
+                    {row.gap === 0 ? 'Leader' : `Gap -${row.gap}`}
+                  </p>
                 )}
               </div>
             </div>
             {renderAction && (
-              <div className="mt-3">
+              <div className="mt-4 pt-3 border-t border-[#38383f]/30">
                 {renderAction(row)}
               </div>
             )}

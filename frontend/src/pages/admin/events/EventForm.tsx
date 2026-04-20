@@ -34,6 +34,7 @@ export function EventForm() {
   const [error, setError] = useState('');
   const [posterUploading, setPosterUploading] = useState(false);
   const [diplomaUploading, setDiplomaUploading] = useState(false);
+  const [diplomaPreviewRatio, setDiplomaPreviewRatio] = useState(16 / 9);
   const posterInputRef = useRef<HTMLInputElement>(null);
   const diplomaInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -363,11 +364,20 @@ export function EventForm() {
 
             {diplomaPreviewUrl ? (
               <div className="mb-4 overflow-hidden rounded-xl border border-[#38383f] bg-[#111318]">
-                <div className="relative" style={{ aspectRatio: '16 / 9' }}>
+                <div
+                  className="relative mx-auto w-full max-w-full"
+                  style={{ aspectRatio: `${diplomaPreviewRatio}`, maxHeight: '70vh' }}
+                >
                   <img
                     src={diplomaPreviewUrl}
                     alt="Vista previa del diploma"
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain bg-[#0b0d12]"
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                        setDiplomaPreviewRatio(img.naturalWidth / img.naturalHeight);
+                      }
+                    }}
                   />
                   <div
                     className="pointer-events-none absolute left-1/2 -translate-x-1/2 px-4 text-center font-bold"

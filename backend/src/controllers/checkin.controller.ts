@@ -27,20 +27,16 @@ export async function doCheckIn(req: Request, res: Response): Promise<void> {
   });
   if (!inscription) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
 
-  // Check debt block
-  if (inscription.event.blockCheckInOnDebt && inscription.status === 'PENDING_PAYMENT') {
-    res.status(400).json({ error: 'El piloto tiene deuda pendiente. Check-in bloqueado.' });
-    return;
-  }
-
   if (inscription.checkIn) {
     res.status(409).json({ error: 'El piloto ya hizo check-in' });
     return;
   }
 
+  const hasDebt = inscription.status !== 'PAID';
+
   const checkIn = await prisma.$transaction(async (tx) => {
     const checkIn = await tx.checkIn.create({
-      data: { inscriptionId: inscription.id, kartNumber, confirmedBy },
+      data: { inscriptionId: inscription.id, kartNumber, confirmedBy, hasDebt },
     });
 
     await tx.inscription.update({

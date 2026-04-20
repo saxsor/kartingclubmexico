@@ -226,15 +226,20 @@ export function CheckInPanel() {
           </h2>
           <div className="space-y-2">
             {checkedIn.map((insc) => (
-              <div key={insc.id} className="rounded-xl border border-green-500/20 bg-green-500/5 p-4">
+              <div key={insc.id} className={`rounded-xl border p-4 ${insc.checkIn?.hasDebt ? 'border-orange-500/30 bg-orange-500/5' : 'border-green-500/20 bg-green-500/5'}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-white">{insc.pilot.name}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <CategoryBadge category={insc.category} />
                       <span className="text-xs text-green-400 font-medium">
                         Kart #{insc.checkIn!.kartNumber}
                       </span>
+                      {insc.checkIn?.hasDebt && (
+                        <span className="text-xs font-bold text-orange-400 bg-orange-400/10 border border-orange-400/30 px-1.5 py-0.5 rounded">
+                          ADEUDO
+                        </span>
+                      )}
                     </div>
                     {insc.kartNotes && (
                       <p className="text-xs text-white/40 mt-0.5 italic">{insc.kartNotes}</p>

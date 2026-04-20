@@ -22,6 +22,8 @@ export interface Inscription {
   notes: string | null;
   receiptPath: string | null;
   selfRegistered: boolean;
+  exentoCarrera: boolean;
+  exentoComida: boolean;
   pilot: { id: string; name: string; alias: string | null; kartNumber: number | null };
   payments: Payment[];
   checkIn: CheckIn | null;
@@ -45,6 +47,7 @@ export interface CheckIn {
   kartNumber: number;
   confirmedAt: string;
   confirmedBy: string | null;
+  hasDebt: boolean;
 }
 
 export interface SelfRegisterData {

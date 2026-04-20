@@ -97,21 +97,57 @@ export async function getInscription(req: Request, res: Response): Promise<void>
 }
 
 export async function updateInscription(req: Request, res: Response): Promise<void> {
-  const { category, kartNumber, kartNotes, notes, status, companions, engine } = req.body;
-  const inscription = await prisma.inscription.update({
-    where: { id: req.params.id },
-    data: {
-      ...(category !== undefined && { category }),
-      ...(kartNumber !== undefined && { kartNumber }),
-      ...(kartNotes !== undefined && { kartNotes: kartNotes || null }),
-      ...(notes !== undefined && { notes }),
-      ...(status !== undefined && { status }),
-      ...(companions !== undefined && { companions }),
-      ...(engine !== undefined && { engine }),
-    },
-    include: { pilot: true, payments: true, checkIn: true },
+  const { category, kartNumber, kartNotes, notes, status, companions, engine, exentoCarrera, exentoComida } = req.body;
+
+  const inscription = await prisma.$transaction(async (tx) => {
+    const updated = await tx.inscription.update({
+      where: { id: req.params.id },
+      data: {
+        ...(category !== undefined && { category }),
+        ...(kartNumber !== undefined && { kartNumber }),
+        ...(kartNotes !== undefined && { kartNotes: kartNotes || null }),
+        ...(notes !== undefined && { notes }),
+        ...(status !== undefined && { status }),
+        ...(companions !== undefined && { companions }),
+        ...(engine !== undefined && { engine }),
+        ...(exentoCarrera !== undefined && { exentoCarrera }),
+        ...(exentoComida !== undefined && { exentoComida }),
+      },
+      include: { pilot: true, payments: true, checkIn: true, event: true },
+    });
+
+    // Recalculate status when exemptions or companions change
+    if (exentoCarrera !== undefined || exentoComida !== undefined || companions !== undefined) {
+      const serviceFee = updated.exentoCarrera ? 0 : Number(updated.event.serviceFee);
+      const foodFee = updated.exentoComida ? 0 : Number(updated.event.foodFee) * updated.companions;
+      const required = serviceFee + foodFee;
+      const totalPaid = updated.payments.reduce((s, p) => s + Number(p.amount), 0);
+
+      const newStatus = totalPaid >= required ? 'PAID' : updated.status === 'PAID' ? 'PENDING_PAYMENT' : updated.status;
+      if (newStatus !== updated.status) {
+        await tx.inscription.update({ where: { id: updated.id }, data: { status: newStatus } });
+        if (updated.checkIn) {
+          await tx.checkIn.update({
+            where: { inscriptionId: updated.id },
+            data: { hasDebt: newStatus !== 'PAID' },
+          });
+        }
+        updated.status = newStatus as typeof updated.status;
+      }
+    }
+
+    if (status !== undefined && updated.checkIn) {
+      await tx.checkIn.update({
+        where: { inscriptionId: updated.id },
+        data: { hasDebt: status !== 'PAID' },
+      });
+    }
+
+    return updated;
   });
-  res.json(inscription);
+
+  const { event: _event, ...rest } = inscription;
+  res.json(rest);
 }
 
 export async function deleteInscription(req: Request, res: Response): Promise<void> {

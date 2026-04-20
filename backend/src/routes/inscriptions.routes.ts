@@ -26,6 +26,8 @@ const updateSchema = z.object({
   status: z.enum(['PENDING_PAYMENT', 'PAID']).optional(),
   companions: z.number().int().min(0).optional(),
   engine: z.string().optional(),
+  exentoCarrera: z.boolean().optional(),
+  exentoComida: z.boolean().optional(),
 });
 
 // VALIDATOR can list, view and create inscriptions, but not edit or delete

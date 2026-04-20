@@ -9,7 +9,7 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
   const { page, pageSize, skip } = getPaginationParams(req);
   const paymentsWhere = { inscription: { eventId: event.id } };
 
-  const [payments, total, allPayments, companionsAggregate, inscriptionCount] = await prisma.$transaction([
+  const [payments, total, allPayments, inscriptions, eventGuests] = await prisma.$transaction([
     prisma.payment.findMany({
       where: paymentsWhere,
       include: {
@@ -26,14 +26,15 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
       where: paymentsWhere,
       select: { amount: true, type: true },
     }),
-    prisma.inscription.aggregate({
+    prisma.inscription.findMany({
       where: { eventId: event.id },
-      _sum: { companions: true },
+      select: { companions: true, exentoCarrera: true, exentoComida: true },
     }),
-    prisma.inscription.count({ where: { eventId: event.id } }),
+    prisma.eventGuest.findMany({ where: { eventId: event.id } }),
   ]);
 
-  const totalPilotosComensales = companionsAggregate._sum.companions ?? 0;
+  const totalPilotosComensales = inscriptions.reduce((s, i) => s + i.companions, 0);
+  const totalGuestComensales = eventGuests.reduce((s, g) => s + g.count, 0);
 
   const totals = allPayments.reduce(
     (acc, p) => {
@@ -47,10 +48,20 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
     { total: 0, serviceFee: 0, foodFee: 0, other: 0 },
   );
 
-  const requiredServiceFee = Number(event.serviceFee) * inscriptionCount;
+  const serviceFeeUnit = Number(event.serviceFee);
+  const foodFeeUnit = Number(event.foodFee);
   const staffCount = event.staffCount ?? 0;
-  const payingComensales = Math.max(0, totalPilotosComensales - staffCount);
-  const requiredFoodFee = Number(event.foodFee) * payingComensales;
+  const paidGuestFoodFee = eventGuests
+    .filter((guest) => guest.isPaid)
+    .reduce((sum, guest) => sum + foodFeeUnit * guest.count, 0);
+
+  const requiredServiceFee = inscriptions.reduce((s, i) => s + (i.exentoCarrera ? 0 : serviceFeeUnit), 0);
+  const requiredFoodFeeFromPilots = inscriptions.reduce((s, i) => s + (i.exentoComida ? 0 : foodFeeUnit * i.companions), 0);
+  const requiredFoodFeeFromGuests = foodFeeUnit * totalGuestComensales;
+  const requiredFoodFee = Math.max(0, requiredFoodFeeFromPilots - staffCount * foodFeeUnit) + requiredFoodFeeFromGuests;
+
+  totals.foodFee += paidGuestFoodFee;
+  totals.total += paidGuestFoodFee;
 
   res.json({
     payments,
@@ -61,6 +72,9 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
       total: requiredServiceFee + requiredFoodFee,
     },
     totalPilotosComensales,
+    totalGuestComensales,
+    totalComensales: totalPilotosComensales + totalGuestComensales,
+    eventGuests,
     pagination: getPaginationMeta(page, pageSize, total),
   });
 }
@@ -81,12 +95,18 @@ export async function addPayment(req: Request, res: Response): Promise<void> {
     });
 
     const totalPaid = [...inscription.payments, payment].reduce((s, p) => s + Number(p.amount), 0);
-    const required = Number(inscription.event.serviceFee) + Number(inscription.event.foodFee) * inscription.companions;
+    const serviceFee = inscription.exentoCarrera ? 0 : Number(inscription.event.serviceFee);
+    const foodFee = inscription.exentoComida ? 0 : Number(inscription.event.foodFee) * inscription.companions;
+    const required = serviceFee + foodFee;
 
     if (totalPaid >= required) {
       await tx.inscription.update({
         where: { id: inscription.id },
         data: { status: 'PAID' },
+      });
+      await tx.checkIn.updateMany({
+        where: { inscriptionId: inscription.id },
+        data: { hasDebt: false },
       });
     }
 
@@ -104,7 +124,7 @@ export async function deletePayment(req: Request, res: Response): Promise<void> 
       where: { id: req.params.paymentId },
       include: {
         inscription: {
-          select: { id: true, status: true, companions: true, payments: true, event: { select: { serviceFee: true, foodFee: true } } },
+          select: { id: true, status: true, companions: true, exentoCarrera: true, exentoComida: true, payments: true, event: { select: { serviceFee: true, foodFee: true } } },
         },
       },
     });
@@ -116,13 +136,18 @@ export async function deletePayment(req: Request, res: Response): Promise<void> 
     const remainingTotal = payment.inscription.payments
       .filter((p) => p.id !== req.params.paymentId)
       .reduce((s, p) => s + Number(p.amount), 0);
-    const required = Number(payment.inscription.event.serviceFee)
-      + Number(payment.inscription.event.foodFee) * payment.inscription.companions;
+    const serviceFee = payment.inscription.exentoCarrera ? 0 : Number(payment.inscription.event.serviceFee);
+    const foodFee = payment.inscription.exentoComida ? 0 : Number(payment.inscription.event.foodFee) * payment.inscription.companions;
+    const required = serviceFee + foodFee;
 
     if (remainingTotal < required && payment.inscription.status === 'PAID') {
       await tx.inscription.update({
         where: { id: payment.inscription.id },
         data: { status: 'PENDING_PAYMENT' },
+      });
+      await tx.checkIn.updateMany({
+        where: { inscriptionId: payment.inscription.id },
+        data: { hasDebt: true },
       });
     }
   });
@@ -134,15 +159,21 @@ export async function exportCashBox(req: Request, res: Response): Promise<void> 
   const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
   if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
 
-  const payments = await prisma.payment.findMany({
-    where: { inscription: { eventId: event.id } },
-    include: {
-      inscription: {
-        include: { pilot: { select: { name: true, alias: true, email: true } } },
+  const [payments, eventGuests] = await prisma.$transaction([
+    prisma.payment.findMany({
+      where: { inscription: { eventId: event.id } },
+      include: {
+        inscription: {
+          include: { pilot: { select: { name: true, alias: true, email: true } } },
+        },
       },
-    },
-    orderBy: { paidAt: 'asc' },
-  });
+      orderBy: { paidAt: 'asc' },
+    }),
+    prisma.eventGuest.findMany({
+      where: { eventId: event.id, isPaid: true },
+      orderBy: { updatedAt: 'asc' },
+    }),
+  ]);
 
   const rows = [
     '"Piloto","Alias","Email","Tipo","Monto","Notas","Registrado por","Fecha"',
@@ -155,6 +186,16 @@ export async function exportCashBox(req: Request, res: Response): Promise<void> 
       `"${(p.notes ?? '').replace(/"/g, '""')}"`,
       `"${p.createdBy ?? ''}"`,
       `"${new Date(p.paidAt).toLocaleString('es-MX')}"`,
+    ].join(',')),
+    ...eventGuests.map((guest) => [
+      `"${guest.name ?? `Visitante x${guest.count}`}"`,
+      '""',
+      '""',
+      '"FOOD_FEE_GUEST"',
+      `"${(Number(event.foodFee) * guest.count).toFixed(2)}"`,
+      `"${(guest.notes ?? '').replace(/"/g, '""')}"`,
+      '"Sistema"',
+      `"${new Date(guest.updatedAt).toLocaleString('es-MX')}"`,
     ].join(',')),
   ].join('\n');
 

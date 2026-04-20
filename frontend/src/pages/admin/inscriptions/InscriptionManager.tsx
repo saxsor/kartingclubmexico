@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Plus, X, Search, ClipboardList, Download, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Plus, X, Search, ClipboardList, Download, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Pencil, ShieldCheck } from 'lucide-react';
 import { downloadCsv } from '../../../lib/download';
-import { inscriptionsApi, InscriptionStatus } from '../../../api/inscriptions.api';
+import { inscriptionsApi, InscriptionStatus, Inscription } from '../../../api/inscriptions.api';
 import { pilotsApi } from '../../../api/pilots.api';
 import { eventsApi, Category } from '../../../api/events.api';
 import { CATEGORY_LABELS } from '../../../lib/utils';
@@ -31,6 +31,9 @@ export function InscriptionManager() {
   const debouncedSearch = useDebounce(searchInput, 300);
   const [form, setForm] = useState({ pilotId: '', category: '' as Category | '', kartNumber: '', notes: '', companions: 0, engine: '' });
   const [error, setError] = useState('');
+  const [editingInsc, setEditingInsc] = useState<Inscription | null>(null);
+  const [editForm, setEditForm] = useState({ category: '' as Category | '', exentoCarrera: false, exentoComida: false });
+  const [editError, setEditError] = useState('');
   const queryClient = useQueryClient();
 
   const page = parseInt(searchParams.get('page') ?? '1', 10);
@@ -123,6 +126,16 @@ export function InscriptionManager() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Inscription> }) =>
+      inscriptionsApi.update(slug!, id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inscriptions.all });
+      setEditingInsc(null);
+    },
+    onError: (err) => setEditError(err instanceof Error ? err.message : 'Error al actualizar'),
+  });
+
   const event = eventQuery.data ?? null;
   const inscriptions = inscriptionsQuery.data?.items ?? [];
   const pagination = inscriptionsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
@@ -151,6 +164,22 @@ export function InscriptionManager() {
 
   const activeCategories = event?.eventCategories.filter((c) => c.active) ?? [];
   const hasFilters = !!(debouncedSearch || statusFilter || categoryFilter);
+
+  const openEdit = (insc: Inscription) => {
+    setEditingInsc(insc);
+    setEditForm({ category: insc.category, exentoCarrera: insc.exentoCarrera, exentoComida: insc.exentoComida });
+    setEditError('');
+  };
+
+  const handleEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingInsc) return;
+    updateMutation.mutate({ id: editingInsc.id, data: {
+      category: editForm.category as Category,
+      exentoCarrera: editForm.exentoCarrera,
+      exentoComida: editForm.exentoComida,
+    }});
+  };
 
   if (loading) return <PageLoadingState showFilters rows={5} />;
 
@@ -265,6 +294,65 @@ export function InscriptionManager() {
         </form>
       )}
 
+      {/* Edit modal */}
+      {editingInsc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <form onSubmit={handleEdit} className="w-full max-w-sm rounded-2xl border border-white/10 bg-racing-dark p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-white">Editar inscripción</h2>
+              <button type="button" onClick={() => setEditingInsc(null)} aria-label="Cerrar">
+                <X className="h-5 w-5 text-white/40 hover:text-white" />
+              </button>
+            </div>
+            <p className="text-sm text-white/60">{editingInsc.pilot.name}</p>
+            {editError && <p className="text-sm text-red-400">{editError}</p>}
+            <div>
+              <label className="block text-xs font-medium text-white/70 mb-1">Categoría</label>
+              <select
+                value={editForm.category}
+                onChange={(e) => setEditForm({ ...editForm, category: e.target.value as Category })}
+                className="w-full rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+              >
+                {activeCategories.map((c) => (
+                  <option key={c.id} value={c.category}>{CATEGORY_LABELS[c.category]}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2 rounded-lg border border-white/10 bg-white/5 p-3">
+              <p className="text-xs font-medium text-white/60 flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-yellow-400" /> Exenciones de pago
+              </p>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editForm.exentoCarrera}
+                  onChange={(e) => setEditForm({ ...editForm, exentoCarrera: e.target.checked })}
+                  className="accent-racing-red"
+                />
+                <span className="text-sm text-white">Exento de cuota de carrera</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editForm.exentoComida}
+                  onChange={(e) => setEditForm({ ...editForm, exentoComida: e.target.checked })}
+                  className="accent-racing-red"
+                />
+                <span className="text-sm text-white">Exento de cuota de comida</span>
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <button type="submit" disabled={updateMutation.isPending} className="flex-1 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 transition-colors">
+                {updateMutation.isPending ? 'Guardando...' : 'Guardar'}
+              </button>
+              <button type="button" onClick={() => setEditingInsc(null)} className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/60 hover:bg-white/10 transition-colors">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-48">
@@ -349,7 +437,14 @@ export function InscriptionManager() {
                   <p className="font-medium text-white">{i.pilot.name}</p>
                   {i.pilot.alias && <p className="text-xs text-white/50">"{i.pilot.alias}"</p>}
                 </td>
-                <td className="px-4 py-3"><CategoryBadge category={i.category} /></td>
+                <td className="px-4 py-3">
+                  <CategoryBadge category={i.category} />
+                  {(i.exentoCarrera || i.exentoComida) && (
+                    <span className="ml-1.5 text-xs text-yellow-400 font-medium" title={`${i.exentoCarrera ? 'Exento carrera' : ''}${i.exentoCarrera && i.exentoComida ? ' + ' : ''}${i.exentoComida ? 'Exento comida' : ''}`}>
+                      EXENTO
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-center font-mono text-white/70">
                   {i.kartNumber ? `#${i.kartNumber}` : '-'}
                 </td>
@@ -365,17 +460,26 @@ export function InscriptionManager() {
                   )}
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <button
-                    onClick={() => {
-                      if (!confirm(`¿Eliminar la inscripción de ${i.pilot.name}? Esta acción no se puede deshacer.`)) return;
-                      deleteMutation.mutate(i.id);
-                    }}
-                    disabled={deleteMutation.isPending}
-                    className="text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
-                    title="Eliminar inscripción"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => openEdit(i)}
+                      className="text-white/20 hover:text-white/70 transition-colors"
+                      title="Editar categoría / exenciones"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!confirm(`¿Eliminar la inscripción de ${i.pilot.name}? Esta acción no se puede deshacer.`)) return;
+                        deleteMutation.mutate(i.id);
+                      }}
+                      disabled={deleteMutation.isPending}
+                      className="text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
+                      title="Eliminar inscripción"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

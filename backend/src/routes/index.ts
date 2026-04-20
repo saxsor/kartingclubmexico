@@ -16,6 +16,7 @@ import analyticsRoutes from './analytics.routes.js';
 import pilotPortalRoutes from './pilot-portal.routes.js';
 import teamsRoutes from './teams.routes.js';
 import auditRoutes from './audit.routes.js';
+import eventGuestsRoutes from './eventGuests.routes.js';
 import { sseManager } from '../lib/sse.js';
 
 const router = Router();
@@ -30,6 +31,7 @@ router.use('/events/:slug', selfRegisterRoutes);
 router.use('/events/:slug/inscriptions', inscriptionsRoutes);
 router.use('/events/:slug', paymentsRoutes);
 router.use('/events/:slug', checkInRoutes);
+router.use('/events/:slug', eventGuestsRoutes);
 router.use('/events/:slug', gridRoutes);
 router.use('/events/:slug', racesRoutes);
 router.use('/events/:slug', resultsEventRouter);

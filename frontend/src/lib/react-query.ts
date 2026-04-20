@@ -50,6 +50,10 @@ export const queryKeys = {
     list: (slug: string) => ['races', 'list', slug] as const,
     detail: (slug: string, raceId: string) => ['races', 'detail', slug, raceId] as const,
   },
+  guests: {
+    all: ['guests'] as const,
+    list: (slug: string) => ['guests', 'list', slug] as const,
+  },
   results: {
     byCategory: (slug: string, category: string) => ['results', 'by-category', slug, category] as const,
   },

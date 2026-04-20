@@ -190,6 +190,7 @@ model Event {
   eventCategories EventCategory[]
   inscriptions    Inscription[]
   races           Race[]
+  eventGuests     EventGuest[]
 
   @@index([status])
   @@index([year])
@@ -221,6 +222,8 @@ model Inscription {
   notes          String?
   receiptPath    String?
   selfRegistered Boolean           @default(false)
+  exentoCarrera  Boolean           @default(false)
+  exentoComida   Boolean           @default(false)
   createdAt      DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
 
@@ -256,8 +259,24 @@ model CheckIn {
   kartNumber    Int
   confirmedAt   DateTime @default(now())
   confirmedBy   String?
+  hasDebt       Boolean  @default(false)
 
   inscription Inscription @relation(fields: [inscriptionId], references: [id], onDelete: Cascade)
+}
+
+model EventGuest {
+  id        String   @id @default(uuid())
+  eventId   String
+  name      String?
+  count     Int      @default(1)
+  isPaid    Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
 }
 
 model StartGrid {

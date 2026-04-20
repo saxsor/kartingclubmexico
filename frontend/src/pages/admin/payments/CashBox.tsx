@@ -9,6 +9,7 @@ import { downloadCsv } from '../../../lib/download';
 import { paymentsApi } from '../../../api/payments.api';
 import { eventsApi } from '../../../api/events.api';
 import { inscriptionsApi, type Inscription } from '../../../api/inscriptions.api';
+import { eventGuestsApi, type EventGuest } from '../../../api/eventGuests.api';
 import { formatCurrency, resolveMediaUrl } from '../../../lib/utils';
 import { PaginationMeta } from '../../../api/pagination';
 import { PaginationControls } from '../../../components/shared/PaginationControls';
@@ -27,6 +28,9 @@ export function CashBox() {
   const [companionsValue, setCompanionsValue] = useState<number>(0);
   const [editingStaff, setEditingStaff] = useState(false);
   const [staffValue, setStaffValue] = useState<number>(0);
+  const [showGuestForm, setShowGuestForm] = useState(false);
+  const [guestForm, setGuestForm] = useState({ name: '', count: 1, notes: '' });
+  const [editingGuest, setEditingGuest] = useState<EventGuest | null>(null);
   const [inscriptionsPage, setInscriptionsPage] = useState(1);
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [inscSearch, setInscSearch] = useState('');
@@ -102,20 +106,53 @@ export function CashBox() {
     },
   });
 
+  const guestsQuery = useQuery({
+    queryKey: slug ? queryKeys.guests.list(slug) : ['guests', 'list', 'missing'],
+    queryFn: () => eventGuestsApi.list(slug!),
+    enabled: !!slug,
+  });
+  const addGuestMutation = useMutation({
+    mutationFn: (data: { name?: string; count?: number; notes?: string }) => eventGuestsApi.add(slug!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.guests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
+      setShowGuestForm(false);
+      setGuestForm({ name: '', count: 1, notes: '' });
+    },
+  });
+  const updateGuestMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { name?: string; count?: number; isPaid?: boolean; notes?: string } }) =>
+      eventGuestsApi.update(slug!, id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.guests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
+      setEditingGuest(null);
+    },
+  });
+  const deleteGuestMutation = useMutation({
+    mutationFn: (id: string) => eventGuestsApi.delete(slug!, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.guests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.all });
+    },
+  });
+
   const cashbox = cashboxQuery.data ?? null;
   const event = eventQuery.data ?? null;
   const inscriptions = inscriptionsQuery.data?.items ?? [];
+  const guests = guestsQuery.data ?? [];
   const inscriptionsPagination = inscriptionsQuery.data?.pagination ?? ({ page: 1, pageSize: 10, total: 0, totalPages: 1 } satisfies PaginationMeta);
   const loading = cashboxQuery.isLoading || inscriptionsQuery.isLoading || eventQuery.isLoading;
 
   const totalPilotosComensales = cashbox?.totalPilotosComensales ?? 0;
+  const totalGuestComensales = guests.reduce((s, g) => s + g.count, 0);
   const totalStaff = event?.staffCount ?? 0;
-  const totalComensales = totalPilotosComensales + totalStaff;
+  const totalComensales = totalPilotosComensales + totalGuestComensales + totalStaff;
 
   const getPaymentSummary = (inscription: Inscription) => {
-    const serviceFee = Number(event?.serviceFee ?? 0);
-    const foodFee = Number(event?.foodFee ?? 0);
-    const totalFoodFee = foodFee * inscription.companions;
+    const serviceFee = inscription.exentoCarrera ? 0 : Number(event?.serviceFee ?? 0);
+    const foodFeeUnit = Number(event?.foodFee ?? 0);
+    const totalFoodFee = inscription.exentoComida ? 0 : foodFeeUnit * inscription.companions;
     const required = serviceFee + totalFoodFee;
     const totalPaid = inscription.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
     const servicePaid = inscription.payments
@@ -131,6 +168,7 @@ export function CashBox() {
       outstanding: Math.max(required - totalPaid, 0),
       serviceOutstanding: Math.max(serviceFee - servicePaid, 0),
       foodOutstanding: Math.max(totalFoodFee - foodPaid, 0),
+      isExento: inscription.exentoCarrera && inscription.exentoComida,
     };
   };
 
@@ -251,10 +289,14 @@ export function CashBox() {
             <UtensilsCrossed className="h-4 w-4 text-orange-400" />
             <h2 className="text-sm font-semibold uppercase tracking-wider text-orange-400">Comensales</h2>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div>
               <p className="text-xs text-white/40 mb-0.5">Pilotos</p>
               <p className="text-2xl font-black text-white">{totalPilotosComensales}</p>
+            </div>
+            <div>
+              <p className="text-xs text-white/40 mb-0.5">Visitantes</p>
+              <p className="text-2xl font-black text-white">{totalGuestComensales}</p>
             </div>
             <div>
               <p className="text-xs text-white/40 mb-0.5">Staff en pista</p>
@@ -290,6 +332,120 @@ export function CashBox() {
               <p className="text-2xl font-black text-orange-400">{totalComensales}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Visitantes / comensales sin piloto */}
+      {Number(event?.foodFee ?? 0) > 0 && (
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/60 flex items-center gap-2">
+              <Users className="h-4 w-4" /> Comensales visitantes
+            </h2>
+            {user?.role !== 'VALIDATOR' && (
+              <button
+                onClick={() => setShowGuestForm(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs text-white/70 hover:bg-white/20 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" /> Agregar
+              </button>
+            )}
+          </div>
+
+          {showGuestForm && (
+            <form
+              onSubmit={(e) => { e.preventDefault(); addGuestMutation.mutate({ name: guestForm.name || undefined, count: guestForm.count, notes: guestForm.notes || undefined }); }}
+              className="flex flex-wrap gap-2 items-end p-3 rounded-lg border border-white/10 bg-black/20"
+            >
+              <div className="flex-1 min-w-[140px]">
+                <label className="block text-xs text-white/50 mb-1">Nombre / grupo (opcional)</label>
+                <input
+                  type="text"
+                  value={guestForm.name}
+                  onChange={(e) => setGuestForm({ ...guestForm, name: e.target.value })}
+                  placeholder="Ej: Familia García"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/25 focus:border-racing-red focus:outline-none"
+                />
+              </div>
+              <div className="w-20">
+                <label className="block text-xs text-white/50 mb-1">Personas</label>
+                <input
+                  type="number" min="1" max="50"
+                  value={guestForm.count}
+                  onChange={(e) => setGuestForm({ ...guestForm, count: parseInt(e.target.value) || 1 })}
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white text-center focus:border-racing-red focus:outline-none"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button type="submit" disabled={addGuestMutation.isPending} className="rounded-lg bg-racing-red px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 transition-colors">
+                  Guardar
+                </button>
+                <button type="button" onClick={() => setShowGuestForm(false)} className="rounded-lg border border-white/10 px-3 py-2 text-sm text-white/50 hover:bg-white/10 transition-colors">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          )}
+
+          {guests.length === 0 && !showGuestForm && (
+            <p className="text-xs text-white/30 text-center py-2">Sin visitantes registrados</p>
+          )}
+
+          {guests.map((g) => (
+            <div key={g.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/5 px-4 py-2.5">
+              {editingGuest?.id === g.id ? (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); updateGuestMutation.mutate({ id: g.id, data: { name: editingGuest.name || undefined, count: editingGuest.count } }); }}
+                  className="flex flex-1 gap-2 items-center flex-wrap"
+                >
+                  <input
+                    type="text"
+                    value={editingGuest.name ?? ''}
+                    onChange={(e) => setEditingGuest({ ...editingGuest, name: e.target.value })}
+                    placeholder="Nombre / grupo"
+                    className="flex-1 min-w-[120px] rounded-lg border border-white/10 bg-white/10 px-3 py-1 text-sm text-white focus:border-racing-red focus:outline-none"
+                  />
+                  <input
+                    type="number" min="1" max="50"
+                    value={editingGuest.count}
+                    onChange={(e) => setEditingGuest({ ...editingGuest, count: parseInt(e.target.value) || 1 })}
+                    className="w-16 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-sm text-white text-center focus:border-racing-red focus:outline-none"
+                  />
+                  <button type="submit" disabled={updateGuestMutation.isPending} aria-label="Guardar visitante" className="text-green-400 hover:text-green-300 disabled:opacity-50"><CheckCircle className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => setEditingGuest(null)} aria-label="Cancelar" className="text-white/40 hover:text-white/70"><X className="h-4 w-4" /></button>
+                </form>
+              ) : (
+                <>
+                  <div className="flex-1">
+                    <span className="text-sm text-white">{g.name ?? <span className="text-white/40 italic">Sin nombre</span>}</span>
+                    <span className="ml-2 text-xs text-white/50">{g.count} {g.count === 1 ? 'persona' : 'personas'} · {formatCurrency(Number(event?.foodFee ?? 0) * g.count)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => updateGuestMutation.mutate({ id: g.id, data: { isPaid: !g.isPaid } })}
+                      disabled={updateGuestMutation.isPending}
+                      className={`text-xs font-semibold px-2 py-1 rounded transition-colors ${g.isPaid ? 'text-green-400 bg-green-400/10 hover:bg-green-400/20' : 'text-orange-400 bg-orange-400/10 hover:bg-orange-400/20'}`}
+                    >
+                      {g.isPaid ? 'Pagado' : 'Pendiente'}
+                    </button>
+                    {user?.role !== 'VALIDATOR' && (
+                      <>
+                        <button onClick={() => setEditingGuest(g)} aria-label="Editar visitante" className="text-white/25 hover:text-white/70 transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button
+                          onClick={() => { if (!confirm(`¿Eliminar visitante?`)) return; deleteGuestMutation.mutate(g.id); }}
+                          disabled={deleteGuestMutation.isPending}
+                          aria-label="Eliminar visitante"
+                          className="text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -388,7 +544,14 @@ export function CashBox() {
               <div key={insc.id} className="rounded-lg border border-white/10 bg-white/5 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-white">{insc.pilot.name}</p>
+                    <p className="font-medium text-white flex items-center gap-2">
+                      {insc.pilot.name}
+                      {(insc.exentoCarrera || insc.exentoComida) && (
+                        <span className="text-xs font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-1.5 py-0.5 rounded" title={`${insc.exentoCarrera ? 'Exento carrera' : ''}${insc.exentoCarrera && insc.exentoComida ? ' + ' : ''}${insc.exentoComida ? 'exento comida' : ''}`}>
+                          EXENTO
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-white/50">
                       {insc.category} |{' '}
                       <span className={

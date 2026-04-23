@@ -30,6 +30,14 @@ export interface PhotoAlbumUpdate {
   coverUrl?: string;
 }
 
+function getFilenameFromDisposition(disposition: string | null): string | null {
+  if (!disposition) return null;
+  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) return decodeURIComponent(utf8Match[1]);
+  const match = disposition.match(/filename="([^"]+)"/i) ?? disposition.match(/filename=([^;]+)/i);
+  return match?.[1]?.trim() ?? null;
+}
+
 export const photosApi = {
   getAlbum: (slug: string) => api.get<PhotoAlbumWithPhotos>(`/events/${slug}/photos`),
   
@@ -50,4 +58,23 @@ export const photosApi = {
 
   reorderPhotos: (slug: string, order: { id: string; order: number }[]) =>
     api.patch<void>(`/events/${slug}/photos/reorder`, { order }),
+
+  downloadBulk: async (slug: string, photoIds: string[]) => {
+    const params = new URLSearchParams();
+    photoIds.forEach((photoId) => params.append('photoId', photoId));
+
+    const response = await fetch(`/api/events/${slug}/photos/download-bulk?${params.toString()}`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+      throw new Error(error.error ?? `HTTP ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = getFilenameFromDisposition(response.headers.get('content-disposition')) ?? `${slug}-fotos.zip`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  },
 };

@@ -11,6 +11,7 @@ import {
   deletePhoto,
   reorderPhotos,
   downloadPhoto,
+  downloadBulkPhotos,
 } from '../controllers/photo-albums.controller.js';
 
 const router = Router();
@@ -25,6 +26,7 @@ const downloadLimit = rateLimit({
 // Public
 router.get('/events/:slug/photos', getAlbumByEvent);
 router.get('/photos/:photoId/download', downloadLimit, downloadPhoto);
+router.get('/events/:slug/photos/download-bulk', downloadLimit, downloadBulkPhotos);
 
 // Admin
 router.post('/events/:slug/photos/album', authenticate, requireRole('ADMIN', 'ORGANIZER'), createAlbum);

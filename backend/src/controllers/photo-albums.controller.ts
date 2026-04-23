@@ -1,7 +1,27 @@
 import { Request, Response } from 'express';
+import archiver from 'archiver';
+import slugify from 'slugify';
 import { prisma } from '../lib/prisma.js';
 import { uploadToDrive, deleteFromDrive, isDriveValue, streamFromDrive, getOrCreateFolder, FOLDER_IDS } from '../lib/drive.service.js';
 import { applyWatermark } from '../lib/watermark.service.js';
+
+async function getPhotoBinary(fileUrl: string): Promise<Buffer> {
+  const { stream } = await streamFromDrive(fileUrl);
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+async function getWatermarkedPhoto(fileUrl: string): Promise<Buffer> {
+  const original = await getPhotoBinary(fileUrl);
+  return applyWatermark(original);
+}
+
+function buildPhotoFilename(index: number, photoId: string): string {
+  return `foto-${String(index + 1).padStart(2, '0')}-${photoId.slice(0, 8)}.jpg`;
+}
 
 export async function getAlbumByEvent(req: Request, res: Response): Promise<void> {
   const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
@@ -150,16 +170,70 @@ export async function downloadPhoto(req: Request, res: Response): Promise<void> 
   const photo = await prisma.photo.findUnique({ where: { id: req.params.photoId } });
   if (!photo) { res.status(404).json({ error: 'Foto no encontrada' }); return; }
 
-  const { stream } = await streamFromDrive(photo.fileUrl);
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-  const original = Buffer.concat(chunks);
-  const watermarked = await applyWatermark(original);
+  const watermarked = await getWatermarkedPhoto(photo.fileUrl);
 
   res.setHeader('Content-Type', 'image/jpeg');
   res.setHeader('Content-Disposition', `attachment; filename="kcm-foto-${photo.id.slice(0, 8)}.jpg"`);
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.send(watermarked);
+}
+
+export async function downloadBulkPhotos(req: Request, res: Response): Promise<void> {
+  const rawPhotoIds = Array.isArray(req.query.photoId)
+    ? req.query.photoId
+    : req.query.photoId !== undefined
+      ? [req.query.photoId]
+      : [];
+
+  const photoIds = rawPhotoIds.filter((value): value is string => typeof value === 'string');
+
+  const uniquePhotoIds = [...new Set(photoIds.map((value) => value.trim()).filter(Boolean))];
+  if (uniquePhotoIds.length === 0) {
+    res.status(400).json({ error: 'Selecciona al menos una foto' });
+    return;
+  }
+  if (uniquePhotoIds.length > 20) {
+    res.status(400).json({ error: 'Solo puedes descargar hasta 20 fotos por vez' });
+    return;
+  }
+
+  const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
+  if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
+
+  const album = await prisma.photoAlbum.findUnique({
+    where: { eventId: event.id },
+    include: { photos: { orderBy: { order: 'asc' } } },
+  });
+  if (!album || !album.isPublished) {
+    res.status(404).json({ error: 'Galería no disponible' });
+    return;
+  }
+
+  const selectedPhotos = album.photos.filter((photo) => uniquePhotoIds.includes(photo.id));
+  if (selectedPhotos.length !== uniquePhotoIds.length) {
+    res.status(400).json({ error: 'Una o más fotos no pertenecen a esta galería' });
+    return;
+  }
+
+  const orderedPhotos = uniquePhotoIds
+    .map((photoId) => selectedPhotos.find((photo) => photo.id === photoId))
+    .filter((photo): photo is NonNullable<typeof photo> => Boolean(photo));
+
+  const zipName = `${slugify(event.name, { lower: true, strict: true }) || 'galeria'}-fotos.zip`;
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', `attachment; filename="${zipName}"`);
+  res.setHeader('Cache-Control', 'no-store');
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.on('error', (error) => {
+    throw error;
+  });
+  archive.pipe(res);
+
+  for (const [index, photo] of orderedPhotos.entries()) {
+    const watermarked = await getWatermarkedPhoto(photo.fileUrl);
+    archive.append(watermarked, { name: buildPhotoFilename(index, photo.id) });
+  }
+
+  await archive.finalize();
 }

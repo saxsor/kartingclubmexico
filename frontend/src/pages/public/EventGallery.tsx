@@ -110,7 +110,7 @@ export function EventGallery() {
   const photos = album.photos;
 
   return (
-    <div className="min-h-screen bg-racing-dark">
+    <div className="racing-carbon-bg min-h-screen">
       <SEO 
         title={`Fotos — ${event.name}`}
         description={`Galería de fotos oficial de Karting Club México para el evento ${event.name}.`}

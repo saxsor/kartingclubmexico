@@ -55,7 +55,13 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-color: #15151e;
+    background-color: #111318;
+    background-image:
+      radial-gradient(circle at top center, rgba(255, 255, 255, 0.06), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%),
+      repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 12px),
+      repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 12px),
+      linear-gradient(135deg, #0f1015 0%, #171922 48%, #111318 100%);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
@@ -104,6 +110,25 @@
 /* F1-style design system */
 .racing-gradient {
   background: linear-gradient(135deg, #15151e 0%, #1f1f27 50%, #15151e 100%);
+}
+
+.racing-carbon-bg {
+  background-color: #111318;
+  background-image:
+    radial-gradient(circle at top center, rgba(255, 255, 255, 0.06), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 12px),
+    linear-gradient(135deg, #0f1015 0%, #171922 48%, #111318 100%);
+}
+
+.racing-carbon-surface {
+  background-color: rgba(20, 21, 27, 0.88);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 24%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 10px);
+  backdrop-filter: blur(10px);
 }
 
 .racing-stripe {

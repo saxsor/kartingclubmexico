@@ -26,7 +26,7 @@ function getTotalPaid(insc: PilotInscription) {
 }
 
 function getRequired(insc: PilotInscription) {
-  return Number(insc.event.serviceFee) + Number(insc.event.foodFee) * insc.companions;
+  return insc.totalRequired;
 }
 
 export function PilotPortal() {
@@ -89,7 +89,7 @@ export function PilotPortal() {
 
   if (profileQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-racing-dark px-4 py-6">
+      <div className="racing-carbon-bg min-h-screen px-4 py-6">
         <div className="mx-auto max-w-lg">
           <HeroLoadingState sections={3} />
         </div>
@@ -99,7 +99,7 @@ export function PilotPortal() {
 
   if (!pilot) {
     return (
-      <div className="min-h-screen bg-racing-dark flex items-center justify-center">
+      <div className="racing-carbon-bg min-h-screen flex items-center justify-center">
         <p className="text-red-400 text-sm">Error al cargar el perfil.</p>
       </div>
     );
@@ -109,7 +109,7 @@ export function PilotPortal() {
   const pastInscriptions = pilot.inscriptions.filter((i) => i.event.status !== 'OPEN');
 
   return (
-    <div className="min-h-screen bg-racing-dark text-white">
+    <div className="racing-carbon-bg min-h-screen text-white">
       {/* Header */}
       <div className="border-b border-white/10 bg-black/30 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">

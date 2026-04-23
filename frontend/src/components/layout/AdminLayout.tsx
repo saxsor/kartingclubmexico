@@ -38,11 +38,11 @@ export function AdminLayout() {
   const mobileNavItems = filteredNav.slice(0, 5);
 
   return (
-    <div className="flex h-screen bg-[#15151e] text-white overflow-hidden">
+    <div className="racing-carbon-bg flex h-screen text-white overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col bg-[#1f1f27] border-r border-[#38383f] transition-transform duration-300',
+          'racing-carbon-surface fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col border-r border-[#38383f] transition-transform duration-300',
           'lg:static lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
@@ -115,7 +115,7 @@ export function AdminLayout() {
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center gap-4 border-b border-[#38383f] bg-[#15151e] px-6 lg:hidden">
+        <header className="racing-carbon-surface flex h-16 items-center gap-4 border-b border-[#38383f] px-6 lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Abrir menú lateral"
@@ -130,14 +130,14 @@ export function AdminLayout() {
           />
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-[#15151e] p-6 pb-28 lg:pb-6">
+        <main className="flex-1 overflow-y-auto p-6 pb-28 lg:pb-6">
           <div key={location.pathname} className="route-enter mx-auto w-full max-w-5xl">
             <Outlet />
           </div>
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[#38383f] bg-[#15151e]/95 px-2 py-2 backdrop-blur lg:hidden">
+      <nav className="racing-carbon-surface fixed inset-x-0 bottom-0 z-40 border-t border-[#38383f] px-2 py-2 lg:hidden">
         <div className="grid grid-cols-5 gap-1">
           {mobileNavItems.map((item) => (
             <NavLink

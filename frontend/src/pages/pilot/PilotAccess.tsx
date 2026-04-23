@@ -72,7 +72,7 @@ export function PilotAccess() {
   };
 
   return (
-    <div className="min-h-screen bg-racing-dark flex items-center justify-center p-4">
+    <div className="racing-carbon-bg min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">

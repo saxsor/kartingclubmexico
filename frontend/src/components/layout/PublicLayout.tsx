@@ -5,14 +5,14 @@ export function PublicLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-[#15151e] text-white flex flex-col">
+    <div className="racing-carbon-bg min-h-screen text-white flex flex-col">
       <Navbar />
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 pt-8 pb-24 sm:px-6 lg:px-8">
         <div key={location.pathname} className="route-enter">
           <Outlet />
         </div>
       </main>
-      <footer className="border-t border-[#38383f] bg-[#15151e]">
+      <footer className="racing-carbon-surface border-t border-[#38383f]">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] lg:px-8">
           <div>
             <img

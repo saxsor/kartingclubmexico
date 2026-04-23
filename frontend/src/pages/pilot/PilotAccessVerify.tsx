@@ -24,7 +24,7 @@ export function PilotAccessVerify() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-racing-dark flex items-center justify-center p-4">
+      <div className="racing-carbon-bg min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
           <p className="text-red-400 font-semibold mb-2">Enlace inválido</p>
           <p className="text-sm text-white/50 mb-4">{error}</p>
@@ -35,7 +35,7 @@ export function PilotAccessVerify() {
   }
 
   return (
-    <div className="min-h-screen bg-racing-dark flex items-center justify-center">
+    <div className="racing-carbon-bg min-h-screen flex items-center justify-center">
       <p className="text-white/40 text-sm">Verificando acceso...</p>
     </div>
   );

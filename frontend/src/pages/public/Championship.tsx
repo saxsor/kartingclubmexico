@@ -4,10 +4,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Trophy, User, ChevronRight, Users } from 'lucide-react';
 import { SEO } from '../../components/shared/SEO';
 import { championshipApi, ChampionshipStandingsData, ConstructorStandingsData } from '../../api/championship.api';
-import { CATEGORY_LABELS, getPositionClass, cn, resolveMediaUrl } from '../../lib/utils';
+import { CATEGORY_LABELS, getPositionClass, cn, resolveMediaUrl, formatDate } from '../../lib/utils';
 import { queryKeys } from '../../lib/react-query';
 import { Category } from '../../api/events.api';
 import { InlineLoadingState, PageLoadingState } from '../../components/shared/LoadingSkeleton';
+import { SocialStandingsExport } from '../../components/shared/SocialStandingsExport';
 
 type ViewMode = 'pilots' | 'constructors';
 
@@ -36,20 +37,22 @@ export function Championship() {
   return (
     <div>
       <SEO title="Campeonatos" description="Clasificación del campeonato de karting en México. Puntos, posiciones y estadísticas por categoría." url="/campeonato" />
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-1 h-6 bg-[#e10600]" />
-          <span className="text-xs font-bold uppercase tracking-widest text-white/50">
-            <Trophy className="inline h-3 w-3 mr-1.5 text-yellow-400" />
-            Campeonatos
+      <div className="mb-8 relative">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
+            Temporada {new Date().getFullYear()}
           </span>
         </div>
         <h1
-          className="text-4xl font-black text-white uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+          className="text-5xl font-black text-white uppercase italic tracking-tighter"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          Campeonatos
+          Todos los <span className="text-[#e10600]">Campeonatos</span>
         </h1>
+        <div className="absolute top-0 right-0 hidden md:block opacity-10">
+          <Trophy className="w-24 h-24 text-white" />
+        </div>
       </div>
 
       {championships.length === 0 ? (
@@ -126,69 +129,127 @@ export function ChampionshipDetailPublic() {
 
   const availableCats = getAvailableCategories(championship.events);
   const displayCats = availableCats.length > 0 ? availableCats : ALL_CATEGORIES;
+  const cutoffEvent = [...championship.events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).at(-1) ?? null;
 
   return (
     <div>
+      <SEO
+        title={championship ? `Clasificación — ${championship.name}` : 'Clasificación'}
+        description={championship ? `Clasificación del campeonato ${championship.name}. Puntos por categoría y posiciones finales.` : undefined}
+        url={`/campeonato/${id}`}
+      />
       {/* Back button */}
-      <button
-        onClick={() => navigate('/campeonato')}
-        className="text-sm text-white/40 hover:text-white mb-6 block transition-colors"
-      >
-        ← Todos los campeonatos
-      </button>
+      <div className="mb-6">
+        <button
+          onClick={() => navigate('/campeonato')}
+          className="text-sm text-white/50 hover:text-white transition-colors"
+        >
+          ← Todos los campeonatos
+        </button>
+      </div>
 
       {/* Page header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-1 h-6 bg-[#e10600]" />
-          <span className="text-xs font-bold uppercase tracking-widest text-white/50">
-            <Trophy className="inline h-3 w-3 mr-1.5 text-yellow-400" />
-            Clasificación general
+      <div className="mb-8 relative">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
+            {championship.name} {championship.year}
           </span>
         </div>
         <h1
-          className="text-4xl font-black text-white uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+          className="text-5xl font-black text-white uppercase italic tracking-tighter"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          {championship.name}
+          Clasificación <span className="text-[#e10600]">General</span>
         </h1>
-        <p className="text-sm text-white/40 mt-1">{championship.year} · {championship.events.length} eventos</p>
+        <div className="absolute top-0 right-0 hidden md:block opacity-10">
+          <Trophy className="w-24 h-24 text-white" />
+        </div>
       </div>
 
+      {selectedCat && cutoffEvent && viewMode === 'pilots' && standings && standings.standings.length > 0 && (
+        <div className="mb-6 flex justify-end">
+          <SocialStandingsExport
+            title="Campeonato Pilotos"
+            championshipName={championship.name}
+            eventName={cutoffEvent.name}
+            eventLabel="Evento de corte"
+            categoryLabel={CATEGORY_LABELS[selectedCat] ?? selectedCat}
+            dateLabel={formatDate(cutoffEvent.date)}
+            rows={standings.standings.map((row) => ({
+              position: row.position,
+              name: row.pilotName,
+              auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
+              points: row.totalPoints,
+              gap: row.gap,
+            }))}
+            fileBaseName={`${championship.name}-${selectedCat}-pilotos-publico`}
+          />
+        </div>
+      )}
+
+      {selectedCat && cutoffEvent && viewMode === 'constructors' && constructorStandings && constructorStandings.standings.length > 0 && (
+        <div className="mb-6 flex justify-end">
+          <SocialStandingsExport
+            title="Campeonato Constructores"
+            championshipName={championship.name}
+            eventName={cutoffEvent.name}
+            eventLabel="Evento de corte"
+            categoryLabel={CATEGORY_LABELS[selectedCat] ?? selectedCat}
+            dateLabel={formatDate(cutoffEvent.date)}
+            rows={constructorStandings.standings.map((row) => ({
+              position: row.position,
+              name: row.teamName,
+              auxLabel: 'Tabla acumulada',
+              points: row.totalPoints,
+              gap: row.gap,
+            }))}
+            fileBaseName={`${championship.name}-${selectedCat}-constructores-publico`}
+          />
+        </div>
+      )}
+
       {/* View mode toggle: Pilots / Constructors */}
-      <div className="flex gap-px mb-5 bg-[#38383f] w-fit">
+      <div className="flex gap-2 mb-6 p-1 bg-[#1a1a21] border border-[#38383f] rounded-lg w-full md:w-auto">
         <button
           onClick={() => setViewMode('pilots')}
           className={cn(
-            'flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors',
-            viewMode === 'pilots' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+            'flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-md',
+            viewMode === 'pilots'
+              ? 'bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]'
+              : 'text-white/40 hover:text-white hover:bg-white/5',
           )}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
           <User className="h-3.5 w-3.5" /> Pilotos
         </button>
         <button
           onClick={() => setViewMode('constructors')}
           className={cn(
-            'flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors',
-            viewMode === 'constructors' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+            'flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-md',
+            viewMode === 'constructors'
+              ? 'bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]'
+              : 'text-white/40 hover:text-white hover:bg-white/5',
           )}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
           <Users className="h-3.5 w-3.5" /> Constructores
         </button>
       </div>
 
       {/* Category tabs */}
-      <div className="flex flex-wrap gap-px mb-6 bg-[#38383f]">
+      <div className="flex flex-wrap gap-2 mb-8 p-1 bg-[#1a1a21] border border-[#38383f] rounded-lg">
         {displayCats.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCat(cat)}
             className={cn(
-              'px-5 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors',
+              'flex-1 min-w-[120px] px-6 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-md',
               selectedCat === cat
-                ? 'bg-[#e10600] text-white'
-                : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+                ? 'bg-[#e10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.3)]'
+                : 'text-white/40 hover:text-white hover:bg-white/5',
             )}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
           >
             {CATEGORY_LABELS[cat] ?? cat}
           </button>
@@ -224,69 +285,92 @@ function ConstructorPublicTable({ standings }: { standings: ConstructorStandings
   const events = standings.events;
   const rows = standings.standings;
 
+  const positionBorder = (idx: number) =>
+    idx === 0 ? 'border-l-4 border-l-yellow-500 bg-yellow-500/5' :
+    idx === 1 ? 'border-l-4 border-l-slate-300 bg-slate-300/5' :
+    idx === 2 ? 'border-l-4 border-l-amber-600/60 bg-amber-600/5' :
+    'border-l-4 border-l-transparent';
+
+  const positionColor = (pos: number) =>
+    pos === 1 ? 'text-yellow-400' :
+    pos === 2 ? 'text-slate-300' :
+    pos === 3 ? 'text-amber-500' :
+    'text-white/40';
+
   return (
-    <div className="border border-[#38383f] overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 shadow-2xl">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-[#38383f] bg-[#1f1f27]">
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40 w-12">Pos</th>
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Equipo</th>
+            <tr className="border-b border-[#38383f] bg-[#1a1a21]">
+              <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-16">Pos</th>
+              <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Equipo</th>
               {events.map((e) => (
-                <th key={e.id} className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">
-                  <span className="block truncate max-w-[80px]" title={e.name}>
-                    {e.name.length > 10 ? e.name.slice(0, 9) + '…' : e.name}
+                <th key={e.id} className="px-3 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-24">
+                  <span className="block truncate max-w-[80px] mx-auto" title={e.name}>
+                    {e.name.length > 8 ? e.name.slice(0, 7) + '…' : e.name}
                   </span>
                 </th>
               ))}
-              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Puntos</th>
-              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Gap</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#e10600] w-24">PTS</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-20">Gap</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-[#38383f]/30">
             {rows.map((s, idx) => (
               <tr
                 key={s.teamId}
                 className={cn(
-                  'border-b border-[#38383f]/60 transition-colors hover:bg-[#2a2a35]',
-                  idx === 0 && 'bg-yellow-500/5 border-l-[3px] border-l-yellow-500',
-                  idx === 1 && 'border-l-[3px] border-l-white/20',
-                  idx === 2 && 'border-l-[3px] border-l-orange-400/40',
-                  idx > 2 && 'border-l-[3px] border-l-transparent',
+                  'group transition-all duration-200 hover:bg-white/[0.03]',
+                  positionBorder(idx),
                 )}
               >
-                <td className="px-4 py-3">
+                <td className="px-4 py-3.5">
                   <span
-                    className={cn('font-black text-xl', getPositionClass(s.position))}
+                    className={cn('font-black text-2xl italic', positionColor(s.position))}
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
-                    {s.position}
+                    {s.position.toString().padStart(2, '0')}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 bg-[#38383f] flex items-center justify-center flex-shrink-0">
-                      <Users className="h-3.5 w-3.5 text-white/30" />
+                <td className="px-4 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="h-7 w-7 bg-[#38383f] flex items-center justify-center flex-shrink-0">
+                        <Users className="h-3.5 w-3.5 text-white/30" />
+                      </div>
+                      {idx < 3 && (
+                        <div className={cn(
+                          "absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#1f1f27]",
+                          idx === 0 ? "bg-yellow-500" : idx === 1 ? "bg-slate-300" : "bg-amber-600"
+                        )} />
+                      )}
                     </div>
-                    <p
-                      className="font-bold text-white uppercase text-sm leading-tight"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
-                    >
-                      {s.teamName}
-                    </p>
+                    <div>
+                      <p
+                        className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#e10600] transition-colors"
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
+                      >
+                        {s.teamName}
+                      </p>
+                    </div>
                   </div>
                 </td>
                 {events.map((e) => (
-                  <td key={e.id} className="px-3 py-3 text-center text-white/70 text-sm">
+                  <td key={e.id} className="px-3 py-3.5 text-center text-white/60 font-mono text-sm">
                     {s.eventPoints[e.id] ?? '—'}
                   </td>
                 ))}
-                <td className="px-4 py-3 text-center font-black text-white text-lg"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                  {s.totalPoints}
+                <td className="px-4 py-3.5 text-center">
+                  <span className="font-black text-white text-xl tabular-nums italic"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                    {s.totalPoints}
+                  </span>
                 </td>
-                <td className="px-4 py-3 text-center text-white/40 text-xs font-bold">
-                  {s.gap === 0 ? '—' : `-${s.gap}`}
+                <td className="px-4 py-3.5 text-center">
+                  <span className="text-[11px] text-white/30 font-mono font-bold bg-white/5 px-2 py-0.5 rounded-sm">
+                    {s.gap === 0 ? 'LEADER' : `-${s.gap}`}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -307,76 +391,97 @@ function ChampionshipPublicTable({ standings }: { standings: ChampionshipStandin
   const events = standings.events;
   const currentStandings = standings.standings;
 
+  const positionBorder = (idx: number) =>
+    idx === 0 ? 'border-l-4 border-l-yellow-500 bg-yellow-500/5' :
+    idx === 1 ? 'border-l-4 border-l-slate-300 bg-slate-300/5' :
+    idx === 2 ? 'border-l-4 border-l-amber-600/60 bg-amber-600/5' :
+    'border-l-4 border-l-transparent';
+
+  const positionColor = (pos: number) =>
+    pos === 1 ? 'text-yellow-400' :
+    pos === 2 ? 'text-slate-300' :
+    pos === 3 ? 'text-amber-500' :
+    'text-white/40';
+
   return (
-    <div className="border border-[#38383f] overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 shadow-2xl">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-[#38383f] bg-[#1f1f27]">
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40 w-12">Pos</th>
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Piloto</th>
+            <tr className="border-b border-[#38383f] bg-[#1a1a21]">
+              <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-16">Pos</th>
+              <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Piloto</th>
               {events.map((e) => (
-                <th key={e.id} className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">
-                  <span className="block truncate max-w-[80px]" title={e.name}>
-                    {e.name.length > 10 ? e.name.slice(0, 9) + '…' : e.name}
+                <th key={e.id} className="px-3 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-24">
+                  <span className="block truncate max-w-[80px] mx-auto" title={e.name}>
+                    {e.name.length > 8 ? e.name.slice(0, 7) + '…' : e.name}
                   </span>
                 </th>
               ))}
-              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Puntos</th>
-              <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">Gap</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#e10600] w-24">PTS</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-20">Gap</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-[#38383f]/30">
             {currentStandings.map((s, idx) => (
               <tr
                 key={s.pilotId}
                 className={cn(
-                  'border-b border-[#38383f]/60 transition-colors hover:bg-[#2a2a35]',
-                  idx === 0 && 'bg-yellow-500/5 border-l-[3px] border-l-yellow-500',
-                  idx === 1 && 'border-l-[3px] border-l-white/20',
-                  idx === 2 && 'border-l-[3px] border-l-orange-400/40',
-                  idx > 2 && 'border-l-[3px] border-l-transparent',
+                  'group transition-all duration-200 hover:bg-white/[0.03]',
+                  positionBorder(idx),
                 )}
               >
-                <td className="px-4 py-3">
+                <td className="px-4 py-3.5">
                   <span
-                    className={cn('font-black text-xl', getPositionClass(s.position))}
+                    className={cn('font-black text-2xl italic', positionColor(s.position))}
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
-                    {s.position}
+                    {s.position.toString().padStart(2, '0')}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2.5">
-                    {s.photoUrl ? (
-                      <img src={resolveMediaUrl(s.photoUrl) ?? ''} alt={s.pilotName} className="h-7 w-7 object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="h-7 w-7 bg-[#38383f] flex items-center justify-center flex-shrink-0">
-                        <User className="h-3.5 w-3.5 text-white/30" />
-                      </div>
-                    )}
+                <td className="px-4 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      {s.photoUrl ? (
+                        <img src={resolveMediaUrl(s.photoUrl) ?? ''} alt={s.pilotName} className="h-7 w-7 object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="h-7 w-7 bg-[#38383f] flex items-center justify-center flex-shrink-0">
+                          <User className="h-3.5 w-3.5 text-white/30" />
+                        </div>
+                      )}
+                      {idx < 3 && (
+                        <div className={cn(
+                          "absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#1f1f27]",
+                          idx === 0 ? "bg-yellow-500" : idx === 1 ? "bg-slate-300" : "bg-amber-600"
+                        )} />
+                      )}
+                    </div>
                     <div>
                       <p
-                        className="font-bold text-white uppercase text-sm leading-tight"
+                        className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#e10600] transition-colors"
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
                       >
                         {s.pilotName}
                       </p>
-                      {s.alias && <p className="text-[10px] text-white/40 italic">"{s.alias}"</p>}
+                      {s.alias && <p className="text-[10px] text-white/30 italic mt-0.5 tracking-wider font-medium">"{s.alias}"</p>}
                     </div>
                   </div>
                 </td>
                 {events.map((e) => (
-                  <td key={e.id} className="px-3 py-3 text-center text-white/70 text-sm">
+                  <td key={e.id} className="px-3 py-3.5 text-center text-white/60 font-mono text-sm">
                     {s.eventPoints[e.id] ?? '—'}
                   </td>
                 ))}
-                <td className="px-4 py-3 text-center font-black text-white text-lg"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                  {s.totalPoints}
+                <td className="px-4 py-3.5 text-center">
+                  <span className="font-black text-white text-xl tabular-nums italic"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                    {s.totalPoints}
+                  </span>
                 </td>
-                <td className="px-4 py-3 text-center text-white/40 text-xs font-bold">
-                  {s.gap === 0 ? '—' : `-${s.gap}`}
+                <td className="px-4 py-3.5 text-center">
+                  <span className="text-[11px] text-white/30 font-mono font-bold bg-white/5 px-2 py-0.5 rounded-sm">
+                    {s.gap === 0 ? 'LEADER' : `-${s.gap}`}
+                  </span>
                 </td>
               </tr>
             ))}

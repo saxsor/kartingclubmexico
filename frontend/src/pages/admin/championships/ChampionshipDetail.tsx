@@ -9,6 +9,8 @@ import { queryKeys } from '../../../lib/react-query';
 import { toast } from '../../../store/toast.store';
 import { Category } from '../../../api/events.api';
 import { InlineLoadingState, PageLoadingState } from '../../../components/shared/LoadingSkeleton';
+import { SocialStandingsExport } from '../../../components/shared/SocialStandingsExport';
+import { formatDate } from '../../../lib/utils';
 
 type ViewMode = 'pilotos' | 'constructores';
 
@@ -124,6 +126,8 @@ export function ChampionshipDetail() {
 
   const availableCats = getAvailableCategories(eventsInChampionship);
   const displayCats = availableCats.length > 0 ? availableCats : ALL_CATEGORIES;
+  const cutoffEvent = [...eventsInChampionship].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).at(-1) ?? null;
+  const exportCategoryLabel = selectedCat ? (CATEGORY_LABELS[selectedCat] ?? selectedCat) : 'Sin categoría';
 
   return (
     <div className="space-y-8">
@@ -262,28 +266,65 @@ export function ChampionshipDetail() {
             <div className="w-1 h-5 bg-[#e10600]" />
             <h2 className="text-xs font-bold uppercase tracking-widest text-white/50">Clasificación del campeonato</h2>
           </div>
-          {/* View mode toggle */}
-          <div className="flex gap-px bg-[#38383f]">
-            <button
-              onClick={() => setViewMode('pilotos')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors',
-                viewMode === 'pilotos' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
-              )}
-            >
-              <User className="h-3 w-3" />
-              Pilotos
-            </button>
-            <button
-              onClick={() => setViewMode('constructores')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors',
-                viewMode === 'constructores' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
-              )}
-            >
-              <ShieldCheck className="h-3 w-3" />
-              Constructores
-            </button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {selectedCat && cutoffEvent && viewMode === 'pilotos' && standings && standings.standings.length > 0 && (
+              <SocialStandingsExport
+                title="Campeonato Pilotos"
+                championshipName={championship.name}
+                eventName={cutoffEvent.name}
+                eventLabel="Evento de corte"
+                categoryLabel={exportCategoryLabel}
+                dateLabel={formatDate(cutoffEvent.date)}
+                rows={standings.standings.map((row) => ({
+                  position: row.position,
+                  name: row.pilotName,
+                  auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
+                  points: row.totalPoints,
+                  gap: row.gap,
+                }))}
+                fileBaseName={`${championship.name}-${selectedCat}-pilotos`}
+              />
+            )}
+            {selectedCat && cutoffEvent && viewMode === 'constructores' && constructorQuery.data && constructorQuery.data.standings.length > 0 && (
+              <SocialStandingsExport
+                title="Campeonato Constructores"
+                championshipName={championship.name}
+                eventName={cutoffEvent.name}
+                eventLabel="Evento de corte"
+                categoryLabel={exportCategoryLabel}
+                dateLabel={formatDate(cutoffEvent.date)}
+                rows={constructorQuery.data.standings.map((row) => ({
+                  position: row.position,
+                  name: row.teamName,
+                  auxLabel: 'Tabla acumulada',
+                  points: row.totalPoints,
+                  gap: row.gap,
+                }))}
+                fileBaseName={`${championship.name}-${selectedCat}-constructores`}
+              />
+            )}
+            <div className="flex gap-px bg-[#38383f]">
+              <button
+                onClick={() => setViewMode('pilotos')}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors',
+                  viewMode === 'pilotos' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+                )}
+              >
+                <User className="h-3 w-3" />
+                Pilotos
+              </button>
+              <button
+                onClick={() => setViewMode('constructores')}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors',
+                  viewMode === 'constructores' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+                )}
+              >
+                <ShieldCheck className="h-3 w-3" />
+                Constructores
+              </button>
+            </div>
           </div>
         </div>
 

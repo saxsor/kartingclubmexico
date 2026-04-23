@@ -5,11 +5,12 @@ import { Download } from 'lucide-react';
 import { resultsApi } from '../../../api/results.api';
 import { downloadCsv } from '../../../lib/download';
 import { eventsApi, Category } from '../../../api/events.api';
-import { CATEGORY_LABELS } from '../../../lib/utils';
+import { CATEGORY_LABELS, formatDate } from '../../../lib/utils';
 import { PointsTable } from '../../../components/shared/PointsTable';
 import { queryKeys } from '../../../lib/react-query';
 import { EventBreadcrumbs } from '../../../components/shared/EventBreadcrumbs';
 import { PageLoadingState } from '../../../components/shared/LoadingSkeleton';
+import { SocialStandingsExport } from '../../../components/shared/SocialStandingsExport';
 
 export function Classification() {
   const { slug } = useParams<{ slug: string }>();
@@ -47,6 +48,23 @@ export function Classification() {
         <h1 className="text-xl font-black text-white">Clasificación — {event?.name}</h1>
         {selectedCat && slug && (
           <div className="flex gap-2">
+            {event && results && results.classification.length > 0 && (
+              <SocialStandingsExport
+                title="Resultados Finales"
+                championshipName={event.championship?.name ?? 'Karting Club México'}
+                eventName={event.name}
+                categoryLabel={CATEGORY_LABELS[selectedCat] ?? selectedCat}
+                dateLabel={formatDate(event.date)}
+                rows={results.classification.map((row) => ({
+                  position: row.position,
+                  name: row.pilotName,
+                  auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
+                  points: row.total,
+                  gap: row.gap,
+                }))}
+                fileBaseName={`${slug}-${selectedCat}-resultados-finales`}
+              />
+            )}
             <button
               onClick={() => downloadCsv(resultsApi.exportUrl(slug, 'csv', selectedCat), `${slug}-${selectedCat}-resultados.csv`).catch(() => {})}
               className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 transition-colors"

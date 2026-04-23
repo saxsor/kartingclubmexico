@@ -5,12 +5,13 @@ import { Award, BarChart2 } from 'lucide-react';
 import { resultsApi } from '../../api/results.api';
 import { eventsApi, Category } from '../../api/events.api';
 import { useSSE } from '../../hooks/useSSE';
-import { CATEGORY_LABELS } from '../../lib/utils';
+import { CATEGORY_LABELS, formatDate } from '../../lib/utils';
 import { PointsTable } from '../../components/shared/PointsTable';
 import { queryKeys } from '../../lib/react-query';
 import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 import { toast } from '../../store/toast.store';
+import { SocialStandingsExport } from '../../components/shared/SocialStandingsExport';
 
 export function EventResults() {
   const { slug } = useParams<{ slug: string }>();
@@ -112,6 +113,26 @@ export function EventResults() {
           <BarChart2 className="w-24 h-24 text-white" />
         </div>
       </div>
+
+      {event && results && selectedCat && results.classification.length > 0 && (
+        <div className="mb-6 flex justify-end">
+          <SocialStandingsExport
+            title="Resultados Finales"
+            championshipName={event.championship?.name ?? 'Karting Club México'}
+            eventName={event.name}
+            categoryLabel={CATEGORY_LABELS[selectedCat] ?? selectedCat}
+            dateLabel={formatDate(event.date)}
+            rows={results.classification.map((row) => ({
+              position: row.position,
+              name: row.pilotName,
+              auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
+              points: row.total,
+              gap: row.gap,
+            }))}
+            fileBaseName={`${slug}-${selectedCat}-resultados-finales-publico`}
+          />
+        </div>
+      )}
 
       {/* Category tabs */}
       <div className="flex flex-wrap gap-2 mb-8 p-1 bg-[#1a1a21] border border-[#38383f] rounded-lg">

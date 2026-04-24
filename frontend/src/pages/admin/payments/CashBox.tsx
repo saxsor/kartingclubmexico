@@ -180,10 +180,9 @@ export function CashBox() {
   const totalComensales = totalPilotosComensales + totalGuestComensales + totalStaff;
 
   const getPaymentSummary = (inscription: Inscription) => {
-    const serviceFee = inscription.exentoCarrera ? 0 : Number(event?.serviceFee ?? 0);
-    const foodFeeUnit = Number(event?.foodFee ?? 0);
-    const totalFoodFee = inscription.exentoComida ? 0 : foodFeeUnit * inscription.companions;
-    const required = serviceFee + totalFoodFee;
+    const serviceFee = inscription.requiredServiceFee;
+    const totalFoodFee = inscription.requiredFoodFee;
+    const required = inscription.totalRequired;
     const totalPaid = inscription.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
     const servicePaid = inscription.payments
       .filter((payment) => payment.type === 'SERVICE_FEE')
@@ -201,7 +200,6 @@ export function CashBox() {
       isExento: inscription.exentoCarrera && inscription.exentoComida,
     };
   };
-
   const getCashboxKartText = (inscription: Inscription) =>
     cashboxKartInputs[inscription.id] ?? (inscription.kartNumber ?? inscription.pilot.kartNumber)?.toString() ?? '';
 

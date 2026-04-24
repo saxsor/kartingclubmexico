@@ -21,6 +21,9 @@ export interface PilotInscription {
   engine: string | null;
   companions: number;
   status: 'PENDING_PAYMENT' | 'RECEIPT_SUBMITTED' | 'PAID';
+  requiredServiceFee: number;
+  requiredFoodFee: number;
+  totalRequired: number;
   event: {
     id: string;
     name: string;

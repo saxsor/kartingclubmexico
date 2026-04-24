@@ -7,6 +7,7 @@ import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 import { config } from '../config/index.js';
 import { sendResultsPublishedEmail } from '../services/email.service.js';
 import { CATEGORY_LABELS } from '../lib/category-labels.js';
+import { syncEventInscriptions } from '../lib/fees.js';
 
 async function clearGeneratedDiplomas(eventId: string): Promise<void> {
   const diplomas = await prisma.participationDiploma.findMany({
@@ -148,6 +149,10 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
     },
     include: { eventCategories: true },
   });
+
+  if (serviceFee !== undefined || foodFee !== undefined) {
+    await syncEventInscriptions(event.id);
+  }
 
   if (shouldClearDiplomas) {
     await clearGeneratedDiplomas(event.id);

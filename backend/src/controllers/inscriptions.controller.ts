@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
 import { Category, InscriptionStatus } from '@prisma/client';
 import { recalculateChampionship, recalculateConstructorStandings } from '../services/championship.service.js';
+import { calculateInscriptionFees, calculateMultipleInscriptionsFees, syncPilotEventInscriptions } from '../lib/fees.js';
 
 async function getEventOrFail(slug: string, res: Response) {
   const event = await prisma.event.findUnique({ where: { slug } });
@@ -59,6 +60,7 @@ export async function listInscriptions(req: Request, res: Response): Promise<voi
         pilot: true,
         payments: true,
         checkIn: true,
+        event: true,
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       orderBy: orderBy as any,
@@ -68,8 +70,14 @@ export async function listInscriptions(req: Request, res: Response): Promise<voi
     prisma.inscription.count({ where }),
   ]);
 
+  const feesMap = await calculateMultipleInscriptionsFees(inscriptions as any);
+  const items = inscriptions.map((i) => ({
+    ...i,
+    ...feesMap[i.id],
+  }));
+
   res.json({
-    items: inscriptions,
+    items,
     pagination: getPaginationMeta(page, pageSize, total),
   });
 }
@@ -80,20 +88,28 @@ export async function createInscription(req: Request, res: Response): Promise<vo
 
   const { pilotId, category, kartNumber, notes, companions, engine } = req.body;
 
-  const inscription = await prisma.inscription.create({
-    data: { eventId: event.id, pilotId, category, kartNumber, notes, companions: companions ?? 0, engine },
-    include: { pilot: true, payments: true, checkIn: true },
+  const inscription = await prisma.$transaction(async (tx) => {
+    const insc = await tx.inscription.create({
+      data: { eventId: event.id, pilotId, category, kartNumber, notes, companions: companions ?? 0, engine },
+      include: { pilot: true, payments: true, checkIn: true, event: true },
+    });
+    await syncPilotEventInscriptions(pilotId, event.id, tx);
+    return insc;
   });
-  res.status(201).json(inscription);
+
+  const fees = await calculateInscriptionFees(inscription.id);
+  res.status(201).json({ ...inscription, ...fees });
 }
 
 export async function getInscription(req: Request, res: Response): Promise<void> {
   const inscription = await prisma.inscription.findUnique({
     where: { id: req.params.id },
-    include: { pilot: true, payments: true, checkIn: true },
+    include: { pilot: true, payments: true, checkIn: true, event: true },
   });
   if (!inscription) { res.status(404).json({ error: 'Inscripción no encontrada' }); return; }
-  res.json(inscription);
+
+  const fees = await calculateInscriptionFees(inscription.id);
+  res.json({ ...inscription, ...fees });
 }
 
 export async function updateInscription(req: Request, res: Response): Promise<void> {
@@ -148,22 +164,13 @@ export async function updateInscription(req: Request, res: Response): Promise<vo
 
     // Recalculate status when exemptions or companions change
     if (exentoCarrera !== undefined || exentoComida !== undefined || companions !== undefined) {
-      const serviceFee = updated.exentoCarrera ? 0 : Number(updated.event.serviceFee);
-      const foodFee = updated.exentoComida ? 0 : Number(updated.event.foodFee) * updated.companions;
-      const required = serviceFee + foodFee;
-      const totalPaid = updated.payments.reduce((s, p) => s + Number(p.amount), 0);
-
-      const newStatus = totalPaid >= required ? 'PAID' : updated.status === 'PAID' ? 'PENDING_PAYMENT' : updated.status;
-      if (newStatus !== updated.status) {
-        await tx.inscription.update({ where: { id: updated.id }, data: { status: newStatus } });
-        if (updated.checkIn) {
-          await tx.checkIn.update({
-            where: { inscriptionId: updated.id },
-            data: { hasDebt: newStatus !== 'PAID' },
-          });
-        }
-        updated.status = newStatus as typeof updated.status;
-      }
+      await syncPilotEventInscriptions(updated.pilotId, updated.eventId, tx);
+      // Refresh updated object with new status
+      const refreshed = await tx.inscription.findUnique({
+        where: { id: updated.id },
+        include: { pilot: true, payments: true, checkIn: true, event: true },
+      });
+      return refreshed!;
     }
 
     if (status !== undefined && updated.checkIn) {
@@ -211,8 +218,9 @@ export async function updateInscription(req: Request, res: Response): Promise<vo
     await recalculateConstructorStandings(parseInt(year, 10), affectedCategory as Category);
   }
 
+  const fees = await calculateInscriptionFees(inscription.id);
   const { event: _event, ...rest } = inscription;
-  res.json(rest);
+  res.json({ ...rest, ...fees });
 }
 
 export async function deleteInscription(req: Request, res: Response): Promise<void> {
@@ -237,6 +245,9 @@ export async function deleteInscription(req: Request, res: Response): Promise<vo
     await tx.raceResult.deleteMany({ where: { inscriptionId: inscription.id } });
     // Delete the inscription (check-in and payments cascade automatically)
     await tx.inscription.delete({ where: { id: inscription.id } });
+
+    // Sync remaining inscriptions because the "first" one might have changed
+    await syncPilotEventInscriptions(inscription.pilotId, inscription.eventId, tx);
   });
 
   // Recalculate championship for any affected category/year

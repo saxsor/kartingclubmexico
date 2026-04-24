@@ -8,6 +8,7 @@ import { sendPilotMagicLinkEmail } from '../services/email.service.js';
 import { uploadPilotPhoto } from '../lib/upload.js';
 import { uploadToDrive, deleteFromDrive, isDriveValue } from '../lib/drive.service.js';
 import { JwtPayload } from '../middleware/auth.middleware.js';
+import { calculateInscriptionFees, calculateMultipleInscriptionsFees } from '../lib/fees.js';
 
 const MAGIC_LINK_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000;
@@ -168,7 +169,14 @@ export async function getMyProfile(req: Request, res: Response): Promise<void> {
   });
 
   if (!pilot) { res.status(404).json({ error: 'Piloto no encontrado.' }); return; }
-  res.json(pilot);
+
+  const feesMap = await calculateMultipleInscriptionsFees(pilot.inscriptions as any);
+  const inscriptions = pilot.inscriptions.map((i) => ({
+    ...i,
+    ...feesMap[i.id],
+  }));
+
+  res.json({ ...pilot, inscriptions });
 }
 
 // PUT /api/pilot/me
@@ -246,5 +254,6 @@ export async function updateMyInscription(req: Request, res: Response): Promise<
     include: { event: { select: { id: true, name: true, slug: true, date: true, status: true, serviceFee: true, foodFee: true } }, payments: true, checkIn: true },
   });
 
-  res.json(updated);
+  const fees = await calculateInscriptionFees(updated.id);
+  res.json({ ...updated, ...fees });
 }

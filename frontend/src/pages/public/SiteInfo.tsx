@@ -1,30 +1,41 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, Flag, HelpCircle, Mail, ShieldCheck, Trophy, User, FileText, ChevronRight } from 'lucide-react';
+import { CalendarDays, Flag, HelpCircle, Mail, ShieldCheck, Trophy, User, FileText, ChevronRight, MessageCircle } from 'lucide-react';
 import { SEO } from '../../components/shared/SEO';
+import { cn } from '../../lib/utils';
 
 function PageShell({
   eyebrow,
   title,
+  icon: Icon,
   description,
   children,
 }: {
   eyebrow: string;
   title: string;
+  icon: typeof HelpCircle;
   description: string;
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="mb-8 border-l-4 border-[#e10600] pl-4">
-        <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#e10600]">{eyebrow}</p>
+    <div className="pb-20">
+      <div className="mb-8 relative">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
+            {eyebrow}
+          </span>
+        </div>
         <h1
-          className="mt-3 text-4xl font-black uppercase text-white sm:text-5xl"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+          className="text-5xl font-black text-white uppercase italic tracking-tighter"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          {title}
+          {title.split(' ')[0]} <span className="text-[#e10600]">{title.split(' ').slice(1).join(' ')}</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">{description}</p>
+        <div className="absolute top-0 right-0 hidden md:block opacity-10">
+          <Icon className="w-24 h-24 text-white" />
+        </div>
+        <p className="mt-4 max-w-2xl text-sm leading-7 text-white/50">{description}</p>
       </div>
       <div className="space-y-6">{children}</div>
     </div>
@@ -35,32 +46,34 @@ function Card({
   icon: Icon,
   title,
   children,
+  className,
 }: {
   icon: typeof Mail;
   title: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="border border-white/10 bg-white/5 p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e10600]/30 bg-[#e10600]/15">
-          <Icon className="h-5 w-5 text-[#e10600]" />
-        </div>
+    <section className={cn("overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 shadow-xl", className)}>
+      <div className="border-b border-[#38383f] bg-[#1a1a21] px-6 py-4 flex items-center gap-3">
+        <Icon className="h-4 w-4 text-[#e10600]" />
         <h2
-          className="text-2xl font-black uppercase text-white"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+          className="text-lg font-black uppercase tracking-wider text-white"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
           {title}
         </h2>
       </div>
-      <div className="space-y-3 text-sm leading-7 text-white/70">{children}</div>
+      <div className="p-6 text-sm leading-7 text-white/60 space-y-4 font-sans">
+        {children}
+      </div>
     </section>
   );
 }
 
 function InlineLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link to={to} className="font-semibold text-white underline decoration-[#e10600]/60 underline-offset-4 hover:text-[#e10600]">
+    <Link to={to} className="font-bold text-white hover:text-[#e10600] transition-colors border-b border-white/20 hover:border-[#e10600]">
       {children}
     </Link>
   );
@@ -69,8 +82,9 @@ function InlineLink({ to, children }: { to: string; children: ReactNode }) {
 export function ContactPage() {
   return (
     <PageShell
-      eyebrow="Contacto"
-      title="Soporte y atención"
+      eyebrow="Soporte"
+      title="Contacto Directo"
+      icon={Mail}
       description="Karting Club México centraliza la operación pública en el calendario de eventos, el portal de piloto y las confirmaciones relacionadas con cada inscripción."
     >
       <SEO
@@ -78,39 +92,67 @@ export function ContactPage() {
         description="Canales de atención y soporte operativo de Karting Club México para pilotos, inscripciones, resultados y seguimiento de eventos."
         url="/contacto"
       />
-      <Card icon={Mail} title="Canales disponibles">
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card icon={MessageCircle} title="WhatsApp">
+          <p>Atención directa para dudas rápidas sobre el reglamento o el estado de tu inscripción.</p>
+          <a 
+            href="https://wa.me/5212202736338" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] px-6 py-3 text-sm font-black uppercase tracking-widest text-white transition-all rounded-md mt-2 w-full justify-center"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+          >
+            +52 1 220 273 6338
+          </a>
+        </Card>
+
+        <Card icon={Mail} title="Correo Electrónico">
+          <p>Para envíos formales, comprobantes de pago adicionales o aclaraciones administrativas.</p>
+          <a 
+            href="mailto:contacto@eileendinoracer.com" 
+            className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-3 text-sm font-black uppercase tracking-widest text-white transition-all rounded-md mt-2 w-full justify-center"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+          >
+            contacto@eileendinoracer.com
+          </a>
+        </Card>
+      </div>
+
+      <Card icon={Flag} title="Asistencia Operativa">
         <p>
-          Para dudas sobre inscripciones, pagos, parrillas o resultados, el punto de partida correcto es el evento publicado en{' '}
-          <InlineLink to="/eventos">Eventos</InlineLink>. Ahí encontrarás el contexto vigente de cada fecha.
+          Si tienes dudas sobre una fecha específica, te recomendamos revisar primero el evento en{' '}
+          <InlineLink to="/eventos">Eventos</InlineLink>. La mayoría de la información (horarios, costos, ubicación) se actualiza ahí en tiempo real.
         </p>
-        <p>
-          Si ya eres piloto registrado, utiliza <InlineLink to="/piloto">Soy piloto</InlineLink> para acceder a tu perfil, revisar tu historial y mantener tus datos actualizados.
-        </p>
-        <p>
-          Después de una inscripción o cambio relevante, la plataforma emite correos de confirmación y seguimiento para mantener trazabilidad operativa.
-        </p>
-      </Card>
-      <Card icon={Flag} title="Qué tipo de ayuda se atiende aquí">
-        <ul className="space-y-2 text-white/75">
-          <li>Inscripción a próximos eventos.</li>
-          <li>Seguimiento de estado de pago y comprobantes.</li>
-          <li>Consulta de parrillas, resultados y campeonato.</li>
-          <li>Actualización de perfil de piloto y datos deportivos.</li>
-        </ul>
-      </Card>
-      <Card icon={ChevronRight} title="Rutas rápidas">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Link to="/eventos" className="border border-white/10 bg-[#1f1f27] px-4 py-4 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-[#e10600] hover:text-[#e10600]">
-            Ver eventos
-          </Link>
-          <Link to="/campeonato" className="border border-white/10 bg-[#1f1f27] px-4 py-4 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-[#e10600] hover:text-[#e10600]">
-            Ver campeonato
-          </Link>
-          <Link to="/piloto" className="border border-white/10 bg-[#1f1f27] px-4 py-4 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-[#e10600] hover:text-[#e10600]">
-            Portal piloto
-          </Link>
+        <div className="grid gap-4 sm:grid-cols-2 mt-2">
+          <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
+            <ShieldCheck className="h-5 w-5 text-[#e10600] mt-0.5" />
+            <div>
+              <p className="font-bold text-white text-xs uppercase tracking-wider">Inscripciones</p>
+              <p className="text-xs text-white/40 mt-1">Estado de pagos y validación de recibos.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
+            <Trophy className="h-5 w-5 text-[#e10600] mt-0.5" />
+            <div>
+              <p className="font-bold text-white text-xs uppercase tracking-wider">Resultados</p>
+              <p className="text-xs text-white/40 mt-1">Aclaraciones sobre puntos o posiciones.</p>
+            </div>
+          </div>
         </div>
       </Card>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Link to="/eventos" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#e10600] hover:bg-[#e10600]/5">
+          Ver eventos <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#e10600]" />
+        </Link>
+        <Link to="/campeonato" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#e10600] hover:bg-[#e10600]/5">
+          Ver campeonato <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#e10600]" />
+        </Link>
+        <Link to="/piloto" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#e10600] hover:bg-[#e10600]/5">
+          Portal piloto <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#e10600]" />
+        </Link>
+      </div>
     </PageShell>
   );
 }
@@ -145,8 +187,9 @@ export function FAQPage() {
 
   return (
     <PageShell
-      eyebrow="FAQ"
-      title="Preguntas frecuentes"
+      eyebrow="Ayuda"
+      title="Preguntas Frecuentes"
+      icon={HelpCircle}
       description="Una referencia rápida para entender cómo usar la plataforma pública de Karting Club México sin depender de soporte manual."
     >
       <SEO
@@ -155,13 +198,19 @@ export function FAQPage() {
         url="/preguntas-frecuentes"
       />
       <div className="grid gap-4">
-        {faqs.map((item) => (
-          <section key={item.q} className="border border-white/10 bg-white/5 p-6">
-            <div className="mb-3 flex items-center gap-3">
-              <HelpCircle className="h-5 w-5 text-[#e10600]" />
-              <h2 className="text-lg font-bold uppercase tracking-wide text-white">{item.q}</h2>
+        {faqs.map((item, idx) => (
+          <section key={item.q} className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 transition-all hover:border-white/20 group">
+            <div className="px-6 py-5 flex items-start gap-4">
+              <span className="font-black text-2xl italic text-[#e10600]/20 group-hover:text-[#e10600]/40 transition-colors" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                {(idx + 1).toString().padStart(2, '0')}
+              </span>
+              <div>
+                <h2 className="text-base font-bold uppercase tracking-tight text-white mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                  {item.q}
+                </h2>
+                <p className="text-sm leading-7 text-white/50">{item.a}</p>
+              </div>
             </div>
-            <p className="text-sm leading-7 text-white/70">{item.a}</p>
           </section>
         ))}
       </div>
@@ -172,8 +221,9 @@ export function FAQPage() {
 export function PrivacyPage() {
   return (
     <PageShell
-      eyebrow="Privacidad"
-      title="Aviso de privacidad"
+      eyebrow="Legal"
+      title="Aviso Privacidad"
+      icon={ShieldCheck}
       description="Este resumen explica el uso operativo de la información compartida por pilotos y usuarios dentro de la plataforma pública y administrativa de Karting Club México."
     >
       <SEO
@@ -181,22 +231,21 @@ export function PrivacyPage() {
         description="Resumen del aviso de privacidad operativo de Karting Club México para inscripciones, perfiles, pagos y comunicación de eventos."
         url="/privacidad"
       />
-      <Card icon={ShieldCheck} title="Información que se procesa">
-        <p>La plataforma puede procesar datos de identificación y operación deportiva como nombre, alias, correo, teléfono, equipo, número de kart, historial de eventos, estatus de inscripción y evidencia asociada a pagos o comprobantes.</p>
-      </Card>
-      <Card icon={CalendarDays} title="Finalidades operativas">
-        <ul className="space-y-2 text-white/75">
-          <li>Administrar inscripciones y seguimiento por evento.</li>
-          <li>Publicar parrillas, resultados y tablas del campeonato.</li>
-          <li>Permitir acceso al portal de piloto y actualización de perfil.</li>
-          <li>Emitir confirmaciones y notificaciones relacionadas con la operación del club.</li>
-        </ul>
-      </Card>
-      <Card icon={User} title="Exposición pública limitada">
-        <p>La plataforma publica información deportiva necesaria para la operación del campeonato y la consulta de resultados. Los datos administrativos sensibles no forman parte de las vistas públicas generales.</p>
-      </Card>
-      <Card icon={FileText} title="Conservación y control">
-        <p>Los datos se conservan para continuidad deportiva, administrativa y de trazabilidad. Si necesitas corregir información de tu perfil, la vía adecuada es el portal de piloto o la coordinación del evento correspondiente.</p>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card icon={ShieldCheck} title="Datos Procesados">
+          <p>La plataforma procesa datos de identificación y operación deportiva como nombre, alias, correo, teléfono, equipo, número de kart e historial de eventos.</p>
+        </Card>
+        <Card icon={CalendarDays} title="Finalidad">
+          <ul className="list-disc pl-4 space-y-2 opacity-80">
+            <li>Administrar inscripciones por evento.</li>
+            <li>Publicar parrillas y resultados.</li>
+            <li>Acceso al portal de piloto.</li>
+            <li>Notificaciones operativas.</li>
+          </ul>
+        </Card>
+      </div>
+      <Card icon={User} title="Exposición Pública">
+        <p>La plataforma publica información deportiva necesaria para la operación del campeonato. Los datos administrativos sensibles (como identificaciones oficiales o documentos privados) no forman parte de las vistas públicas generales.</p>
       </Card>
     </PageShell>
   );
@@ -205,8 +254,9 @@ export function PrivacyPage() {
 export function TermsPage() {
   return (
     <PageShell
-      eyebrow="Términos"
-      title="Términos de uso"
+      eyebrow="Legal"
+      title="Términos Uso"
+      icon={FileText}
       description="Condiciones generales de uso para las secciones públicas y operativas de Karting Club México."
     >
       <SEO
@@ -214,18 +264,17 @@ export function TermsPage() {
         description="Condiciones generales de uso del sitio y la plataforma operativa de Karting Club México."
         url="/terminos"
       />
-      <Card icon={Trophy} title="Uso de la plataforma">
-        <p>El sitio está diseñado para consulta pública de eventos, campeonato, parrillas y resultados, así como para la gestión operativa de pilotos e inscripciones cuando corresponda.</p>
-      </Card>
-      <Card icon={User} title="Responsabilidad de los usuarios">
-        <p>Quien utilice el portal de piloto o cualquier flujo de inscripción debe proporcionar información veraz y mantener sus datos actualizados para evitar inconsistencias deportivas o administrativas.</p>
-      </Card>
-      <Card icon={Flag} title="Publicación deportiva">
-        <p>La organización puede publicar información relacionada con el desarrollo de los eventos, incluyendo parrillas, clasificaciones, resultados y posiciones de campeonato.</p>
-      </Card>
-      <Card icon={ShieldCheck} title="Disponibilidad y cambios">
-        <p>La plataforma puede actualizarse, ajustarse o interrumpirse por mantenimiento, operación de eventos o mejoras del sistema. Karting Club México puede modificar estas condiciones para mantener el sitio alineado con su operación.</p>
-      </Card>
+      <div className="grid gap-6">
+        <Card icon={Trophy} title="Uso de la Plataforma">
+          <p>El sitio está diseñado para consulta pública de eventos, campeonato, parrillas y resultados, así como para la gestión operativa de pilotos e inscripciones cuando corresponda.</p>
+        </Card>
+        <Card icon={User} title="Responsabilidad">
+          <p>Quien utilice el portal de piloto o cualquier flujo de inscripción debe proporcionar información veraz y mantener sus datos actualizados para evitar inconsistencias deportivas o administrativas.</p>
+        </Card>
+        <Card icon={Flag} title="Publicación">
+          <p>La organización se reserva el derecho de publicar información relacionada con el desarrollo de los eventos, incluyendo parrillas, clasificaciones, resultados y posiciones de campeonato.</p>
+        </Card>
+      </div>
     </PageShell>
   );
 }

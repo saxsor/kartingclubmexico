@@ -1,41 +1,33 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, ChevronRight, MapPin, ShieldCheck, TimerReset, Trophy, User, Users } from 'lucide-react';
+import { Calendar, ChevronRight, MapPin, ShieldCheck, TimerReset, Trophy, User, Users, ArrowRight, Flag, Info } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
-import { formatDate, resolveMediaUrl } from '../../lib/utils';
+import { formatDate, resolveMediaUrl, cn } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
-import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 
 const pillars = [
   {
     icon: Calendar,
-    title: 'Calendario centralizado',
-    description: 'Cada fecha vive en una sola ficha pública con estado operativo, categorías y acceso directo a su información clave.',
+    title: 'Calendario Centralizado',
+    description: 'Cada fecha vive en una sola ficha pública con estado operativo, categorías y acceso directo.',
   },
   {
     icon: TimerReset,
-    title: 'Resultados en tiempo real',
-    description: 'Parrillas, clasificación y seguimiento deportivo disponibles desde la misma plataforma para pilotos y audiencia.',
+    title: 'Live Timing & Results',
+    description: 'Parrillas, clasificación y seguimiento deportivo en tiempo real para pilotos y audiencia.',
   },
   {
     icon: Trophy,
-    title: 'Campeonato visible',
-    description: 'La temporada se consulta por categoría con tablas públicas que mantienen continuidad entre evento y evento.',
+    title: 'Campeonato Oficial',
+    description: 'Temporada completa por categoría con tablas dinámicas que mantienen la continuidad.',
   },
   {
     icon: ShieldCheck,
-    title: 'Operación más ordenada',
-    description: 'Inscripción, pagos, portal de piloto y trazabilidad administrativa resueltos dentro del mismo sistema.',
+    title: 'Gestión Operativa',
+    description: 'Inscripciones, pagos y portal de piloto resueltos en un ecosistema integrado y seguro.',
   },
-];
-
-const quickLinks = [
-  { label: 'Próximas fechas', to: '/eventos' },
-  { label: 'Clasificación anual', to: '/campeonato' },
-  { label: 'Portal de piloto', to: '/piloto' },
-  { label: 'Preguntas frecuentes', to: '/preguntas-frecuentes' },
 ];
 
 export function Home() {
@@ -52,316 +44,208 @@ export function Home() {
   }, []);
 
   const nextEvent = events.find((e) => e.status === 'OPEN' || e.status === 'IN_PROGRESS');
-  const finishedEvents = events.filter((e) => e.status === 'FINISHED');
+  const finishedEvents = events.filter((e) => e.status === 'FINISHED').slice(0, 3);
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-20 pb-20">
       <SEO
         description="Resultados en tiempo real, parrillas, campeonato y operación de pilotos para Karting Club México. Consulta próximos eventos e información pública de la temporada."
         url="/"
       />
 
-      <section className="relative overflow-hidden -mx-4 bg-[#15151e] px-4 py-20 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <div className="absolute inset-0 racing-stripe opacity-40 pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(225,6,0,0.18),transparent_42%)] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#15151e] to-transparent pointer-events-none" />
-
-        <div className="relative mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div>
-            <div className="mb-6 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.28em] text-white/55">
-              <div className="h-px w-10 bg-[#e10600]" />
-              Plataforma oficial
+      {/* --- HERO SECTION --- */}
+      <section className="relative overflow-hidden -mx-4 bg-[#0a0a0f] px-4 py-24 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 border-b border-[#e10600]/20">
+        <div className="absolute inset-0 racing-stripe opacity-20 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(225,6,0,0.15),transparent_50%)] pointer-events-none" />
+        
+        <div className="relative mx-auto max-w-7xl grid gap-16 lg:grid-cols-[1.1fr_0.9fr] items-center">
+          <div className="animate-in fade-in slide-in-from-left-8 duration-700">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-white/40">
+                Oficial Racing Hub
+              </span>
             </div>
-            <div className="mb-8 flex items-center gap-6">
-              <img
-                src="/karting_club_logo.png"
-                alt="Karting Club México"
-                className="h-24 w-auto object-contain drop-shadow-lg sm:h-28"
-              />
-            </div>
+            
+            <img
+              src="/karting_club_logo.png"
+              alt="Karting Club México"
+              className="h-28 w-auto object-contain drop-shadow-[0_0_30px_rgba(225,6,0,0.2)] mb-10"
+            />
+            
             <h1
-              className="max-w-3xl text-5xl font-black uppercase leading-[0.92] text-white sm:text-6xl lg:text-7xl"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+              className="text-6xl sm:text-7xl lg:text-8xl font-black uppercase leading-[0.85] text-white italic tracking-tighter"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
             >
-              Karting Club México
+              Karting <br />
+              <span className="text-[#e10600]">Club México</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-white/68 sm:text-lg">
-              Un solo lugar para consultar eventos, seguir parrillas y resultados, revisar el campeonato y mantener ordenada la operación pública y deportiva de cada fecha.
+            
+            <p className="mt-8 max-w-xl text-lg leading-relaxed text-white/50 font-sans">
+              La plataforma definitiva para el seguimiento de la temporada. Resultados en vivo, gestión de pilotos y el calendario oficial en un solo lugar.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            
+            <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 to="/eventos"
-                className="bg-[#e10600] px-8 py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-[#b30500]"
+                className="group flex items-center gap-3 bg-[#e10600] px-10 py-4 text-xs font-black uppercase tracking-widest text-white transition-all shadow-[0_0_25px_rgba(225,6,0,0.3)] hover:shadow-[0_0_40px_rgba(225,6,0,0.5)] hover:scale-105"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
-                Ver calendario
-              </Link>
-              <Link
-                to="/campeonato"
-                className="border border-[#38383f] bg-transparent px-8 py-3 text-sm font-bold uppercase tracking-widest text-white/70 transition-colors hover:border-white/40 hover:text-white"
-              >
-                Campeonato {new Date().getFullYear()}
+                Ver Calendario <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 to="/piloto"
-                className="flex items-center gap-2 border border-white/20 bg-transparent px-8 py-3 text-sm font-bold uppercase tracking-widest text-white/55 transition-colors hover:border-white/50 hover:text-white"
+                className="flex items-center gap-3 border border-[#38383f] bg-white/5 px-10 py-4 text-xs font-black uppercase tracking-widest text-white/80 transition-all hover:bg-white/10 hover:border-white/30"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
-                <User className="h-4 w-4" />
-                Soy piloto
+                <User className="h-4 w-4" /> Soy Piloto
               </Link>
             </div>
           </div>
 
-          {nextEvent ? (
-            <div className="overflow-hidden border border-white/10 bg-[#111118] shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
-              <div className="border-b border-white/10 bg-black/20 px-5 py-4">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#e10600]">
-                  {nextEvent.status === 'IN_PROGRESS' ? 'En curso' : 'Próximo evento'}
-                </p>
-              </div>
-              {nextEvent.posterUrl ? (
-                <div className="relative bg-[#0d0d14]">
-                  <img
-                    src={resolveMediaUrl(nextEvent.posterUrl) ?? ''}
-                    alt={nextEvent.name}
-                    className="w-full object-contain"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#111118] via-[#111118]/45 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-5">
-                    <StatusBadge status={nextEvent.status} className="mb-3" />
-                    <h2
-                      className="text-3xl font-black uppercase leading-none text-white"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-                    >
-                      {nextEvent.name}
-                    </h2>
-                    <div className="mt-3 space-y-1.5 text-sm text-white/70">
-                      <p className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-[#e10600]" />
-                        {formatDate(nextEvent.date)}
-                      </p>
-                      {nextEvent.track && (
-                        <p className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-[#e10600]" />
-                          {nextEvent.track}
-                        </p>
-                      )}
+          {/* --- NEXT EVENT WIDGET --- */}
+          <div className="animate-in fade-in slide-in-from-right-8 duration-700 delay-200">
+            {nextEvent ? (
+              <div className="group relative overflow-hidden rounded-xl border border-[#38383f] bg-[#1a1a21] shadow-2xl transition-all hover:border-[#e10600]/50">
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#e10600]" />
+                
+                {nextEvent.posterUrl ? (
+                  <div className="aspect-[16/9] relative overflow-hidden">
+                    <img
+                      src={resolveMediaUrl(nextEvent.posterUrl) ?? ''}
+                      alt={nextEvent.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a21] via-[#1a1a21]/40 to-transparent" />
+                    <div className="absolute top-4 left-4">
+                      <StatusBadge status={nextEvent.status} />
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="p-5">
-                  <StatusBadge status={nextEvent.status} className="mb-3" />
+                ) : (
+                  <div className="h-48 bg-[#1f1f27] flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-5">
+                      <Flag className="w-32 h-32 text-white" />
+                    </div>
+                    <StatusBadge status={nextEvent.status} />
+                  </div>
+                )}
+
+                <div className="p-8">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#e10600] mb-2">
+                    {nextEvent.status === 'IN_PROGRESS' ? '• En vivo ahora' : 'Próxima Fecha'}
+                  </p>
                   <h2
-                    className="text-3xl font-black uppercase leading-none text-white"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+                    className="text-4xl font-black uppercase italic text-white leading-none tracking-tighter"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
                     {nextEvent.name}
                   </h2>
-                  <div className="mt-4 space-y-2 text-sm text-white/70">
-                    <p className="flex items-center gap-2">
+                  
+                  <div className="mt-6 grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 text-white/50 bg-white/5 p-3 rounded-lg border border-white/5">
                       <Calendar className="h-4 w-4 text-[#e10600]" />
-                      {formatDate(nextEvent.date)}
-                    </p>
-                    {nextEvent.track && (
-                      <p className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-[#e10600]" />
-                        {nextEvent.track}
-                      </p>
-                    )}
+                      <span className="text-[10px] font-black uppercase tracking-widest">{formatDate(nextEvent.date)}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-white/50 bg-white/5 p-3 rounded-lg border border-white/5">
+                      <MapPin className="h-4 w-4 text-[#e10600]" />
+                      <span className="text-[10px] font-black uppercase tracking-widest truncate">{nextEvent.track || 'Por definir'}</span>
+                    </div>
                   </div>
-                  {nextEvent.description && (
-                    <p className="mt-4 text-sm leading-7 text-white/58">{nextEvent.description}</p>
-                  )}
-                </div>
-              )}
-              <div className="grid gap-px border-t border-white/10 bg-white/10 sm:grid-cols-2">
-                <Link
-                  to={`/eventos/${nextEvent.slug}`}
-                  className="bg-[#e10600] px-5 py-4 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-[#b30500]"
-                >
-                  Ver detalle del evento
-                </Link>
-                <Link
-                  to={nextEvent.status === 'OPEN' ? `/eventos/${nextEvent.slug}/inscribirse` : `/eventos/${nextEvent.slug}/resultados`}
-                  className="flex items-center justify-between bg-[#171720] px-5 py-4 text-sm font-bold uppercase tracking-widest text-white/75 transition-colors hover:text-white"
-                >
-                  {nextEvent.status === 'OPEN' ? 'Ir a inscripción' : 'Ver resultados'}
-                  <ChevronRight className="h-4 w-4 text-[#e10600]" />
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="grid gap-px border border-white/10 bg-white/10">
-              <div className="grid gap-px sm:grid-cols-2">
-                <div className="bg-[#171720] p-5">
-                  <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/35">Cobertura</p>
-                  <p
-                    className="mt-3 text-3xl font-black uppercase text-white"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+
+                  <Link
+                    to={`/eventos/${nextEvent.slug}`}
+                    className="mt-8 flex items-center justify-between w-full bg-white text-black group-hover:bg-[#e10600] group-hover:text-white px-6 py-4 text-xs font-black uppercase tracking-widest transition-all italic"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
-                    Eventos
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-white/60">Consulta próximas fechas, históricos y fichas públicas por evento.</p>
-                </div>
-                <div className="bg-[#111118] p-5">
-                  <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/35">Seguimiento</p>
-                  <p
-                    className="mt-3 text-3xl font-black uppercase text-white"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-                  >
-                    Resultados
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-white/60">Parrillas, clasificaciones y publicación deportiva desde la misma plataforma.</p>
+                    Ver Detalles del Evento <ChevronRight className="h-4 w-4" />
+                  </Link>
                 </div>
               </div>
-              <div className="bg-[#1b1b24] p-6">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/35">Acceso rápido</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {quickLinks.map((item) => (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      className="group flex items-center justify-between border border-white/10 bg-[#111118] px-4 py-3 text-sm font-bold uppercase tracking-widest text-white/70 transition-colors hover:border-[#e10600] hover:text-white"
-                    >
-                      {item.label}
-                      <ChevronRight className="h-4 w-4 text-[#e10600] transition-transform group-hover:translate-x-1" />
-                    </Link>
-                  ))}
-                </div>
+            ) : (
+              <div className="border border-[#38383f] bg-[#1a1a21] p-10 text-center rounded-xl">
+                <Calendar className="w-16 h-16 text-white/10 mx-auto mb-4" />
+                <h3 className="text-xl font-black text-white uppercase italic" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Próximas Fechas</h3>
+                <p className="text-white/40 text-sm mt-2 font-sans">Estamos definiendo el calendario oficial de la temporada. Mantente atento a las próximas actualizaciones.</p>
+                <Link to="/eventos" className="mt-6 inline-block text-[#e10600] text-xs font-black uppercase tracking-widest border-b border-[#e10600] pb-1 hover:text-white hover:border-white transition-colors">
+                  Ver Calendario →
+                </Link>
               </div>
-            </div>
-          )}
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 h-3 overflow-hidden opacity-20">
-          <svg width="100%" height="12" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="checker" width="12" height="12" patternUnits="userSpaceOnUse">
-                <rect width="6" height="6" fill="white" />
-                <rect x="6" y="6" width="6" height="6" fill="white" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="12" fill="url(#checker)" />
-          </svg>
-        </div>
-      </section>
-
-      <section className="grid gap-px bg-[#38383f] sm:grid-cols-2 xl:grid-cols-4">
-        {pillars.map(({ icon: Icon, title, description }) => (
-          <div key={title} className="bg-[#1f1f27] p-6">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#e10600]/25 bg-[#e10600]/12">
-              <Icon className="h-5 w-5 text-[#e10600]" />
-            </div>
-            <h2
-              className="mt-5 text-2xl font-black uppercase text-white"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-            >
-              {title}
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-white/60">{description}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="border border-white/10 bg-white/5 p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-6 w-1 bg-[#e10600]" />
-            <span className="text-xs font-bold uppercase tracking-widest text-white/60">
-              Cómo funciona
-            </span>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/35">01</p>
-              <h3 className="mt-3 text-lg font-black uppercase text-white">Consulta la fecha</h3>
-              <p className="mt-2 text-sm leading-7 text-white/60">Revisa el evento, sus categorías activas y su estado operativo actual.</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/35">02</p>
-              <h3 className="mt-3 text-lg font-black uppercase text-white">Sigue la jornada</h3>
-              <p className="mt-2 text-sm leading-7 text-white/60">Consulta pilotos inscritos, parrilla y resultados según avance la fecha.</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/35">03</p>
-              <h3 className="mt-3 text-lg font-black uppercase text-white">Mantén continuidad</h3>
-              <p className="mt-2 text-sm leading-7 text-white/60">El campeonato y el historial de pilotos conectan cada evento con la temporada completa.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="border border-white/10 bg-[#111118] p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <Users className="h-5 w-5 text-[#e10600]" />
-            <span className="text-xs font-bold uppercase tracking-widest text-white/60">Pilotos y operación</span>
-          </div>
-          <p className="text-sm leading-7 text-white/65">
-            El portal de piloto permite revisar historial, mantener datos al día y seguir la relación entre evento, inscripción y resultados sin salir del ecosistema del club.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              to="/piloto"
-              className="bg-[#e10600] px-6 py-2.5 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-[#b30500]"
-            >
-              Entrar a mi perfil
-            </Link>
-            <Link
-              to="/contacto"
-              className="border border-white/15 px-6 py-2.5 text-xs font-black uppercase tracking-widest text-white/70 transition-colors hover:border-white/35 hover:text-white"
-            >
-              Ver soporte
-            </Link>
+            )}
           </div>
         </div>
       </section>
 
+      {/* --- PILLARS --- */}
+      <section className="max-w-7xl mx-auto px-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {pillars.map(({ icon: Icon, title, description }) => (
+            <div key={title} className="group overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 p-8 shadow-xl transition-all hover:border-[#e10600]/30 hover:bg-[#1f1f27]">
+              <div className="flex h-12 w-12 items-center justify-center rounded bg-[#e10600]/10 border border-[#e10600]/20 transition-all group-hover:bg-[#e10600] group-hover:shadow-[0_0_20px_rgba(225,6,0,0.4)]">
+                <Icon className="h-6 w-6 text-[#e10600] group-hover:text-white" />
+              </div>
+              <h2
+                className="mt-6 text-2xl font-black uppercase text-white italic tracking-tight"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+              >
+                {title}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/40 font-sans">{description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* --- RECENT EVENTS --- */}
       {finishedEvents.length > 0 && (
-        <section>
-          <div className="mb-6 flex items-center justify-between">
+        <section className="max-w-7xl mx-auto px-4">
+          <div className="mb-10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-6 w-1 bg-[#e10600]" />
-              <span className="text-xs font-bold uppercase tracking-widest text-white/60">
-                <Calendar className="mr-1.5 inline h-3 w-3" />
-                Eventos recientes
-              </span>
+              <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+              <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                Últimas <span className="text-[#e10600]">Carreras</span>
+              </h2>
             </div>
             <Link
               to="/eventos"
-              className="text-xs font-bold uppercase tracking-widest text-[#e10600] transition-colors hover:text-white"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-[#e10600] hover:text-white transition-colors flex items-center gap-2"
             >
-              Ver todos →
+              Ver Todas <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
 
-          <div className="grid gap-px bg-[#38383f] sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {finishedEvents.map((event) => (
-              <Link key={event.id} to={`/eventos/${event.slug}`} className="group block bg-[#1f1f27]">
-                {event.posterUrl && (
-                  <div className="relative bg-[#0d0d14]">
-                    <img src={resolveMediaUrl(event.posterUrl) ?? ''} alt={event.name} className="w-full object-contain transition-opacity duration-300 group-hover:opacity-90" />
+              <Link 
+                key={event.id} 
+                to={`/eventos/${event.slug}`} 
+                className="group flex flex-col overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 shadow-xl transition-all hover:border-[#e10600] hover:translate-y-[-4px]"
+              >
+                {event.posterUrl ? (
+                  <div className="aspect-[16/9] relative overflow-hidden">
+                    <img src={resolveMediaUrl(event.posterUrl) ?? ''} alt={event.name} className="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1f1f27] to-transparent opacity-60" />
+                  </div>
+                ) : (
+                  <div className="aspect-[16/9] bg-[#1a1a21] flex items-center justify-center">
+                    <Trophy className="w-12 h-12 text-white/5" />
                   </div>
                 )}
-                <div className="h-full border-t-[3px] border-[#e10600] p-5 transition-colors hover:bg-[#2a2a35]">
-                  <div className="mb-2 flex items-start justify-between">
+                <div className="p-6 border-t border-[#38383f] group-hover:border-[#e10600]/30 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
                     <StatusBadge status={event.status} />
-                    <ChevronRight className="h-4 w-4 text-white/20 transition-colors group-hover:text-[#e10600]" />
+                    <span className="text-[10px] font-mono text-white/20">{formatDate(event.date)}</span>
                   </div>
                   <h3
-                    className="mt-2 text-lg font-black uppercase text-white transition-colors group-hover:text-[#e10600]"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+                    className="text-2xl font-black uppercase text-white italic transition-colors group-hover:text-[#e10600]"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
                     {event.name}
                   </h3>
-                  <p className="mt-1 text-xs uppercase tracking-wide text-white/40">{formatDate(event.date)}</p>
-                  {event.track && (
-                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-white/30">
-                      <MapPin className="h-3 w-3 flex-shrink-0" />{event.track}
-                    </p>
-                  )}
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {event.eventCategories.filter((c) => c.active).map((c) => (
-                      <CategoryBadge key={c.id} category={c.category} />
-                    ))}
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30 flex items-center gap-1.5">
+                      <MapPin className="h-3 w-3 text-[#e10600]" /> {event.track || 'Kartódromo'}
+                    </span>
+                    <ChevronRight className="h-5 w-5 text-white/10 group-hover:text-[#e10600] transition-all group-hover:translate-x-1" />
                   </div>
                 </div>
               </Link>
@@ -370,36 +254,51 @@ export function Home() {
         </section>
       )}
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-10 border border-white/10 bg-white/5 p-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#e10600]">Confianza pública</p>
-          <h2
-            className="mt-3 text-3xl font-black uppercase text-white"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
-          >
-            Una presencia digital más clara y útil
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-white/65">
-            Además del calendario y los resultados, ahora el sitio concentra FAQ, contacto operativo y páginas institucionales para reforzar claridad pública y consistencia del club.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            to="/preguntas-frecuentes"
-            className="border border-white/15 px-5 py-3 text-xs font-black uppercase tracking-widest text-white/75 transition-colors hover:border-white/35 hover:text-white"
-          >
-            Ver FAQ
-          </Link>
-          <Link
-            to="/contacto"
-            className="bg-[#e10600] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-colors hover:bg-[#b30500]"
-          >
-            Ir a contacto
-          </Link>
+      {/* --- COMMUNITY / PILOT PORTAL CTA --- */}
+      <section className="max-w-7xl mx-auto px-4">
+        <div className="relative overflow-hidden rounded-2xl border border-[#38383f] bg-[#1a1a21] p-8 md:p-16 shadow-2xl">
+          <div className="absolute top-0 right-0 w-1/2 h-full opacity-[0.02] pointer-events-none skew-x-[-20deg] bg-white" />
+          <div className="relative z-10 grid gap-10 lg:grid-cols-[1fr_auto] items-center">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <Info className="h-5 w-5 text-[#e10600]" />
+                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#e10600]">Ecosistema KCM</span>
+              </div>
+              <h2
+                className="text-4xl md:text-5xl font-black uppercase text-white italic tracking-tighter leading-none"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+              >
+                Únete a la <span className="text-[#e10600]">Parrilla</span>
+              </h2>
+              <p className="mt-6 max-w-2xl text-lg text-white/50 font-sans leading-relaxed">
+                ¿Eres piloto? Gestiona tus inscripciones, consulta tus puntos del campeonato y mantén tu perfil actualizado desde nuestro portal exclusivo.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link
+                to="/piloto"
+                className="flex items-center justify-center gap-3 bg-white text-black px-10 py-4 text-xs font-black uppercase tracking-widest transition-all hover:bg-[#e10600] hover:text-white italic"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+              >
+                Acceder al Portal <User className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/contacto"
+                className="flex items-center justify-center gap-3 border border-[#38383f] bg-white/5 px-10 py-4 text-xs font-black uppercase tracking-widest text-white/80 transition-all hover:border-white/30 italic"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+              >
+                Soporte <Users className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      {loading && <PageLoadingState rows={3} />}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0f]/80 backdrop-blur-sm">
+          <PageLoadingState rows={3} />
+        </div>
+      )}
     </div>
   );
 }

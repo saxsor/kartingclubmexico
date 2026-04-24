@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { getPaginationMeta, getPaginationParams } from '../lib/pagination.js';
+import { calculateEventTotalRequired, calculateInscriptionFees, syncInscriptionStatus } from '../lib/fees.js';
 
 export async function getCashBox(req: Request, res: Response): Promise<void> {
   const event = await prisma.event.findUnique({ where: { slug: req.params.slug } });
@@ -55,8 +56,9 @@ export async function getCashBox(req: Request, res: Response): Promise<void> {
     .filter((guest) => guest.isPaid)
     .reduce((sum, guest) => sum + foodFeeUnit * guest.count, 0);
 
-  const requiredServiceFee = inscriptions.reduce((s, i) => s + (i.exentoCarrera ? 0 : serviceFeeUnit), 0);
-  const requiredFoodFeeFromPilots = inscriptions.reduce((s, i) => s + (i.exentoComida ? 0 : foodFeeUnit * i.companions), 0);
+  const eventFees = await calculateEventTotalRequired(event.id);
+  const requiredServiceFee = eventFees.serviceFee;
+  const requiredFoodFeeFromPilots = eventFees.foodFee;
   const requiredFoodFeeFromGuests = foodFeeUnit * totalGuestComensales;
   const requiredFoodFee = Math.max(0, requiredFoodFeeFromPilots - staffCount * foodFeeUnit) + requiredFoodFeeFromGuests;
 
@@ -94,21 +96,7 @@ export async function addPayment(req: Request, res: Response): Promise<void> {
       data: { inscriptionId: req.params.id, type, amount, notes, createdBy },
     });
 
-    const totalPaid = [...inscription.payments, payment].reduce((s, p) => s + Number(p.amount), 0);
-    const serviceFee = inscription.exentoCarrera ? 0 : Number(inscription.event.serviceFee);
-    const foodFee = inscription.exentoComida ? 0 : Number(inscription.event.foodFee) * inscription.companions;
-    const required = serviceFee + foodFee;
-
-    if (totalPaid >= required) {
-      await tx.inscription.update({
-        where: { id: inscription.id },
-        data: { status: 'PAID' },
-      });
-      await tx.checkIn.updateMany({
-        where: { inscriptionId: inscription.id },
-        data: { hasDebt: false },
-      });
-    }
+    await syncInscriptionStatus(req.params.id, tx);
 
     return payment;
   });
@@ -132,24 +120,7 @@ export async function deletePayment(req: Request, res: Response): Promise<void> 
 
     await tx.payment.delete({ where: { id: req.params.paymentId } });
 
-    // Recalculate total after deletion; if now below required, revert status to PENDING_PAYMENT
-    const remainingTotal = payment.inscription.payments
-      .filter((p) => p.id !== req.params.paymentId)
-      .reduce((s, p) => s + Number(p.amount), 0);
-    const serviceFee = payment.inscription.exentoCarrera ? 0 : Number(payment.inscription.event.serviceFee);
-    const foodFee = payment.inscription.exentoComida ? 0 : Number(payment.inscription.event.foodFee) * payment.inscription.companions;
-    const required = serviceFee + foodFee;
-
-    if (remainingTotal < required && payment.inscription.status === 'PAID') {
-      await tx.inscription.update({
-        where: { id: payment.inscription.id },
-        data: { status: 'PENDING_PAYMENT' },
-      });
-      await tx.checkIn.updateMany({
-        where: { inscriptionId: payment.inscription.id },
-        data: { hasDebt: true },
-      });
-    }
+    await syncInscriptionStatus(payment.inscription.id, tx);
   });
 
   res.status(204).send();

@@ -24,6 +24,9 @@ export interface Inscription {
   selfRegistered: boolean;
   exentoCarrera: boolean;
   exentoComida: boolean;
+  requiredServiceFee: number;
+  requiredFoodFee: number;
+  totalRequired: number;
   pilot: { id: string; name: string; alias: string | null; kartNumber: number | null };
   payments: Payment[];
   checkIn: CheckIn | null;

@@ -4,6 +4,7 @@ import { uploadToDrive } from '../lib/drive.service.js';
 import { config } from '../config/index.js';
 import { sendInscriptionConfirmation, sendPaymentApprovedEmail } from '../services/email.service.js';
 import { CATEGORY_LABELS } from '../lib/category-labels.js';
+import { calculateInscriptionFees, syncPilotEventInscriptions } from '../lib/fees.js';
 
 function slugify(name: string): string {
   return name
@@ -115,6 +116,8 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
       include: { pilot: true },
     });
 
+    await syncPilotEventInscriptions(pilot.id, event.id, tx);
+
     return inscription;
   });
 
@@ -122,14 +125,16 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
     res.status(409).json({ error: 'Ya estás inscrito en esta categoría para este evento' }); return;
   }
 
+  const fees = await calculateInscriptionFees(registration.id);
+
   // Send confirmation email (fire-and-forget)
   if (registration.pilot.email) {
     sendInscriptionConfirmation(registration.pilot.email, {
       pilotName: registration.pilot.name,
       eventName: event.name,
       category: CATEGORY_LABELS[category] ?? category,
-      serviceFee: Number(event.serviceFee),
-      foodFee: Number(event.foodFee),
+      serviceFee: fees.requiredServiceFee,
+      foodFee: fees.requiredFoodFee,
       transferInfo: event.transferInfo,
       eventUrl: `${config.APP_URL}/eventos/${event.slug}/inscribirse`,
     }).catch((err) => console.error('[EMAIL] inscription confirmation failed:', err));
@@ -138,8 +143,8 @@ export async function selfRegister(req: Request, res: Response): Promise<void> {
   res.status(201).json({
     inscription: registration,
     transferInfo: event.transferInfo,
-    serviceFee: event.serviceFee,
-    foodFee: event.foodFee,
+    serviceFee: fees.requiredServiceFee,
+    foodFee: fees.requiredFoodFee,
     companions: registration.companions,
   });
 }
@@ -197,16 +202,22 @@ export async function approveReceipt(req: Request, res: Response): Promise<void>
       data: { status: 'PAID' },
       include: { pilot: true, payments: true, checkIn: true },
     });
-    if (Number(inscription.event.serviceFee) > 0) {
+    const fees = await calculateInscriptionFees(id, tx);
+
+    if (fees.requiredServiceFee > 0) {
       await tx.payment.create({
-        data: { inscriptionId: id, type: 'SERVICE_FEE', amount: inscription.event.serviceFee, notes: 'Pago aprobado via recibo', createdBy: user.name },
+        data: { inscriptionId: id, type: 'SERVICE_FEE', amount: fees.requiredServiceFee, notes: 'Pago aprobado via recibo', createdBy: user.name },
       });
     }
-    if (totalFoodFee > 0) {
+    if (fees.requiredFoodFee > 0) {
       await tx.payment.create({
-        data: { inscriptionId: id, type: 'FOOD_FEE', amount: totalFoodFee, notes: `Comida ${inscription.companions} persona(s)`, createdBy: user.name },
+        data: { inscriptionId: id, type: 'FOOD_FEE', amount: fees.requiredFoodFee, notes: `Comida ${inscription.companions} persona(s)`, createdBy: user.name },
       });
     }
+
+    // Sync all inscriptions for this pilot in case this approval affects others
+    await syncPilotEventInscriptions(insc.pilotId, insc.eventId, tx);
+
     return insc;
   });
 

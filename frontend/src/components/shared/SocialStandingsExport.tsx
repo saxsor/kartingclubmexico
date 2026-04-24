@@ -22,11 +22,12 @@ interface SocialStandingsExportProps {
   fileBaseName: string;
   disabled?: boolean;
   buttonLabel?: string;
+  footerLabel?: string;
 }
 
 const CARD_WIDTH = 1080;
 const CARD_HEIGHT = 1350;
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = 8;
 
 const hiddenCanvasStyle: CSSProperties = {
   position: 'fixed',
@@ -74,6 +75,7 @@ function SocialCardPage({
   rows,
   page,
   totalPages,
+  footerLabel,
 }: {
   title: string;
   championshipName: string;
@@ -84,6 +86,7 @@ function SocialCardPage({
   rows: SocialStandingsRow[];
   page: number;
   totalPages: number;
+  footerLabel: string;
 }) {
   return (
     <div
@@ -103,8 +106,8 @@ function SocialCardPage({
       }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_right_top,rgba(225,6,0,0.18),transparent_24%)]" />
-      <div className="relative flex h-full flex-col px-16 py-14">
-        <div className="mb-10 flex items-start justify-between gap-8">
+      <div className="relative flex h-full flex-col px-16 py-10">
+        <div className="mb-4 flex items-start justify-between gap-8">
           <div className="flex items-start gap-5">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
               <img
@@ -112,19 +115,19 @@ function SocialCardPage({
                 alt="Karting Club México"
                 width={132}
                 height={132}
-                className="h-24 w-24 object-contain"
+                className="h-20 w-20 object-contain"
                 crossOrigin="anonymous"
               />
             </div>
-            <div className="pt-2">
+            <div className="pt-1">
               <p
-                className="text-[18px] font-black uppercase tracking-[0.4em] text-white/35"
+                className="text-[15px] font-black uppercase tracking-[0.34em] text-white/35"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
                 Karting Club México
               </p>
               <h1
-                className="mt-4 max-w-[560px] text-[72px] font-black uppercase italic leading-[0.92] tracking-tight text-white"
+                className="mt-2 max-w-[460px] text-[46px] font-black uppercase italic leading-[0.9] tracking-tight text-white"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
                 {title}
@@ -132,28 +135,30 @@ function SocialCardPage({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-right backdrop-blur-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/35">Página</p>
+          <div className="min-w-[220px] rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-right backdrop-blur-sm">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/35">Página</p>
             <p
-              className="mt-1 text-4xl font-black italic text-[#e10600]"
+              className="mt-2 whitespace-nowrap text-[34px] font-black italic leading-none text-[#e10600]"
               style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
             >
-              {String(page).padStart(2, '0')} <span className="text-white/20">/</span> {String(totalPages).padStart(2, '0')}
+              {String(page).padStart(2, '0')}
+              <span className="mx-1.5 text-white/20">/</span>
+              <span className="text-white/45">{String(totalPages).padStart(2, '0')}</span>
             </p>
           </div>
         </div>
 
-        <div className="mb-8 grid grid-cols-2 gap-4">
+        <div className="mb-5 grid grid-cols-2 gap-4">
           {[
             { label: 'Campeonato', value: championshipName },
             { label: eventLabel, value: eventName },
             { label: 'Categoría', value: categoryLabel },
             { label: 'Fecha', value: dateLabel },
           ].map((item) => (
-            <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 px-5 py-4 backdrop-blur-sm">
+            <div key={item.label} className="h-[104px] overflow-hidden rounded-2xl border border-white/10 bg-black/20 px-5 py-4 backdrop-blur-sm">
               <p className="text-[12px] font-bold uppercase tracking-[0.28em] text-white/35">{item.label}</p>
               <p
-                className="mt-2 text-[30px] font-black uppercase leading-tight text-white"
+                className="mt-2 text-[22px] font-black uppercase leading-[1.02] text-white"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
                 {item.value}
@@ -162,8 +167,8 @@ function SocialCardPage({
           ))}
         </div>
 
-        <div className="flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-6 shadow-2xl backdrop-blur-sm">
-          <div className="grid grid-cols-[110px_minmax(0,1fr)_170px_150px] gap-4 border-b border-white/10 px-4 pb-4">
+        <div className="flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-5 shadow-2xl backdrop-blur-sm">
+          <div className="grid grid-cols-[96px_minmax(0,1fr)_156px_136px] gap-4 border-b border-white/10 px-3 pb-3">
             {['Posición', 'Nombre', 'Puntos', 'Gap'].map((label, index) => (
               <p
                 key={label}
@@ -175,7 +180,7 @@ function SocialCardPage({
             ))}
           </div>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2.5">
             {rows.map((row, index) => {
               const medalClass =
                 row.position === 1 ? 'border-yellow-500/60 bg-yellow-500/10 text-yellow-400' :
@@ -186,32 +191,32 @@ function SocialCardPage({
               return (
                 <div
                   key={`${row.position}-${row.name}-${index}`}
-                  className={`grid grid-cols-[110px_minmax(0,1fr)_170px_150px] items-center gap-4 rounded-2xl border px-4 py-4 ${medalClass}`}
+                  className={`grid grid-cols-[96px_minmax(0,1fr)_156px_136px] items-center gap-4 rounded-2xl border px-4 py-3 ${medalClass}`}
                 >
                   <div
-                    className="text-center text-[42px] font-black italic leading-none"
+                    className="text-center text-[38px] font-black italic leading-none"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
                     {String(row.position).padStart(2, '0')}
                   </div>
                   <div className="min-w-0">
                     <p
-                      className="truncate text-[34px] font-black uppercase leading-none"
+                      className="truncate text-[28px] font-black uppercase leading-none"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                     >
                       {row.name}
                     </p>
-                    <p className="mt-2 truncate text-sm font-semibold uppercase tracking-[0.18em] text-white/45">
+                    <p className="mt-1.5 truncate text-[13px] font-semibold uppercase tracking-[0.16em] text-white/45">
                       {row.auxLabel || 'Karting Club México'}
                     </p>
                   </div>
                   <div
-                    className="text-center text-[42px] font-black italic leading-none text-[#e10600]"
+                    className="text-center text-[38px] font-black italic leading-none text-[#e10600]"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
                     {row.points}
                   </div>
-                  <div className="text-center text-lg font-bold uppercase tracking-[0.2em] text-white/55">
+                  <div className="text-center text-[16px] font-bold uppercase tracking-[0.16em] text-white/55">
                     {row.gap === undefined || row.gap === null ? '—' : row.gap === 0 ? 'Leader' : `-${row.gap}`}
                   </div>
                 </div>
@@ -220,9 +225,12 @@ function SocialCardPage({
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-between">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-white/28">
-            Asset optimizado para publicación social
+        <div className="mt-5 flex items-center justify-between">
+          <p
+            className="text-[12px] font-semibold uppercase tracking-[0.24em] text-white/28"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+          >
+            {footerLabel}
           </p>
           <div className="h-[6px] w-44 skew-x-[-24deg] bg-[#e10600]" />
         </div>
@@ -242,10 +250,13 @@ export function SocialStandingsExport({
   fileBaseName,
   disabled = false,
   buttonLabel = 'PNG Instagram',
+  footerLabel,
 }: SocialStandingsExportProps) {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const pages = chunkRows(rows);
+
+  const resolvedFooterLabel = footerLabel || `${championshipName} | ${categoryLabel}`;
 
   const handleExport = async () => {
     if (disabled || pages.length === 0 || isExporting) return;
@@ -311,6 +322,7 @@ export function SocialStandingsExport({
               rows={pageRows}
               page={index + 1}
               totalPages={pages.length}
+              footerLabel={resolvedFooterLabel}
             />
           </div>
         ))}

@@ -254,6 +254,31 @@ Además del campeonato individual, el sistema calcula standings por equipo/const
 
 ---
 
+## Export social PNG
+
+El sistema permite descargar tablas optimizadas para publicación en redes sociales, especialmente Instagram feed vertical.
+
+### Disponible en
+
+- **Resultados por evento**: export de clasificación final por categoría
+- **Campeonato de pilotos**: export de tabla acumulada por categoría
+- **Campeonato de constructores**: export de tabla acumulada por categoría
+- Disponible tanto en vistas **públicas** como en **admin**
+
+### Formato
+
+- PNG vertical optimizado para Instagram
+- Branding de Karting Club México
+- Incluye siempre:
+  - logo
+  - nombre del campeonato
+  - evento o evento de corte
+  - categoría
+  - fecha
+- Si la tabla es larga, se divide automáticamente en varias imágenes numeradas
+
+---
+
 ## Almacenamiento de archivos (Google Drive)
 
 Todos los archivos se almacenan en Google Drive usando la API v3 con OAuth2:

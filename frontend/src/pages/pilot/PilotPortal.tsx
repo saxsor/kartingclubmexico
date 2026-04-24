@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { authApi } from '../../api/auth.api';
 import { teamsApi } from '../../api/teams.api';
 import { formatCurrency, formatDate, resolveMediaUrl } from '../../lib/utils';
+import { useRouteScrollTop } from '../../hooks/useRouteScrollTop';
 import { Flag, User, Camera, LogOut, Pencil, CheckCircle, X, Trophy, Calendar, Users } from 'lucide-react';
 import { TeamAutocomplete } from '../../components/shared/TeamAutocomplete';
 import { HeroLoadingState } from '../../components/shared/LoadingSkeleton';
@@ -30,6 +31,7 @@ function getRequired(insc: PilotInscription) {
 }
 
 export function PilotPortal() {
+  useRouteScrollTop();
   const { user } = useAuthStore();
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();

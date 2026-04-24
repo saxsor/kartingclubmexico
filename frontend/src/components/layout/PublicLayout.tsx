@@ -1,8 +1,10 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Navbar } from './Navbar';
+import { useRouteScrollTop } from '../../hooks/useRouteScrollTop';
 
 export function PublicLayout() {
   const location = useLocation();
+  useRouteScrollTop();
 
   return (
     <div className="racing-carbon-bg min-h-screen text-white flex flex-col">

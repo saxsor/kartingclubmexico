@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { pilotApi } from '../../api/pilot.api';
 import { pilotsApi, Pilot } from '../../api/pilots.api';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useRouteScrollTop } from '../../hooks/useRouteScrollTop';
 import { Mail, Flag, Search, UserCheck, UserPlus, ChevronRight } from 'lucide-react';
 import { InlineLoadingState } from '../../components/shared/LoadingSkeleton';
 
@@ -12,6 +13,7 @@ const inputClass =
   'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none';
 
 export function PilotAccess() {
+  useRouteScrollTop();
   const [step, setStep] = useState<Step>('search');
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebounce(searchInput, 300);

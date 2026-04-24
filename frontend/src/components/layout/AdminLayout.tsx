@@ -2,9 +2,10 @@ import { NavLink, Outlet, Navigate, useLocation, useNavigate } from 'react-route
 import {
   Users, Calendar, BarChart2, UserCog, LogOut, Menu, X, Trophy, ShieldCheck,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../lib/utils';
+import { useRouteScrollTop } from '../../hooks/useRouteScrollTop';
 
 const navItems = [
   { label: 'Dashboard', to: '/app/dashboard', icon: BarChart2, minRole: 'ORGANIZER' },
@@ -20,6 +21,8 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const mainRef = useRef<HTMLElement | null>(null);
+  useRouteScrollTop(mainRef);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role === 'PILOT') return <Navigate to="/piloto/perfil" replace />;
@@ -130,7 +133,7 @@ export function AdminLayout() {
           />
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 pb-28 lg:pb-6">
+        <main ref={mainRef} className="flex-1 overflow-y-auto p-6 pb-28 lg:pb-6">
           <div key={location.pathname} className="route-enter mx-auto w-full max-w-5xl">
             <Outlet />
           </div>

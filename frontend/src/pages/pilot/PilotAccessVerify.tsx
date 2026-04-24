@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { pilotApi } from '../../api/pilot.api';
 import { useAuthStore } from '../../store/auth.store';
+import { useRouteScrollTop } from '../../hooks/useRouteScrollTop';
 
 export function PilotAccessVerify() {
+  useRouteScrollTop();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);

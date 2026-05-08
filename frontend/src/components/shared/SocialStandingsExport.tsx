@@ -23,11 +23,11 @@ interface SocialStandingsExportProps {
   disabled?: boolean;
   buttonLabel?: string;
   footerLabel?: string;
+  variant?: 'standard' | 'carousel-safe';
 }
 
 const CARD_WIDTH = 1080;
 const CARD_HEIGHT = 1350;
-const ROWS_PER_PAGE = 8;
 
 const hiddenCanvasStyle: CSSProperties = {
   position: 'fixed',
@@ -38,10 +38,10 @@ const hiddenCanvasStyle: CSSProperties = {
   zIndex: -1,
 };
 
-function chunkRows(rows: SocialStandingsRow[]): SocialStandingsRow[][] {
+function chunkRows(rows: SocialStandingsRow[], rowsPerPage: number): SocialStandingsRow[][] {
   const pages: SocialStandingsRow[][] = [];
-  for (let index = 0; index < rows.length; index += ROWS_PER_PAGE) {
-    pages.push(rows.slice(index, index + ROWS_PER_PAGE));
+  for (let index = 0; index < rows.length; index += rowsPerPage) {
+    pages.push(rows.slice(index, index + rowsPerPage));
   }
   return pages;
 }
@@ -76,6 +76,7 @@ function SocialCardPage({
   page,
   totalPages,
   footerLabel,
+  variant,
 }: {
   title: string;
   championshipName: string;
@@ -87,7 +88,16 @@ function SocialCardPage({
   page: number;
   totalPages: number;
   footerLabel: string;
+  variant: 'standard' | 'carousel-safe';
 }) {
+  const isCarouselSafe = variant === 'carousel-safe';
+  const shellClasses = isCarouselSafe
+    ? 'mx-auto flex h-full max-w-[900px] flex-col px-24 py-20'
+    : 'flex h-full flex-col px-16 py-10';
+  const contentPanelClasses = isCarouselSafe
+    ? 'flex-1 overflow-hidden rounded-[30px] border border-white/10 bg-black/30 p-7 shadow-2xl backdrop-blur-sm'
+    : 'flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-5 shadow-2xl backdrop-blur-sm';
+
   return (
     <div
       className="relative overflow-hidden text-white"
@@ -106,8 +116,8 @@ function SocialCardPage({
       }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_right_top,rgba(225,6,0,0.18),transparent_24%)]" />
-      <div className="relative flex h-full flex-col px-16 py-10">
-        <div className="mb-4 flex items-start justify-between gap-8">
+      <div className={`relative ${shellClasses}`}>
+        <div className={`${isCarouselSafe ? 'mb-6' : 'mb-4'} flex items-start justify-between gap-8`}>
           <div className="flex items-start gap-5">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
               <img
@@ -115,19 +125,19 @@ function SocialCardPage({
                 alt="Karting Club México"
                 width={132}
                 height={132}
-                className="h-20 w-20 object-contain"
+                className={`${isCarouselSafe ? 'h-16 w-16' : 'h-20 w-20'} object-contain`}
                 crossOrigin="anonymous"
               />
             </div>
             <div className="pt-1">
               <p
-                className="text-[15px] font-black uppercase tracking-[0.34em] text-white/35"
+                className={`${isCarouselSafe ? 'text-[13px]' : 'text-[15px]'} font-black uppercase tracking-[0.34em] text-white/35`}
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
                 Karting Club México
               </p>
               <h1
-                className="mt-2 max-w-[460px] text-[46px] font-black uppercase italic leading-[0.9] tracking-tight text-white"
+                className={`mt-2 ${isCarouselSafe ? 'max-w-[400px] text-[38px]' : 'max-w-[460px] text-[46px]'} font-black uppercase italic leading-[0.9] tracking-tight text-white`}
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
                 {title}
@@ -135,10 +145,10 @@ function SocialCardPage({
             </div>
           </div>
 
-          <div className="min-w-[220px] rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-right backdrop-blur-sm">
+          <div className={`${isCarouselSafe ? 'min-w-[230px]' : 'min-w-[220px]'} rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-right backdrop-blur-sm`}>
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/35">Página</p>
             <p
-              className="mt-2 whitespace-nowrap text-[34px] font-black italic leading-none text-[#e10600]"
+              className={`mt-2 whitespace-nowrap ${isCarouselSafe ? 'text-[27px]' : 'text-[34px]'} font-black italic leading-none text-[#e10600]`}
               style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
             >
               {String(page).padStart(2, '0')}
@@ -148,17 +158,17 @@ function SocialCardPage({
           </div>
         </div>
 
-        <div className="mb-5 grid grid-cols-2 gap-4">
+        <div className={`${isCarouselSafe ? 'mb-7 gap-5' : 'mb-5 gap-4'} grid grid-cols-2`}>
           {[
             { label: 'Campeonato', value: championshipName },
             { label: eventLabel, value: eventName },
             { label: 'Categoría', value: categoryLabel },
             { label: 'Fecha', value: dateLabel },
           ].map((item) => (
-            <div key={item.label} className="h-[104px] overflow-hidden rounded-2xl border border-white/10 bg-black/20 px-5 py-4 backdrop-blur-sm">
+            <div key={item.label} className={`${isCarouselSafe ? 'h-[112px]' : 'h-[104px]'} overflow-hidden rounded-2xl border border-white/10 bg-black/20 px-5 py-4 backdrop-blur-sm`}>
               <p className="text-[12px] font-bold uppercase tracking-[0.28em] text-white/35">{item.label}</p>
               <p
-                className="mt-2 text-[22px] font-black uppercase leading-[1.02] text-white"
+                className={`mt-2 ${isCarouselSafe ? 'text-[20px]' : 'text-[22px]'} font-black uppercase leading-[1.02] text-white`}
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
                 {item.value}
@@ -167,8 +177,8 @@ function SocialCardPage({
           ))}
         </div>
 
-        <div className="flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-black/25 p-5 shadow-2xl backdrop-blur-sm">
-          <div className="grid grid-cols-[96px_minmax(0,1fr)_156px_136px] gap-4 border-b border-white/10 px-3 pb-3">
+        <div className={contentPanelClasses}>
+          <div className={`grid grid-cols-[96px_minmax(0,1fr)_156px_136px] gap-4 border-b border-white/10 ${isCarouselSafe ? 'px-4 pb-4' : 'px-3 pb-3'}`}>
             {['Posición', 'Nombre', 'Puntos', 'Gap'].map((label, index) => (
               <p
                 key={label}
@@ -180,7 +190,7 @@ function SocialCardPage({
             ))}
           </div>
 
-          <div className="mt-3 space-y-2.5">
+          <div className={`${isCarouselSafe ? 'mt-4 space-y-3' : 'mt-3 space-y-2.5'}`}>
             {rows.map((row, index) => {
               const medalClass =
                 row.position === 1 ? 'border-yellow-500/60 bg-yellow-500/10 text-yellow-400' :
@@ -191,32 +201,32 @@ function SocialCardPage({
               return (
                 <div
                   key={`${row.position}-${row.name}-${index}`}
-                  className={`grid grid-cols-[96px_minmax(0,1fr)_156px_136px] items-center gap-4 rounded-2xl border px-4 py-3 ${medalClass}`}
+                  className={`grid grid-cols-[96px_minmax(0,1fr)_156px_136px] items-center gap-4 rounded-2xl border px-4 ${isCarouselSafe ? 'py-3.5' : 'py-3'} ${medalClass}`}
                 >
                   <div
-                    className="text-center text-[38px] font-black italic leading-none"
+                    className={`${isCarouselSafe ? 'text-[34px]' : 'text-[38px]'} text-center font-black italic leading-none`}
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
                     {String(row.position).padStart(2, '0')}
                   </div>
                   <div className="min-w-0">
                     <p
-                      className="truncate text-[28px] font-black uppercase leading-none"
+                      className={`${isCarouselSafe ? 'text-[24px]' : 'text-[28px]'} truncate font-black uppercase leading-none`}
                       style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                     >
                       {row.name}
                     </p>
-                    <p className="mt-1.5 truncate text-[13px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                    <p className={`${isCarouselSafe ? 'mt-2 text-[12px]' : 'mt-1.5 text-[13px]'} truncate font-semibold uppercase tracking-[0.16em] text-white/45`}>
                       {row.auxLabel || 'Karting Club México'}
                     </p>
                   </div>
                   <div
-                    className="text-center text-[38px] font-black italic leading-none text-[#e10600]"
+                    className={`${isCarouselSafe ? 'text-[34px]' : 'text-[38px]'} text-center font-black italic leading-none text-[#e10600]`}
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
                     {row.points}
                   </div>
-                  <div className="text-center text-[16px] font-bold uppercase tracking-[0.16em] text-white/55">
+                  <div className={`${isCarouselSafe ? 'text-[14px]' : 'text-[16px]'} text-center font-bold uppercase tracking-[0.16em] text-white/55`}>
                     {row.gap === undefined || row.gap === null ? '—' : row.gap === 0 ? 'Leader' : `-${row.gap}`}
                   </div>
                 </div>
@@ -225,12 +235,12 @@ function SocialCardPage({
           </div>
         </div>
 
-        <div className="mt-5 flex items-center justify-between">
+        <div className={`${isCarouselSafe ? 'mt-6' : 'mt-5'} flex items-center justify-between`}>
           <p
             className="text-[12px] font-semibold uppercase tracking-[0.24em] text-white/28"
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
           >
-            {footerLabel}
+            {isCarouselSafe ? `${footerLabel} | carrusel` : footerLabel}
           </p>
           <div className="h-[6px] w-44 skew-x-[-24deg] bg-[#e10600]" />
         </div>
@@ -249,14 +259,16 @@ export function SocialStandingsExport({
   rows,
   fileBaseName,
   disabled = false,
-  buttonLabel = 'PNG Instagram',
+  buttonLabel,
   footerLabel,
+  variant = 'standard',
 }: SocialStandingsExportProps) {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isExporting, setIsExporting] = useState(false);
-  const pages = chunkRows(rows);
+  const pages = chunkRows(rows, variant === 'carousel-safe' ? 6 : 8);
 
   const resolvedFooterLabel = footerLabel || `${championshipName} | ${categoryLabel}`;
+  const resolvedButtonLabel = buttonLabel || (variant === 'carousel-safe' ? 'Carrusel 6 filas' : 'Feed 8 filas');
 
   const handleExport = async () => {
     if (disabled || pages.length === 0 || isExporting) return;
@@ -298,10 +310,11 @@ export function SocialStandingsExport({
         type="button"
         onClick={handleExport}
         disabled={disabled || pages.length === 0 || isExporting}
-        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+        title={variant === 'carousel-safe' ? 'Exportar PNG con márgenes seguros para carrusel' : 'Exportar PNG vertical para feed'}
+        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/60 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-        {isExporting ? 'Generando...' : buttonLabel}
+        {isExporting ? 'Generando...' : resolvedButtonLabel}
       </button>
 
       <div aria-hidden="true" style={hiddenCanvasStyle}>
@@ -323,6 +336,7 @@ export function SocialStandingsExport({
               page={index + 1}
               totalPages={pages.length}
               footerLabel={resolvedFooterLabel}
+              variant={variant}
             />
           </div>
         ))}

@@ -268,40 +268,80 @@ export function ChampionshipDetail() {
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {selectedCat && cutoffEvent && viewMode === 'pilotos' && standings && standings.standings.length > 0 && (
-              <SocialStandingsExport
-                title="Campeonato Pilotos"
-                championshipName={championship.name}
-                eventName={cutoffEvent.name}
-                eventLabel="Evento de corte"
-                categoryLabel={exportCategoryLabel}
-                dateLabel={formatDate(cutoffEvent.date)}
-                rows={standings.standings.map((row) => ({
-                  position: row.position,
-                  name: row.pilotName,
-                  auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
-                  points: row.totalPoints,
-                  gap: row.gap,
-                }))}
-                fileBaseName={`${championship.name}-${selectedCat}-pilotos`}
-              />
+              <>
+                <SocialStandingsExport
+                  title="Campeonato Pilotos"
+                  championshipName={championship.name}
+                  eventName={cutoffEvent.name}
+                  eventLabel="Evento de corte"
+                  categoryLabel={exportCategoryLabel}
+                  dateLabel={formatDate(cutoffEvent.date)}
+                  rows={standings.standings.map((row) => ({
+                    position: row.position,
+                    name: row.pilotName,
+                    auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
+                    points: row.totalPoints,
+                    gap: row.gap,
+                  }))}
+                  fileBaseName={`${championship.name}-${selectedCat}-pilotos`}
+                />
+                <SocialStandingsExport
+                  title="Campeonato Pilotos"
+                  championshipName={championship.name}
+                  eventName={cutoffEvent.name}
+                  eventLabel="Evento de corte"
+                  categoryLabel={exportCategoryLabel}
+                  dateLabel={formatDate(cutoffEvent.date)}
+                  rows={standings.standings.map((row) => ({
+                    position: row.position,
+                    name: row.pilotName,
+                    auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
+                    points: row.totalPoints,
+                    gap: row.gap,
+                  }))}
+                  fileBaseName={`${championship.name}-${selectedCat}-pilotos-carrusel`}
+                  buttonLabel="Carrusel 6 filas"
+                  variant="carousel-safe"
+                />
+              </>
             )}
             {selectedCat && cutoffEvent && viewMode === 'constructores' && constructorQuery.data && constructorQuery.data.standings.length > 0 && (
-              <SocialStandingsExport
-                title="Campeonato Constructores"
-                championshipName={championship.name}
-                eventName={cutoffEvent.name}
-                eventLabel="Evento de corte"
-                categoryLabel={exportCategoryLabel}
-                dateLabel={formatDate(cutoffEvent.date)}
-                rows={constructorQuery.data.standings.map((row) => ({
-                  position: row.position,
-                  name: row.teamName,
-                  auxLabel: 'Tabla acumulada',
-                  points: row.totalPoints,
-                  gap: row.gap,
-                }))}
-                fileBaseName={`${championship.name}-${selectedCat}-constructores`}
-              />
+              <>
+                <SocialStandingsExport
+                  title="Campeonato Constructores"
+                  championshipName={championship.name}
+                  eventName={cutoffEvent.name}
+                  eventLabel="Evento de corte"
+                  categoryLabel={exportCategoryLabel}
+                  dateLabel={formatDate(cutoffEvent.date)}
+                  rows={constructorQuery.data.standings.map((row) => ({
+                    position: row.position,
+                    name: row.teamName,
+                    auxLabel: 'Tabla acumulada',
+                    points: row.totalPoints,
+                    gap: row.gap,
+                  }))}
+                  fileBaseName={`${championship.name}-${selectedCat}-constructores`}
+                />
+                <SocialStandingsExport
+                  title="Campeonato Constructores"
+                  championshipName={championship.name}
+                  eventName={cutoffEvent.name}
+                  eventLabel="Evento de corte"
+                  categoryLabel={exportCategoryLabel}
+                  dateLabel={formatDate(cutoffEvent.date)}
+                  rows={constructorQuery.data.standings.map((row) => ({
+                    position: row.position,
+                    name: row.teamName,
+                    auxLabel: 'Tabla acumulada',
+                    points: row.totalPoints,
+                    gap: row.gap,
+                  }))}
+                  fileBaseName={`${championship.name}-${selectedCat}-constructores-carrusel`}
+                  buttonLabel="Carrusel 6 filas"
+                  variant="carousel-safe"
+                />
+              </>
             )}
             <div className="flex gap-px bg-[#38383f]">
               <button

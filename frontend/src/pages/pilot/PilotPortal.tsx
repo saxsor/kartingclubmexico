@@ -32,7 +32,6 @@ function getRequired(insc: PilotInscription) {
 
 export function PilotPortal() {
   useRouteScrollTop();
-  const { user } = useAuthStore();
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
   const qc = useQueryClient();

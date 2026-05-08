@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Trophy, User, ChevronRight, Users } from 'lucide-react';
+import { AlertTriangle, Trophy, User, ChevronRight, Users } from 'lucide-react';
 import { SEO } from '../../components/shared/SEO';
 import { championshipApi, ChampionshipStandingsData, ConstructorStandingsData } from '../../api/championship.api';
-import { CATEGORY_LABELS, getPositionClass, cn, resolveMediaUrl, formatDate } from '../../lib/utils';
+import { CATEGORY_LABELS, cn, resolveMediaUrl, formatDate } from '../../lib/utils';
 import { queryKeys } from '../../lib/react-query';
 import { Category } from '../../api/events.api';
 import { InlineLoadingState, PageLoadingState } from '../../components/shared/LoadingSkeleton';
 import { SocialStandingsExport } from '../../components/shared/SocialStandingsExport';
+import { EmptyState } from '../../components/shared/EmptyState';
 
 type ViewMode = 'pilots' | 'constructors';
 
@@ -22,7 +23,7 @@ export function Championship() {
     queryFn: () => championshipApi.list(),
   });
 
-  const championships = listQuery.data ?? [];
+  const championships = useMemo(() => listQuery.data ?? [], [listQuery.data]);
 
   useEffect(() => {
     if (!listQuery.isLoading && championships.length === 1) {
@@ -55,8 +56,19 @@ export function Championship() {
         </div>
       </div>
 
-      {championships.length === 0 ? (
-        <div className="text-center py-20 text-white/40 text-sm">No hay campeonatos disponibles</div>
+      {listQuery.isError ? (
+        <EmptyState
+          icon={AlertTriangle}
+          title="No pudimos cargar campeonatos"
+          description="La tabla de campeonato no respondió. Intenta de nuevo en unos segundos."
+          action={{ label: 'Reintentar', onClick: () => listQuery.refetch() }}
+        />
+      ) : championships.length === 0 ? (
+        <EmptyState
+          icon={Trophy}
+          title="No hay campeonatos disponibles"
+          description="Cuando se active una temporada, aparecerá aquí."
+        />
       ) : (
         <div className="space-y-px">
           {championships.map((c) => (
@@ -125,6 +137,16 @@ export function ChampionshipDetailPublic() {
   const loading = detailQuery.isLoading;
 
   if (loading) return <PageLoadingState rows={4} />;
+  if (detailQuery.isError) {
+    return (
+      <EmptyState
+        icon={AlertTriangle}
+        title="No pudimos cargar el campeonato"
+        description="La clasificación no respondió. Intenta de nuevo en unos segundos."
+        action={{ label: 'Reintentar', onClick: () => detailQuery.refetch() }}
+      />
+    );
+  }
   if (!championship) return <div className="text-center py-20 text-white/40">Campeonato no encontrado</div>;
 
   const availableCats = getAvailableCategories(championship.events);
@@ -259,6 +281,13 @@ export function ChampionshipDetailPublic() {
       {viewMode === 'pilots' ? (
         standingsQuery.isLoading ? (
           <InlineLoadingState lines={4} />
+        ) : standingsQuery.isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="No pudimos cargar pilotos"
+            description="La clasificación de pilotos no respondió."
+            action={{ label: 'Reintentar', onClick: () => standingsQuery.refetch() }}
+          />
         ) : !standings || standings.standings.length === 0 ? (
           <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">
             No hay datos para esta categoría
@@ -269,6 +298,13 @@ export function ChampionshipDetailPublic() {
       ) : (
         constructorQuery.isLoading ? (
           <InlineLoadingState lines={4} />
+        ) : constructorQuery.isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="No pudimos cargar constructores"
+            description="La clasificación de constructores no respondió."
+            action={{ label: 'Reintentar', onClick: () => constructorQuery.refetch() }}
+          />
         ) : !constructorStandings || constructorStandings.standings.length === 0 ? (
           <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">
             No hay equipos con puntos en esta categoría

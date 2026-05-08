@@ -9,7 +9,6 @@ import {
   Check, 
   X, 
   Loader2,
-  ExternalLink,
   Eye,
   EyeOff,
   Star
@@ -27,7 +26,6 @@ import {
   arrayMove, 
   SortableContext, 
   sortableKeyboardCoordinates, 
-  verticalListSortingStrategy, 
   rectSortingStrategy,
   useSortable
 } from '@dnd-kit/sortable';

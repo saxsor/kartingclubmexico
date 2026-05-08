@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, ChevronRight, MapPin, ShieldCheck, TimerReset, Trophy, User, Users, ArrowRight, Flag, Info } from 'lucide-react';
+import { AlertTriangle, Calendar, ChevronRight, MapPin, ShieldCheck, TimerReset, Trophy, User, Users, ArrowRight, Flag, Info } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
-import { formatDate, resolveMediaUrl, cn } from '../../lib/utils';
+import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
@@ -33,14 +33,20 @@ const pillars = [
 export function Home() {
   const [events, setEvents] = useState<KartEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    setLoadError(false);
     eventsApi.list({ page: 1, pageSize: 6, public: true })
       .then((data) => {
         setEvents(data.items);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setEvents([]);
+        setLoadError(true);
+        setLoading(false);
+      });
   }, []);
 
   const nextEvent = events.find((e) => e.status === 'OPEN' || e.status === 'IN_PROGRESS');
@@ -105,7 +111,16 @@ export function Home() {
 
           {/* --- NEXT EVENT WIDGET --- */}
           <div className="animate-in fade-in slide-in-from-right-8 duration-700 delay-200">
-            {nextEvent ? (
+            {loadError ? (
+              <div className="border border-[#38383f] bg-[#1a1a21] p-10 text-center rounded-xl">
+                <AlertTriangle className="w-16 h-16 text-[#e10600]/60 mx-auto mb-4" />
+                <h3 className="text-xl font-black text-white uppercase italic" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Calendario no disponible</h3>
+                <p className="text-white/40 text-sm mt-2 font-sans">No pudimos consultar las próximas fechas en este momento.</p>
+                <Link to="/eventos" className="mt-6 inline-block text-[#e10600] text-xs font-black uppercase tracking-widest border-b border-[#e10600] pb-1 hover:text-white hover:border-white transition-colors">
+                  Abrir calendario
+                </Link>
+              </div>
+            ) : nextEvent ? (
               <div className="group relative overflow-hidden rounded-xl border border-[#38383f] bg-[#1a1a21] shadow-2xl transition-all hover:border-[#e10600]/50">
                 <div className="absolute top-0 left-0 w-full h-1 bg-[#e10600]" />
                 

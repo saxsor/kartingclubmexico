@@ -49,21 +49,40 @@ export function Classification() {
         {selectedCat && slug && (
           <div className="flex gap-2">
             {event && results && results.classification.length > 0 && (
-              <SocialStandingsExport
-                title="Resultados Finales"
-                championshipName={event.championship?.name ?? 'Karting Club México'}
-                eventName={event.name}
-                categoryLabel={CATEGORY_LABELS[selectedCat] ?? selectedCat}
-                dateLabel={formatDate(event.date)}
-                rows={results.classification.map((row) => ({
-                  position: row.position,
-                  name: row.pilotName,
-                  auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
-                  points: row.total,
-                  gap: row.gap,
-                }))}
-                fileBaseName={`${slug}-${selectedCat}-resultados-finales`}
-              />
+              <>
+                <SocialStandingsExport
+                  title="Resultados Finales"
+                  championshipName={event.championship?.name ?? 'Karting Club México'}
+                  eventName={event.name}
+                  categoryLabel={CATEGORY_LABELS[selectedCat] ?? selectedCat}
+                  dateLabel={formatDate(event.date)}
+                  rows={results.classification.map((row) => ({
+                    position: row.position,
+                    name: row.pilotName,
+                    auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
+                    points: row.total,
+                    gap: row.gap,
+                  }))}
+                  fileBaseName={`${slug}-${selectedCat}-resultados-finales`}
+                />
+                <SocialStandingsExport
+                  title="Resultados Finales"
+                  championshipName={event.championship?.name ?? 'Karting Club México'}
+                  eventName={event.name}
+                  categoryLabel={CATEGORY_LABELS[selectedCat] ?? selectedCat}
+                  dateLabel={formatDate(event.date)}
+                  rows={results.classification.map((row) => ({
+                    position: row.position,
+                    name: row.pilotName,
+                    auxLabel: row.kartNumber ? `Kart #${row.kartNumber}` : row.alias,
+                    points: row.total,
+                    gap: row.gap,
+                  }))}
+                  fileBaseName={`${slug}-${selectedCat}-resultados-finales-carrusel`}
+                  buttonLabel="Carrusel 6 filas"
+                  variant="carousel-safe"
+                />
+              </>
             )}
             <button
               onClick={() => downloadCsv(resultsApi.exportUrl(slug, 'csv', selectedCat), `${slug}-${selectedCat}-resultados.csv`).catch(() => {})}

@@ -1,30 +1,37 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, ChevronRight, Flag } from 'lucide-react';
+import { AlertTriangle, Calendar, ChevronRight, Flag } from 'lucide-react';
 import { eventsApi, KartEvent } from '../../api/events.api';
-import { formatDate, cn } from '../../lib/utils';
+import { formatDate } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
-import { CategoryBadge } from '../../components/shared/CategoryBadge';
 import { PaginationMeta } from '../../api/pagination';
 import { PaginationControls } from '../../components/shared/PaginationControls';
 import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
+import { EmptyState } from '../../components/shared/EmptyState';
 
 export function Events() {
   const [events, setEvents] = useState<KartEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [page, setPage] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
   const [pagination, setPagination] = useState<PaginationMeta>({ page: 1, pageSize: 10, total: 0, totalPages: 1 });
 
   useEffect(() => {
     setLoading(true);
+    setLoadError(false);
     eventsApi.list({ page, pageSize: 10, public: true })
       .then((data) => {
         setEvents(data.items);
         setPagination(data.pagination);
       })
+      .catch(() => {
+        setEvents([]);
+        setLoadError(true);
+      })
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, reloadKey]);
 
   if (loading) return <PageLoadingState rows={4} />;
 
@@ -51,11 +58,19 @@ export function Events() {
         </div>
       </div>
 
-      {events.length === 0 ? (
-        <div className="text-center py-20 bg-[#1a1a21] border border-dashed border-[#38383f] rounded-xl text-white/20">
-          <Calendar className="w-12 h-12 mx-auto mb-4 opacity-10" />
-          <p className="font-bold uppercase tracking-widest text-sm">No hay eventos programados</p>
-        </div>
+      {loadError ? (
+        <EmptyState
+          icon={AlertTriangle}
+          title="No pudimos cargar eventos"
+          description="El calendario no respondió. Intenta de nuevo en unos segundos."
+          action={{ label: 'Reintentar', onClick: () => setReloadKey((current) => current + 1) }}
+        />
+      ) : events.length === 0 ? (
+        <EmptyState
+          icon={Calendar}
+          title="No hay eventos programados"
+          description="Estamos definiendo el calendario oficial de la temporada."
+        />
       ) : (
         <div className="space-y-6">
           <div className="grid gap-3">

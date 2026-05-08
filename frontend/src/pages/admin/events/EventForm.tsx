@@ -9,6 +9,7 @@ import { toast } from '../../../store/toast.store';
 import { queryKeys } from '../../../lib/react-query';
 
 const ALL_CATEGORIES: Category[] = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
+type DiplomaTextAlign = 'left' | 'center' | 'right';
 
 export function EventForm() {
   const { slug } = useParams<{ slug: string }>();
@@ -30,7 +31,7 @@ export function EventForm() {
     diplomaNameHeight: '0.10',
     diplomaFontSize: '28',
     diplomaTextColor: '#111111',
-    diplomaTextAlign: 'center',
+    diplomaTextAlign: 'center' as DiplomaTextAlign,
     categories: [] as Category[],
     championshipId: '' as string,
   });
@@ -89,7 +90,7 @@ export function EventForm() {
       diplomaNameHeight: String(event.diplomaNameHeight ?? 0.10),
       diplomaFontSize: String(event.diplomaFontSize ?? 28),
       diplomaTextColor: event.diplomaTextColor ?? '#111111',
-      diplomaTextAlign: event.diplomaTextAlign ?? 'center',
+      diplomaTextAlign: (event.diplomaTextAlign ?? 'center') as DiplomaTextAlign,
       categories: event.eventCategories.filter((c) => c.active).map((c) => c.category),
       championshipId: event.championshipId ?? '',
     });
@@ -99,7 +100,6 @@ export function EventForm() {
   const diplomaPreviewUrl = currentEvent?.diplomaTemplateUrl
     ? `${resolveMediaUrl(currentEvent.diplomaTemplateUrl) ?? ''}?t=${currentEvent.updatedAt}`
     : null;
-  const diplomaPreviewTextWidth = '72%';
 
   const handlePosterChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -476,7 +476,7 @@ export function EventForm() {
                     }}
                     onPointerDown={(e) => startDraggingDiplomaBox(e, 'move')}
                   >
-                    <span className="w-full px-2 truncate leading-tight uppercase font-bold text-center pointer-events-none" style={{ textAlign: form.diplomaTextAlign as any }}>
+                    <span className="w-full px-2 truncate leading-tight uppercase font-bold text-center pointer-events-none" style={{ textAlign: form.diplomaTextAlign }}>
                       Nombre del Piloto
                     </span>
                     
@@ -594,7 +594,7 @@ export function EventForm() {
                 <div className="flex items-center gap-3">
                   <select
                     value={form.diplomaTextAlign}
-                    onChange={(e) => setForm({ ...form, diplomaTextAlign: e.target.value })}
+                    onChange={(e) => setForm({ ...form, diplomaTextAlign: e.target.value as DiplomaTextAlign })}
                     className="flex-1 rounded-lg border border-white/10 bg-[#111318] px-3 py-2 text-sm text-white focus:border-yellow-500 outline-none"
                   >
                     <option value="left">Izquierda</option>

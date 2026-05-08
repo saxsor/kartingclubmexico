@@ -29,6 +29,7 @@ export function PilotForm() {
     queryFn: () => pilotsApi.get(id!),
     enabled: isEdit && !!id,
   });
+  const pilotData = pilotQuery.data;
   const createMutation = useMutation({
     mutationFn: (data: Partial<Record<string, unknown>>) => pilotsApi.create(data),
     onSuccess: () => {
@@ -48,7 +49,7 @@ export function PilotForm() {
   });
 
   useEffect(() => {
-    const pilot = pilotQuery.data as (typeof pilotQuery.data & { team?: { id: string; name: string } | null });
+    const pilot = pilotData as (typeof pilotData & { team?: { id: string; name: string } | null });
     if (!pilot) return;
     setForm({
       name: pilot.name,
@@ -63,9 +64,9 @@ export function PilotForm() {
       setTeamName(pilot.team.name);
       setTeamId(pilot.team.id);
     }
-  }, [pilotQuery.data]);
+  }, [pilotData]);
 
-  const currentPilot = pilotQuery.data ?? null;
+  const currentPilot = pilotData ?? null;
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

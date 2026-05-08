@@ -1,6 +1,6 @@
 import { NavLink, Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Users, Calendar, BarChart2, UserCog, LogOut, Menu, X, Trophy, ShieldCheck,
+  Users, Calendar, BarChart2, UserCog, LogOut, Menu, X, Trophy, ShieldCheck, MoreHorizontal,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
@@ -38,7 +38,10 @@ export function AdminLayout() {
     if (item.minRole === 'ORGANIZER') return user?.role === 'ADMIN' || user?.role === 'ORGANIZER';
     return true;
   });
-  const mobileNavItems = filteredNav.slice(0, 5);
+  const primaryMobileNavItems = filteredNav.slice(0, 4);
+  const overflowMobileNavItems = filteredNav.slice(4);
+  const hasMobileOverflow = overflowMobileNavItems.length > 0;
+  const overflowActive = overflowMobileNavItems.some((item) => location.pathname.startsWith(item.to));
 
   return (
     <div className="racing-carbon-bg flex h-screen text-white overflow-hidden">
@@ -141,8 +144,11 @@ export function AdminLayout() {
       </div>
 
       <nav className="racing-carbon-surface fixed inset-x-0 bottom-0 z-40 border-t border-[#38383f] px-2 py-2 lg:hidden">
-        <div className="grid grid-cols-5 gap-1">
-          {mobileNavItems.map((item) => (
+        <div
+          className="grid gap-1"
+          style={{ gridTemplateColumns: `repeat(${hasMobileOverflow ? 5 : primaryMobileNavItems.length}, minmax(0, 1fr))` }}
+        >
+          {primaryMobileNavItems.map((item) => (
             <NavLink
               key={`mobile-${item.to}`}
               to={item.to}
@@ -159,6 +165,21 @@ export function AdminLayout() {
               <span className="truncate">{item.label}</span>
             </NavLink>
           ))}
+          {hasMobileOverflow && (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className={cn(
+                'flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors',
+                overflowActive
+                  ? 'bg-[#e10600] text-white'
+                  : 'text-white/45 hover:bg-[#2a2a35] hover:text-white',
+              )}
+            >
+              <MoreHorizontal className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Más</span>
+            </button>
+          )}
         </div>
       </nav>
     </div>

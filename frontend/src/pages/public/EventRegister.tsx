@@ -42,7 +42,6 @@ export function EventRegister() {
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebounce(searchInput, 300);
   const [selectedPilot, setSelectedPilot] = useState<Pilot | null>(null);
-  const [isNewPilot, setIsNewPilot] = useState(false);
 
   const eventQuery = useQuery({
     queryKey: slug ? queryKeys.events.detail(slug) : ['events', 'detail', 'missing'],
@@ -86,7 +85,6 @@ export function EventRegister() {
 
   const handleSelectPilot = (pilot: Pilot) => {
     setSelectedPilot(pilot);
-    setIsNewPilot(false);
     setStep('form');
     const p = pilot as typeof pilot & { team?: { id: string; name: string } | null };
     setForm((f) => ({ ...f, name: pilot.name, alias: pilot.alias ?? '', kartNumber: pilot.kartNumber?.toString() ?? '' }));
@@ -95,7 +93,6 @@ export function EventRegister() {
 
   const handleNewPilot = () => {
     setSelectedPilot(null);
-    setIsNewPilot(true);
     setStep('form');
     setForm({ name: '', alias: '', email: '', phone: '', kartNumber: '', category: '' as Category | '', notes: '', companions: 0 });
   };
@@ -172,6 +169,12 @@ export function EventRegister() {
   }
 
   const currentStepIdx = STEPS.indexOf(step);
+  const submitDisabledReason = !form.category
+    ? 'Selecciona una categoría para continuar.'
+    : !selectedPilot && !form.name.trim()
+      ? 'Escribe tu nombre completo para continuar.'
+      : '';
+  const submitDisabled = submitting || Boolean(submitDisabledReason);
 
   return (
     <div className="max-w-lg mx-auto">
@@ -334,7 +337,7 @@ export function EventRegister() {
                   placeholder="El Rayo" className={inputClass} />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className={labelClass}>Correo electrónico</label>
                   <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -429,12 +432,15 @@ export function EventRegister() {
             </button>
             <button
               type="submit"
-              disabled={submitting || !form.category || (!selectedPilot && !form.name)}
-              className="flex-1 bg-[#e10600] hover:bg-[#b30500] py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50"
+              disabled={submitDisabled}
+              className="flex-1 bg-[#e10600] hover:bg-[#b30500] py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? 'Registrando...' : 'Inscribirme'}
             </button>
           </div>
+          {submitDisabledReason && (
+            <p className="text-xs text-white/35 uppercase tracking-wide">{submitDisabledReason}</p>
+          )}
         </form>
       )}
 
@@ -528,10 +534,13 @@ export function EventRegister() {
 
             <button
               onClick={() => setStep('done')}
-              className="w-full border border-[#38383f] py-3 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white hover:bg-[#1f1f27] transition-colors"
+              className="w-full border border-[#38383f] py-3 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white hover:bg-[#1f1f27] transition-colors"
             >
-              Enviar después
+              Terminar y enviar comprobante después
             </button>
+            <p className="text-center text-[11px] text-white/35 uppercase tracking-wide">
+              Tu lugar queda pendiente hasta que el pago sea confirmado.
+            </p>
           </div>
         </div>
       )}

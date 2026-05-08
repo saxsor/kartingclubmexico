@@ -1,6 +1,6 @@
 import { User } from 'lucide-react';
 import { ReactNode } from 'react';
-import { cn, getPositionClass, resolveMediaUrl } from '../../lib/utils';
+import { cn, resolveMediaUrl } from '../../lib/utils';
 
 export interface PointsTableRow {
   position: number;

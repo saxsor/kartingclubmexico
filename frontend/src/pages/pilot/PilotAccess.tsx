@@ -218,85 +218,86 @@ export function PilotAccess() {
                 </h2>
                 <p className="text-xs text-white/40 mt-0.5">Crea tu perfil en Karting Club México</p>
               </div>
-            <form onSubmit={handleRegister} className="space-y-3">
-              {/* Photo picker */}
-              <div className="flex items-center gap-4 pb-1">
-                <button
-                  type="button"
-                  onClick={() => photoInputRef.current?.click()}
-                  className="relative group flex-shrink-0"
-                >
-                  <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-white/10 bg-white/5 flex items-center justify-center">
-                    {photoPreview
-                      ? <img src={photoPreview} alt="preview" className="h-full w-full object-cover" />
-                      : <User className="h-7 w-7 text-white/20" />
-                    }
-                  </div>
-                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Camera className="h-5 w-5 text-white" />
-                  </div>
-                </button>
-                <div>
-                  <p className="text-xs font-bold text-white/60 uppercase tracking-wider">Foto de perfil</p>
-                  <p className="text-xs text-white/30 mt-0.5">Opcional — puedes agregarla después</p>
-                  {photoFile && (
-                    <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
-                      className="text-[10px] text-red-400/60 hover:text-red-400 mt-1 transition-colors">
-                      Quitar foto
-                    </button>
-                  )}
-                </div>
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setPhotoFile(file);
-                    const reader = new FileReader();
-                    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-                    reader.readAsDataURL(file);
-                  }}
-                />
-              </div>
 
-              {[
-                { key: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', required: true },
-                { key: 'alias', label: 'Alias / Apodo', type: 'text', placeholder: 'El Chapo, La Cobra...', required: false, optional: true },
-                { key: 'email', label: 'Correo electrónico', type: 'email', placeholder: 'tu@correo.com', required: true },
-                { key: 'phone', label: 'Teléfono', type: 'tel', placeholder: '+52 55 1234 5678', required: false, optional: true },
-              ].map((f) => (
-                <div key={f.key}>
-                  <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">
-                    {f.label}
-                    {f.optional && <span className="text-white/25 normal-case font-normal ml-1">(opcional)</span>}
-                    {f.required && <span className="text-[#e10600] ml-1">*</span>}
-                  </label>
+              <form onSubmit={handleRegister} className="space-y-3">
+                {/* Photo picker */}
+                <div className="flex items-center gap-4 py-1">
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    className="relative group flex-shrink-0"
+                  >
+                    <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-white/10 bg-white/5 flex items-center justify-center">
+                      {photoPreview
+                        ? <img src={photoPreview} alt="preview" className="h-full w-full object-cover" />
+                        : <User className="h-7 w-7 text-white/20" />
+                      }
+                    </div>
+                    <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Camera className="h-5 w-5 text-white" />
+                    </div>
+                  </button>
+                  <div>
+                    <p className="text-xs font-bold text-white/60 uppercase tracking-wider">Foto de perfil</p>
+                    <p className="text-xs text-white/30 mt-0.5">Opcional — puedes agregarla después</p>
+                    {photoFile && (
+                      <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                        className="text-[10px] text-red-400/60 hover:text-red-400 mt-1 transition-colors">
+                        Quitar foto
+                      </button>
+                    )}
+                  </div>
                   <input
-                    type={f.type}
-                    value={form[f.key as keyof typeof form]}
-                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                    required={f.required}
-                    placeholder={f.placeholder}
-                    className={inputClass}
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setPhotoFile(file);
+                      const reader = new FileReader();
+                      reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+                      reader.readAsDataURL(file);
+                    }}
                   />
                 </div>
-              ))}
-              {registerError && (
-                <div className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-xs text-red-400">
-                  {registerError}
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={registerMutation.isPending}
-                className="w-full rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3 text-xs font-black text-white uppercase tracking-wider transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(225,6,0,0.25)]"
-              >
-                {registerMutation.isPending ? 'Registrando...' : 'Registrarme'}
-              </button>
-            </form>
+
+                {[
+                  { key: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', required: true },
+                  { key: 'alias', label: 'Alias / Apodo', type: 'text', placeholder: 'El Chapo, La Cobra...', required: false, optional: true },
+                  { key: 'email', label: 'Correo electrónico', type: 'email', placeholder: 'tu@correo.com', required: true },
+                  { key: 'phone', label: 'Teléfono', type: 'tel', placeholder: '+52 55 1234 5678', required: false, optional: true },
+                ].map((f) => (
+                  <div key={f.key}>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">
+                      {f.label}
+                      {f.optional && <span className="text-white/25 normal-case font-normal ml-1">(opcional)</span>}
+                      {f.required && <span className="text-[#e10600] ml-1">*</span>}
+                    </label>
+                    <input
+                      type={f.type}
+                      value={form[f.key as keyof typeof form]}
+                      onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                      required={f.required}
+                      placeholder={f.placeholder}
+                      className={inputClass}
+                    />
+                  </div>
+                ))}
+                {registerError && (
+                  <div className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-xs text-red-400">
+                    {registerError}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={registerMutation.isPending}
+                  className="w-full rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3 text-xs font-black text-white uppercase tracking-wider transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(225,6,0,0.25)]"
+                >
+                  {registerMutation.isPending ? 'Registrando...' : 'Registrarme'}
+                </button>
+              </form>
             </div>
           </div>
         )}

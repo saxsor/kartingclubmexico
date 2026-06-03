@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { CheckCircle, Upload, ArrowLeft, Search, UserCheck, UserPlus, X } from 'lucide-react';
+import { CheckCircle, Upload, ArrowLeft, Search, UserCheck, UserPlus, X, Camera, User } from 'lucide-react';
+import { pilotApi } from '../../api/pilot.api';
 import { eventsApi, Category } from '../../api/events.api';
 import { inscriptionsApi, SelfRegisterResponse } from '../../api/inscriptions.api';
 import { pilotsApi, Pilot } from '../../api/pilots.api';
@@ -76,6 +77,9 @@ export function EventRegister() {
   });
   const [teamName, setTeamName] = useState('');
   const [teamId, setTeamId] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const event = eventQuery.data ?? null;
   const loadingEvent = eventQuery.isLoading;
@@ -124,6 +128,10 @@ export function EventRegister() {
             ...teamPayload,
           };
       const result = await selfRegisterMutation.mutateAsync(payload);
+      // Upload photo for new pilots (non-blocking)
+      if (!selectedPilot && photoFile && result.inscription.pilotId) {
+        pilotApi.uploadRegistrationPhoto(result.inscription.pilotId, photoFile).catch(() => {});
+      }
       setRegisterResult(result);
       setStep('payment');
     } catch (err) {
@@ -325,6 +333,49 @@ export function EventRegister() {
           {/* Personal data — only for new pilots */}
           {!selectedPilot && (
             <>
+              {/* Photo picker */}
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  className="relative group flex-shrink-0"
+                >
+                  <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-white/10 bg-[#1f1f27] flex items-center justify-center">
+                    {photoPreview
+                      ? <img src={photoPreview} alt="preview" className="h-full w-full object-cover" />
+                      : <User className="h-7 w-7 text-white/20" />
+                    }
+                  </div>
+                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Camera className="h-5 w-5 text-white" />
+                  </div>
+                </button>
+                <div>
+                  <p className="text-xs font-bold text-white/60 uppercase tracking-wider">Foto de perfil</p>
+                  <p className="text-xs text-white/30 mt-0.5">Opcional — puedes agregarla después</p>
+                  {photoFile && (
+                    <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                      className="text-[10px] text-red-400/60 hover:text-red-400 mt-1 transition-colors">
+                      Quitar foto
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setPhotoFile(file);
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </div>
+
               <div>
                 <label className={labelClass}>Nombre completo *</label>
                 <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}

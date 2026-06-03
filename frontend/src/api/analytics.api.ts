@@ -49,6 +49,15 @@ export interface FoodByEvent {
   total: number;
 }
 
+export interface RecentPilot {
+  id: string;
+  name: string;
+  alias: string | null;
+  kartNumber: number | null;
+  photoUrl: string | null;
+  createdAt: string;
+}
+
 export interface DashboardAnalytics {
   revenueByEvent: RevenueByEvent[];
   participationByEvent: ParticipationByEvent[];
@@ -58,6 +67,7 @@ export interface DashboardAnalytics {
   avgTeamsPerEvent: number;
   teamsPerEvent: TeamsPerEvent[];
   foodByEvent: FoodByEvent[];
+  recentPilots: RecentPilot[];
   year: number;
 }
 

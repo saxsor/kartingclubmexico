@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { uploadToDrive, deleteFromDrive, isDriveValue } from '../lib/drive.service.js';
 
 function slugify(name: string): string {
   return name
@@ -64,6 +65,32 @@ export async function createTeam(req: Request, res: Response): Promise<void> {
     data: { name, slug },
   });
   res.status(201).json(team);
+}
+
+export async function uploadTeamLogo(req: Request, res: Response): Promise<void> {
+  const team = await prisma.team.findUnique({ where: { id: req.params.id } });
+  if (!team) { res.status(404).json({ error: 'Equipo no encontrado' }); return; }
+  if (!req.file) { res.status(400).json({ error: 'No se recibió ningún archivo' }); return; }
+
+  if (team.logoUrl && isDriveValue(team.logoUrl)) {
+    await deleteFromDrive(team.logoUrl);
+  }
+
+  const logoUrl = await uploadToDrive('teams', req.file.buffer, req.file.originalname, req.file.mimetype, true);
+  const updated = await prisma.team.update({ where: { id: req.params.id }, data: { logoUrl } });
+  res.json(updated);
+}
+
+export async function deleteTeamLogo(req: Request, res: Response): Promise<void> {
+  const team = await prisma.team.findUnique({ where: { id: req.params.id } });
+  if (!team) { res.status(404).json({ error: 'Equipo no encontrado' }); return; }
+
+  if (team.logoUrl && isDriveValue(team.logoUrl)) {
+    await deleteFromDrive(team.logoUrl);
+  }
+
+  const updated = await prisma.team.update({ where: { id: req.params.id }, data: { logoUrl: null } });
+  res.json(updated);
 }
 
 export async function updateTeam(req: Request, res: Response): Promise<void> {

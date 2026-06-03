@@ -1,10 +1,11 @@
-import { api } from './client';
+import { api, uploadWithAuth } from './client';
 
 export interface Team {
   id: string;
   name: string;
   slug: string;
   active: boolean;
+  logoUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
   _count?: { pilots: number };
@@ -27,4 +28,10 @@ export const teamsApi = {
   create: (name: string) => api.post<Team>('/teams', { name }),
   update: (id: string, data: { name?: string; active?: boolean }) =>
     api.put<Team>(`/teams/${id}`, data),
+  uploadLogo: (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append('logo', file);
+    return uploadWithAuth<Team>(`/teams/${id}/logo`, fd);
+  },
+  deleteLogo: (id: string) => api.delete<Team>(`/teams/${id}/logo`),
 };

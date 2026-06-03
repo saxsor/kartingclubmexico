@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
-import { searchTeams, listTeams, getTeam, createTeam, updateTeam } from '../controllers/teams.controller.js';
+import { searchTeams, listTeams, getTeam, createTeam, updateTeam, uploadTeamLogo, deleteTeamLogo } from '../controllers/teams.controller.js';
+import { uploadPilotPhoto } from '../lib/upload.js';
 
 const router = Router();
 
@@ -26,5 +27,9 @@ router.post('/', validate(createSchema), createTeam);
 
 // Admin only: edit team
 router.put('/:id', authenticate, requireRole('ADMIN'), validate(updateSchema), updateTeam);
+
+// Admin only: team logo
+router.post('/:id/logo', authenticate, requireRole('ADMIN'), uploadPilotPhoto.single('logo'), uploadTeamLogo);
+router.delete('/:id/logo', authenticate, requireRole('ADMIN'), deleteTeamLogo);
 
 export default router;

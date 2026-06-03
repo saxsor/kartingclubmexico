@@ -112,11 +112,15 @@ export function PilotPortal() {
   return (
     <div className="racing-carbon-bg min-h-screen text-white">
       {/* Header */}
-      <div className="border-b border-[#38383f] bg-[#15151e] px-5 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Flag className="h-5 w-5 text-[#e10600]" />
+      <div className="border-b border-[#38383f] bg-[#15151e] px-5 py-3 flex items-center justify-between">
+        <a href="/" title="Ir al sitio público" className="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity">
+          <img
+            src="/karting_club_logo.png"
+            alt="Karting Club México"
+            className="h-8 w-auto object-contain"
+          />
           <div>
-            <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            <h1 className="text-xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
               Pilot <span className="text-[#e10600]">Portal</span>
             </h1>
             {pilot.alias
@@ -124,7 +128,7 @@ export function PilotPortal() {
               : <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em]">{pilot.name}</p>
             }
           </div>
-        </div>
+        </a>
         <button
           onClick={handleLogout}
           className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white transition-colors"

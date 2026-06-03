@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Search, X } from 'lucide-react';
+import { Plus, Trash2, Search, X, Calendar } from 'lucide-react';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { eventsApi, KartEvent } from '../../../api/events.api';
 import { toast } from '../../../store/toast.store';
@@ -41,9 +41,7 @@ export function EventList() {
   const yearOptions = Array.from({ length: 6 }, (_, i) => currentYear - i);
   const deleteMutation = useMutation({
     mutationFn: (slug: string) => eventsApi.delete(slug),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.events.all }); },
   });
 
   const events = eventsQuery.data?.items ?? [];
@@ -51,7 +49,6 @@ export function EventList() {
   const loading = eventsQuery.isLoading;
 
   const handleDelete = (event: KartEvent) => setConfirmEvent(event);
-
   const confirmDelete = async () => {
     if (!confirmEvent) return;
     setDeleting(confirmEvent.slug);
@@ -66,21 +63,27 @@ export function EventList() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      {/* Page header */}
+      <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white">Eventos</h1>
-          <p className="text-white/50 text-sm mt-1">{pagination.total} eventos</p>
+          <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            Race <span className="text-[#e10600]">Events</span>
+          </h1>
+          <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">
+            {pagination.total} evento{pagination.total !== 1 ? 's' : ''} registrado{pagination.total !== 1 ? 's' : ''}
+          </p>
         </div>
         <Link
           to="/app/eventos/nuevo"
-          className="flex items-center gap-2 bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(225,6,0,0.2)]"
         >
           <Plus className="h-4 w-4" />
           Nuevo evento
         </Link>
       </div>
 
+      {/* Filters */}
       <div className="flex gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
@@ -89,13 +92,13 @@ export function EventList() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Buscar por nombre..."
-            className="w-full border border-[#38383f] bg-[#15151e] pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
+            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="border border-[#38383f] bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
+          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
         >
           <option value="">Todos los estados</option>
           <option value="DRAFT">Borrador</option>
@@ -106,7 +109,7 @@ export function EventList() {
         <select
           value={yearFilter}
           onChange={(e) => { setYearFilter(e.target.value); setPage(1); }}
-          className="border border-[#38383f] bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
+          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
         >
           <option value="">Todos los años</option>
           {yearOptions.map((y) => <option key={y} value={String(y)}>{y}</option>)}
@@ -114,13 +117,14 @@ export function EventList() {
         {(search || statusFilter || yearFilter) && (
           <button
             onClick={() => { setSearch(''); setStatusFilter(''); setYearFilter(''); setPage(1); }}
-            className="flex items-center gap-1 border border-[#38383f] px-3 py-2 text-xs text-white/50 hover:text-white hover:bg-[#2a2a35] transition-colors"
+            className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/50 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="h-3.5 w-3.5" /> Limpiar
           </button>
         )}
       </div>
 
+      {/* List */}
       {loading ? (
         <PageLoadingState showFilters rows={4} />
       ) : events.length === 0 ? (
@@ -131,32 +135,38 @@ export function EventList() {
           action={{ label: 'Crear evento', href: '/app/eventos/nuevo' }}
         />
       ) : (
-        <div className="border border-[#38383f] divide-y divide-[#38383f]">
+        <div className="space-y-3">
           {events.map((event) => (
-            <div key={event.id} className="bg-[#1f1f27] hover:bg-[#2a2a35] transition-colors p-4">
+            <div key={event.id} className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-5 transition-all hover:border-white/20 hover:bg-white/[0.08]">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-3 flex-wrap mb-1">
                     <StatusBadge status={event.status} />
-                    <h2 className="font-bold text-white truncate">{event.name}</h2>
+                    <h2 className="font-black text-white text-base uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                      {event.name}
+                    </h2>
                   </div>
-                  <p className="text-sm text-white/50 mt-1">{formatDate(event.date)}</p>
+                  <div className="flex items-center gap-2 text-white/40 text-xs">
+                    <Calendar className="h-3 w-3" />
+                    <span>{formatDate(event.date)}</span>
+                    {event.track && <><span>·</span><span>{event.track}</span></>}
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {event.eventCategories.filter((c) => c.active).map((c) => (
                       <CategoryBadge key={c.id} category={c.category} />
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0">
                   <Link
                     to={`/app/eventos/${event.slug}`}
-                    className="bg-[#e10600] hover:bg-[#b30500] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition-colors"
+                    className="rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition-all"
                   >
                     Gestionar
                   </Link>
                   <Link
                     to={`/app/eventos/${event.slug}/editar`}
-                    className="border border-[#38383f] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-[#2a2a35] transition-colors"
+                    className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-widest text-white/60 hover:bg-white/10 transition-colors"
                   >
                     Editar
                   </Link>
@@ -164,7 +174,7 @@ export function EventList() {
                     onClick={() => handleDelete(event)}
                     disabled={deleting === event.slug}
                     aria-label={`Eliminar evento ${event.name}`}
-                    className="border border-red-500/30 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                    className="rounded-lg border border-red-500/20 px-2.5 py-2 text-xs text-red-400/60 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-40"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

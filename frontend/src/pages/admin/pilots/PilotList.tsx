@@ -141,11 +141,15 @@ export function PilotList() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+    <div className="space-y-8">
+      <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-black text-white">Pilotos</h1>
-          <p className="text-white/50 text-sm mt-1">{pagination.total} pilotos registrados</p>
+          <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            Pilot <span className="text-[#e10600]">Roster</span>
+          </h1>
+          <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">
+            {pagination.total} piloto{pagination.total !== 1 ? 's' : ''} registrado{pagination.total !== 1 ? 's' : ''}
+          </p>
         </div>
         <div className="flex gap-2">
           <button

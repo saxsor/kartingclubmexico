@@ -61,14 +61,18 @@ export function ChampionshipList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-black text-white flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-yellow-400" />
-          Campeonatos
-        </h1>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            Season <span className="text-[#e10600]">Championships</span>
+          </h1>
+          <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">
+            {allChampionships.length} campeonato{allChampionships.length !== 1 ? 's' : ''} registrado{allChampionships.length !== 1 ? 's' : ''}
+          </p>
+        </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="flex items-center gap-1.5 rounded-lg bg-racing-red px-3 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-red-700 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(225,6,0,0.2)]"
         >
           <Plus className="h-3.5 w-3.5" />
           Nuevo

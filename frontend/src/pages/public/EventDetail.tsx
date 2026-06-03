@@ -116,60 +116,6 @@ export function EventDetail() {
             </div>
           )}
 
-          {/* Google Maps */}
-          {event.address && (
-            <div className="overflow-hidden rounded-lg border border-[#38383f]">
-              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-[#e10600]" />
-                  <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Ubicación</h2>
-                </div>
-                <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(event.address)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] font-bold uppercase tracking-widest text-[#e10600] hover:text-white transition-colors"
-                >
-                  Abrir en Maps ↗
-                </a>
-              </div>
-              <iframe
-                title="Ubicación del evento"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(event.address)}&output=embed`}
-                width="100%"
-                height="220"
-                style={{ border: 0, display: 'block' }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-              <div className="bg-[#1a1a21] px-5 py-3">
-                <p className="text-xs text-white/50">{event.address}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Schedule */}
-          {event.schedule && (
-            <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
-              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#e10600]" />
-                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Horarios del Día</h2>
-              </div>
-              <div className="divide-y divide-[#38383f]/50">
-                {event.schedule.split('\n').filter(Boolean).map((line: string, i: number) => {
-                  const [time, ...rest] = line.split('—');
-                  const desc = rest.join('—').trim();
-                  return (
-                    <div key={i} className="flex items-center gap-4 px-5 py-3">
-                      <span className="text-[#e10600] font-black text-sm font-mono w-16 flex-shrink-0">{time.trim()}</span>
-                      <span className="text-white/70 text-sm">{desc || time.trim()}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* Costs + Categories grid */}
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Costs */}
@@ -286,6 +232,62 @@ export function EventDetail() {
               </Link>
             ))}
           </div>
+
+          {/* Schedule */}
+          {event.schedule && (
+            <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-4 py-3 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#e10600]" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Horarios</h2>
+              </div>
+              <div className="divide-y divide-[#38383f]/50">
+                {event.schedule.split('\n').filter(Boolean).map((line, i) => {
+                  const match = line.match(/^(\d{1,2}[:.]\d{2})\s*[—\-]?\s*(.*)/);
+                  const time = match ? match[1] : '';
+                  const desc = match ? match[2].trim() : line.trim();
+                  return (
+                    <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                      <span className="text-[#e10600] font-black text-xs font-mono w-12 flex-shrink-0">{time || '—'}</span>
+                      <span className="text-white/70 text-xs leading-snug">{desc || line.trim()}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Map */}
+          {event.address && (
+            <div className="overflow-hidden rounded-lg border border-[#38383f]">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-[#e10600]" />
+                  <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Ubicación</h2>
+                </div>
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent(event.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-bold uppercase tracking-widest text-[#e10600] hover:text-white transition-colors"
+                >
+                  Maps ↗
+                </a>
+              </div>
+              <iframe
+                title="Ubicación del evento"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(event.address)}&output=embed`}
+                width="100%"
+                height="200"
+                style={{ border: 0, display: 'block' }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <div className="bg-[#1a1a21] px-4 py-2.5">
+                <p className="text-[11px] text-white/40 leading-tight">{event.address}</p>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
 

@@ -256,34 +256,29 @@ export function EventDetail() {
             </div>
           )}
 
-          {/* Map */}
+          {/* Location */}
           {event.address && (
-            <div className="overflow-hidden rounded-lg border border-[#38383f]">
-              <div className="border-b border-[#38383f] bg-[#1a1a21] px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-[#e10600]" />
-                  <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Ubicación</h2>
+            <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-4 py-3 flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-[#e10600]" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Ubicación</h2>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-[#e10600]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="h-4 w-4 text-[#e10600]" />
+                  </div>
+                  <p className="text-sm text-white/70 leading-relaxed">{event.address}</p>
                 </div>
                 <a
                   href={`https://maps.google.com/?q=${encodeURIComponent(event.address)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] font-bold uppercase tracking-widest text-[#e10600] hover:text-white transition-colors"
+                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-[#e10600]/30 bg-[#e10600]/10 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-[#e10600] hover:bg-[#e10600] hover:text-white transition-all"
                 >
-                  Maps ↗
+                  <MapPin className="h-3.5 w-3.5" />
+                  Ver en Google Maps
                 </a>
-              </div>
-              <iframe
-                title="Ubicación del evento"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(event.address)}&output=embed`}
-                width="100%"
-                height="200"
-                style={{ border: 0, display: 'block' }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-              <div className="bg-[#1a1a21] px-4 py-2.5">
-                <p className="text-[11px] text-white/40 leading-tight">{event.address}</p>
               </div>
             </div>
           )}

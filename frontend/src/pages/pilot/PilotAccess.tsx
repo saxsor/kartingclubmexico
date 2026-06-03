@@ -78,11 +78,12 @@ export function PilotAccess() {
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <div className="flex h-12 w-12 items-center justify-center bg-[#e10600] flex-shrink-0">
-            <Flag className="h-6 w-6 text-white" />
-          </div>
+          <img
+            src="/karting_club_logo.png"
+            alt="Karting Club México"
+            className="h-12 w-auto object-contain drop-shadow-[0_4px_12px_rgba(225,6,0,0.3)]"
+          />
           <div>
-            <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em] mb-0.5">Karting Club México</p>
             <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
               Pilot <span className="text-[#e10600]">Portal</span>
             </h1>

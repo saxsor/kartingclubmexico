@@ -55,11 +55,13 @@ export function AdminLayout() {
       >
         {/* Sidebar header / logo */}
         <div className="flex h-16 items-center px-5 border-b border-[#38383f]">
-          <img
-            src="/karting_club_logo.png"
-            alt="Karting Club México"
-            className="h-8 w-auto object-contain"
-          />
+          <a href="/" title="Ir al sitio público" className="opacity-80 hover:opacity-100 transition-opacity">
+            <img
+              src="/karting_club_logo.png"
+              alt="Karting Club México"
+              className="h-8 w-auto object-contain"
+            />
+          </a>
           <button
             className="ml-auto lg:hidden text-white/40 hover:text-white"
             onClick={() => setSidebarOpen(false)}

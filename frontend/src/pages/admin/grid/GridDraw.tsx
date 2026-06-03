@@ -66,7 +66,12 @@ export function GridDraw() {
   return (
     <div className="space-y-6">
       <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Parrilla" />
-      <h1 className="text-xl font-black text-white">Parrilla de salida</h1>
+      <div>
+        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+          Starting <span className="text-[#e10600]">Grid</span>
+        </h1>
+        <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">{event?.name}</p>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {activeCategories.map((ec) => {

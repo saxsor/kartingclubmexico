@@ -292,8 +292,13 @@ export function CashBox() {
   return (
     <div className="space-y-6">
       <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Caja" />
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-black text-white">Caja — {event?.name ?? slug}</h1>
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            Payment <span className="text-[#e10600]">Box</span>
+          </h1>
+          <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">{event?.name ?? slug}</p>
+        </div>
         <button
           onClick={() => downloadCsv(`/api/events/${slug}/cashbox/export`, `${slug}-caja.csv`).catch(() => {})}
           className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition-colors"

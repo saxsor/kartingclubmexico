@@ -32,7 +32,7 @@ export function InscriptionManager() {
   const [form, setForm] = useState({ pilotId: '', category: '' as Category | '', kartNumber: '', notes: '', companions: 0, engine: '' });
   const [error, setError] = useState('');
   const [editingInsc, setEditingInsc] = useState<Inscription | null>(null);
-  const [editForm, setEditForm] = useState({ category: '' as Category | '', exentoCarrera: false, exentoComida: false });
+  const [editForm, setEditForm] = useState({ category: '' as Category | '', kartNumber: '', engine: '', companions: 0, exentoCarrera: false, exentoComida: false });
   const [editError, setEditError] = useState('');
   const queryClient = useQueryClient();
 
@@ -167,7 +167,14 @@ export function InscriptionManager() {
 
   const openEdit = (insc: Inscription) => {
     setEditingInsc(insc);
-    setEditForm({ category: insc.category, exentoCarrera: insc.exentoCarrera, exentoComida: insc.exentoComida });
+    setEditForm({
+      category: insc.category,
+      kartNumber: insc.kartNumber?.toString() ?? '',
+      engine: insc.engine ?? '',
+      companions: insc.companions,
+      exentoCarrera: insc.exentoCarrera,
+      exentoComida: insc.exentoComida,
+    });
     setEditError('');
   };
 
@@ -176,6 +183,9 @@ export function InscriptionManager() {
     if (!editingInsc) return;
     updateMutation.mutate({ id: editingInsc.id, data: {
       category: editForm.category as Category,
+      kartNumber: editForm.kartNumber ? parseInt(editForm.kartNumber) : null,
+      engine: editForm.engine || null,
+      companions: editForm.companions,
       exentoCarrera: editForm.exentoCarrera,
       exentoComida: editForm.exentoComida,
     }});
@@ -311,17 +321,50 @@ export function InscriptionManager() {
             </div>
             <p className="text-sm text-white/60">{editingInsc.pilot.name}</p>
             {editError && <p className="text-sm text-red-400">{editError}</p>}
-            <div>
-              <label className="block text-xs font-medium text-white/70 mb-1">Categoría</label>
-              <select
-                value={editForm.category}
-                onChange={(e) => setEditForm({ ...editForm, category: e.target.value as Category })}
-                className="w-full rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
-              >
-                {activeCategories.map((c) => (
-                  <option key={c.id} value={c.category}>{CATEGORY_LABELS[c.category]}</option>
-                ))}
-              </select>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Categoría</label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value as Category })}
+                  className="w-full rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
+                >
+                  {activeCategories.map((c) => (
+                    <option key={c.id} value={c.category}>{CATEGORY_LABELS[c.category]}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Número de kart</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={editForm.kartNumber}
+                  onChange={(e) => setEditForm({ ...editForm, kartNumber: e.target.value })}
+                  placeholder="Sin asignar"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Comensales</label>
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={() => setEditForm({ ...editForm, companions: Math.max(0, editForm.companions - 1) })}
+                    className="h-9 w-9 flex items-center justify-center rounded border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors font-bold">−</button>
+                  <span className="w-6 text-center text-white font-bold">{editForm.companions}</span>
+                  <button type="button" onClick={() => setEditForm({ ...editForm, companions: Math.min(20, editForm.companions + 1) })}
+                    className="h-9 w-9 flex items-center justify-center rounded border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors font-bold">+</button>
+                </div>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Motor</label>
+                <input
+                  type="text"
+                  value={editForm.engine}
+                  onChange={(e) => setEditForm({ ...editForm, engine: e.target.value })}
+                  placeholder="ej. TM KZ10C, Rotax Max, IAME X30"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none"
+                />
+              </div>
             </div>
             <div className="space-y-2 rounded-lg border border-white/10 bg-white/5 p-3">
               <p className="text-xs font-medium text-white/60 flex items-center gap-1.5">

@@ -11,7 +11,7 @@ import { prisma } from '../lib/prisma.js';
 export async function getDashboardAnalytics(_req: Request, res: Response): Promise<void> {
   const currentYear = new Date().getFullYear();
 
-  const [events, payments, inscriptions, standings, totalTeams, constructorStandings, teamResultRows, foodEvents, recentPilots, recentTeams] = await prisma.$transaction([
+  const [events, payments, inscriptions, standings, totalTeams, constructorStandings, teamResultRows, foodEvents, inscriptionTeamRows, recentPilots, recentTeams] = await prisma.$transaction([
     // Last 10 events ordered by date descending
     prisma.event.findMany({
       orderBy: { date: 'desc' },
@@ -64,7 +64,7 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
       include: { team: { select: { name: true } } },
     }),
 
-    // Teams per event (via race results — dedup done in JS with Set)
+    // Teams per event for FINISHED events (via race result snapshots)
     prisma.raceResult.findMany({
       where: { teamId: { not: null }, race: { status: 'FINISHED' } },
       select: { teamId: true, race: { select: { eventId: true } } },
@@ -77,6 +77,21 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
       select: {
         id: true, name: true, slug: true, status: true, staffCount: true,
         inscriptions: { select: { companions: true } },
+      },
+    }),
+
+    // Teams per event for non-finished events (via pilot inscription + current teamId)
+    prisma.inscription.findMany({
+      where: {
+        event: {
+          status: { in: ['OPEN', 'IN_PROGRESS', 'DRAFT'] },
+          date: { gte: new Date(new Date().getFullYear() - 2, 0, 1) },
+        },
+        pilot: { teamId: { not: null } },
+      },
+      select: {
+        eventId: true,
+        pilot: { select: { teamId: true } },
       },
     }),
 
@@ -178,13 +193,18 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     }
   }
 
-  // Teams per event: count distinct teamIds in race results per event
+  // Teams per event: merge race result snapshots (finished) + inscription pilot teams (open/in-progress)
   const teamsPerEventMap: Record<string, Set<string>> = {};
   for (const r of teamResultRows) {
     if (!r.teamId) continue;
     const eid = r.race.eventId;
     if (!teamsPerEventMap[eid]) teamsPerEventMap[eid] = new Set();
     teamsPerEventMap[eid].add(r.teamId);
+  }
+  for (const r of inscriptionTeamRows) {
+    if (!r.pilot.teamId) continue;
+    if (!teamsPerEventMap[r.eventId]) teamsPerEventMap[r.eventId] = new Set();
+    teamsPerEventMap[r.eventId].add(r.pilot.teamId);
   }
   const teamsPerEventCounts = Object.values(teamsPerEventMap).map((s) => s.size);
   const avgTeamsPerEvent = teamsPerEventCounts.length > 0

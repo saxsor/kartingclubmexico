@@ -112,10 +112,18 @@ export function PilotPortal() {
   return (
     <div className="racing-carbon-bg min-h-screen text-white">
       {/* Header */}
-      <div className="border-b border-[#38383f] bg-[#15151e] px-4 py-3 flex items-center justify-between">
+      <div className="border-b border-[#38383f] bg-[#15151e] px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Flag className="h-5 w-5 text-[#e10600]" />
-          <span className="font-black text-sm uppercase tracking-widest">Mi Perfil</span>
+          <div>
+            <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+              Pilot <span className="text-[#e10600]">Portal</span>
+            </h1>
+            {pilot.alias
+              ? <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em]">"{pilot.alias}"</p>
+              : <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em]">{pilot.name}</p>
+            }
+          </div>
         </div>
         <button
           onClick={handleLogout}

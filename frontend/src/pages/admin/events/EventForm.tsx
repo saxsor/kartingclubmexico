@@ -261,14 +261,19 @@ export function EventForm() {
   return (
     <div className="max-w-lg">
       <div className="mb-6">
-        <button onClick={() => navigate('/app/eventos')} className="text-sm text-white/50 hover:text-white">
+        <button onClick={() => navigate('/app/eventos')} className="text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors">
           ← Volver a eventos
         </button>
       </div>
 
-      <h1 className="text-2xl font-black text-white mb-6">
-        {isEdit ? 'Editar evento' : 'Nuevo evento'}
-      </h1>
+      <div className="mb-8">
+        <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+          {isEdit ? <>Edit <span className="text-[#e10600]">Event</span></> : <>New <span className="text-[#e10600]">Event</span></>}
+        </h1>
+        {isEdit && currentEvent && (
+          <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">{currentEvent.name}</p>
+        )}
+      </div>
 
       {/* Poster section — only when editing */}
       {isEdit && (
@@ -624,7 +629,7 @@ export function EventForm() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-1.5">Nombre del evento *</label>
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Nombre del evento *</label>
           <input
             type="text"
             value={form.name}
@@ -636,7 +641,7 @@ export function EventForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-1.5">Fecha *</label>
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Fecha *</label>
           <input
             type="date"
             value={form.date}
@@ -647,7 +652,7 @@ export function EventForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-1.5">Descripción</label>
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Descripción</label>
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -657,7 +662,7 @@ export function EventForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-1.5">Pista / Circuito</label>
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Pista / Circuito</label>
           <input
             type="text"
             value={form.track}
@@ -669,7 +674,7 @@ export function EventForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">
             Datos de transferencia (para auto-inscripción)
           </label>
           <textarea
@@ -686,7 +691,7 @@ export function EventForm() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Cuota de servicio ($)</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Cuota de servicio ($)</label>
             <input
               type="number"
               value={form.serviceFee}
@@ -697,7 +702,7 @@ export function EventForm() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Cuota de comida ($)</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Cuota de comida ($)</label>
             <input
               type="number"
               value={form.foodFee}
@@ -710,7 +715,7 @@ export function EventForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-1.5">Campeonato</label>
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Campeonato</label>
           <select
             value={form.championshipId}
             onChange={(e) => setForm({ ...form, championshipId: e.target.value })}
@@ -748,14 +753,14 @@ export function EventForm() {
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 rounded-lg bg-racing-red py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+            className="flex-1 rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(225,6,0,0.2)]"
           >
-            {loading ? 'Guardando...' : (isEdit ? 'Actualizar' : 'Crear evento')}
+            {loading ? 'Guardando...' : (isEdit ? 'Actualizar evento' : 'Crear evento')}
           </button>
           <button
             type="button"
             onClick={() => navigate('/app/eventos')}
-            className="rounded-lg border border-white/10 px-4 py-2.5 text-sm text-white/60 hover:bg-white/10 transition-colors"
+            className="rounded-lg border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-widest text-white/50 hover:bg-white/10 transition-colors"
           >
             Cancelar
           </button>

@@ -29,98 +29,102 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#15151e] flex items-center justify-center px-4">
-      {/* Subtle racing stripe background */}
-      <div className="absolute inset-0 racing-stripe opacity-30 pointer-events-none" />
+    <div className="racing-carbon-bg min-h-screen flex items-center justify-center px-4">
 
       <div className="relative w-full max-w-sm">
-        {/* Logo area */}
+
+        {/* Logo + title */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
+          <a href="/" className="inline-block opacity-90 hover:opacity-100 transition-opacity">
             <img
               src="/karting_club_logo.png"
               alt="Karting Club México"
-              className="h-16 w-auto object-contain drop-shadow-[0_10px_24px_rgba(225,6,0,0.3)]"
+              className="h-20 w-auto object-contain mx-auto drop-shadow-[0_8px_24px_rgba(225,6,0,0.4)]"
             />
-          </div>
+          </a>
           <h1
-            className="text-3xl font-black text-white uppercase tracking-tight leading-tight"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800 }}
+            className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none mt-5"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
           >
-            KARTING CLUB
+            Admin <span className="text-[#e10600]">Panel</span>
           </h1>
-          <h2
-            className="text-xl font-black uppercase tracking-widest mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, color: '#e10600' }}
-          >
-            MÉXICO
-          </h2>
-          <p className="text-white/40 text-xs uppercase tracking-widest mt-2">Panel de Administración</p>
+          <p className="text-white/30 text-xs font-bold uppercase tracking-[0.25em] mt-2">
+            Acceso para organizadores
+          </p>
         </div>
 
         {/* Form card */}
-        <form onSubmit={handleSubmit} className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 space-y-4">
-          {error && (
-            <div className="border-l-4 border-red-500 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {error}
-            </div>
-          )}
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] shadow-2xl">
+          {/* Top gradient line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#e10600] to-transparent" />
+          {/* Corner glow */}
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(225,6,0,0.08),transparent_70%)] pointer-events-none" />
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-2">
-              Correo electrónico
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border border-[#38383f] bg-[#15151e] px-3 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none focus:ring-1 focus:ring-[#e10600] transition-colors"
-              placeholder="admin@kartingclubmexico.mx"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="relative p-7 space-y-5">
+            {error && (
+              <div className="border-l-4 border-red-500 bg-red-500/10 px-4 py-3 text-sm text-red-400 rounded-r-lg">
+                {error}
+              </div>
+            )}
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-2">
-              Contraseña
-            </label>
-            <div className="relative">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-2">
+                Correo electrónico
+              </label>
               <input
-                type={showPass ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full border border-[#38383f] bg-[#15151e] px-3 py-2.5 pr-10 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none focus:ring-1 focus:ring-[#e10600] transition-colors"
-                placeholder="••••••••"
+                autoFocus
+                placeholder="admin@kartingclubmexico.mx"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none focus:bg-white/[0.07] transition-all"
               />
-              <button
-                type="button"
-                onClick={() => setShowPass(!showPass)}
-                aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-              >
-                {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#e10600] hover:bg-[#b30500] py-3 text-xs font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Ingresando...' : 'Ingresar'}
-          </button>
-        </form>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-2">
+                Contraseña
+              </label>
+              <div className="relative">
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 pr-11 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none focus:bg-white/[0.07] transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
 
-        <div className="flex justify-center mt-4">
-          <Link to="/recuperar-contrasena" className="text-xs text-white/30 hover:text-white/60 transition-colors">
-            ¿Olvidaste tu contraseña?
-          </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3.5 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_24px_rgba(225,6,0,0.25)]"
+            >
+              {loading ? 'Ingresando...' : 'Ingresar al panel'}
+            </button>
+
+            <div className="text-center pt-1">
+              <Link
+                to="/recuperar-contrasena"
+                className="text-xs text-white/25 hover:text-white/50 transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+          </form>
         </div>
-        <p className="text-center text-xs text-white/20 mt-2 uppercase tracking-widest">
-          Solo acceso para organizadores autorizados
-        </p>
+
       </div>
     </div>
   );

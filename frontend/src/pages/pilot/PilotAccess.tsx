@@ -10,7 +10,7 @@ import { InlineLoadingState } from '../../components/shared/LoadingSkeleton';
 type Step = 'search' | 'login' | 'register' | 'sent';
 
 const inputClass =
-  'w-full border border-[#38383f] bg-[#15151e] px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors';
+  'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors';
 
 export function PilotAccess() {
   useRouteScrollTop();
@@ -76,26 +76,27 @@ export function PilotAccess() {
   return (
     <div className="racing-carbon-bg min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+
+        {/* Header — logo arriba, título abajo, centrado */}
+        <div className="text-center mb-8">
           <img
             src="/karting_club_logo.png"
             alt="Karting Club México"
-            className="h-12 w-auto object-contain drop-shadow-[0_4px_12px_rgba(225,6,0,0.3)]"
+            className="h-16 w-auto object-contain mx-auto mb-4 drop-shadow-[0_8px_24px_rgba(225,6,0,0.35)]"
           />
-          <div>
-            <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-              Pilot <span className="text-[#e10600]">Portal</span>
-            </h1>
-          </div>
+          <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            Pilot <span className="text-[#e10600]">Portal</span>
+          </h1>
+          <p className="text-white/30 text-xs font-bold uppercase tracking-[0.25em] mt-2">Acceso para pilotos</p>
         </div>
 
         {/* Step: search */}
         {step === 'search' && (
-          <div className="space-y-4">
-            <div className="border border-[#38383f] bg-[#1f1f27] p-6 space-y-4">
-              <p className="text-sm text-white/60">
-                Busca tu nombre para acceder a tu perfil o regístrate si eres nuevo.
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] shadow-2xl">
+            <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(225,6,0,0.08),transparent_70%)] pointer-events-none" />
+            <div className="p-6 space-y-4 relative">
+              <p className="text-sm text-white/50">
+                Busca tu nombre para acceder o regístrate si eres nuevo.
               </p>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
@@ -104,7 +105,7 @@ export function PilotAccess() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="Busca por tu nombre..."
-                  className="w-full border border-[#38383f] bg-[#15151e] pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors"
                   autoFocus
                 />
               </div>
@@ -116,7 +117,7 @@ export function PilotAccess() {
                     <button
                       key={pilot.id}
                       onClick={() => handleSelectPilot(pilot)}
-                      className="w-full flex items-center justify-between border border-[#38383f] bg-[#15151e] px-4 py-3 hover:bg-[#2a2a35] hover:border-[#e10600]/40 transition-colors group"
+                      className="w-full flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 hover:border-[#e10600]/50 transition-all group"
                     >
                       <div className="text-left">
                         <p className="text-sm font-bold text-white group-hover:text-[#e10600] transition-colors">
@@ -134,17 +135,14 @@ export function PilotAccess() {
                     </button>
                   ))}
                   {!searching && pilots.length === 0 && (
-                    <div className="border border-[#38383f] bg-[#15151e] px-4 py-5 text-center space-y-3">
+                    <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-5 text-center space-y-3">
                       <p className="text-sm text-white/50">
-                        No encontramos a <span className="text-white font-bold">"{debouncedSearch}"</span> en la plataforma.
+                        No encontramos a <span className="text-white font-bold">"{debouncedSearch}"</span>.
                       </p>
-                      <p className="text-xs text-white/30">¿Es tu primera vez en Karting Club México?</p>
+                      <p className="text-xs text-white/30">¿Es tu primera vez aquí?</p>
                       <button
-                        onClick={() => {
-                          setForm((f) => ({ ...f, name: searchInput }));
-                          setStep('register');
-                        }}
-                        className="flex items-center gap-1.5 mx-auto bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold text-white uppercase tracking-wider transition-colors"
+                        onClick={() => { setForm((f) => ({ ...f, name: searchInput })); setStep('register'); }}
+                        className="flex items-center gap-1.5 mx-auto rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-4 py-2 text-xs font-bold text-white uppercase tracking-wider transition-all hover:scale-[1.02]"
                       >
                         <UserPlus className="h-3.5 w-3.5" />
                         Registrarme como piloto
@@ -155,7 +153,7 @@ export function PilotAccess() {
               )}
 
               {debouncedSearch.length < 2 && (
-                <p className="text-xs text-white/25 text-center">Escribe al menos 2 letras para buscar</p>
+                <p className="text-xs text-white/20 text-center">Escribe al menos 2 letras para buscar</p>
               )}
             </div>
           </div>
@@ -163,71 +161,51 @@ export function PilotAccess() {
 
         {/* Step: login (magic link) */}
         {step === 'login' && (
-          <div className="border border-[#38383f] bg-[#1f1f27] p-6 space-y-4">
-            <button
-              onClick={() => setStep('search')}
-              className="text-xs text-white/40 hover:text-white transition-colors"
-            >
-              ← Volver
-            </button>
-            {selectedPilot && (
-              <div className="border-l-4 border-[#e10600] bg-[#15151e] px-4 py-3">
-                <p className="text-xs text-white/40 mb-0.5 uppercase tracking-wider">Accediendo como</p>
-                <p className="font-black text-white uppercase tracking-tight">{selectedPilot.name}</p>
-                {selectedPilot.alias && (
-                  <p className="text-xs text-white/40 italic">"{selectedPilot.alias}"</p>
-                )}
-              </div>
-            )}
-            <p className="text-sm text-white/60">
-              Ingresa tu correo registrado y te enviaremos un enlace de acceso instantáneo.
-            </p>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">
-                  Correo electrónico
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoFocus
-                  placeholder="tu@correo.com"
-                  className={inputClass}
-                />
-              </div>
-              {loginError && (
-                <div className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-xs text-red-400">
-                  {loginError}
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] shadow-2xl">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#e10600] to-transparent" />
+            <div className="p-6 space-y-4">
+              <button onClick={() => setStep('search')} className="text-xs text-white/40 hover:text-white transition-colors">
+                ← Volver
+              </button>
+              {selectedPilot && (
+                <div className="rounded-lg border border-[#e10600]/20 bg-[#e10600]/5 px-4 py-3">
+                  <p className="text-[10px] text-white/40 mb-0.5 uppercase tracking-widest">Accediendo como</p>
+                  <p className="font-black text-white text-lg italic uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{selectedPilot.name}</p>
+                  {selectedPilot.alias && <p className="text-xs text-[#e10600]/70 italic">"{selectedPilot.alias}"</p>}
                 </div>
               )}
-              <button
-                type="submit"
-                disabled={loginLoading}
-                className="w-full bg-[#e10600] hover:bg-[#b30500] px-4 py-2.5 text-xs font-black text-white uppercase tracking-wider transition-colors disabled:opacity-60"
-              >
-                {loginLoading ? 'Enviando...' : 'Enviar enlace de acceso'}
-              </button>
-            </form>
+              <p className="text-sm text-white/50">
+                Ingresa tu correo y te enviamos un enlace de acceso instantáneo.
+              </p>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Correo electrónico</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus placeholder="tu@correo.com" className={inputClass} />
+                </div>
+                {loginError && <div className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-xs text-red-400">{loginError}</div>}
+                <button type="submit" disabled={loginLoading}
+                  className="w-full rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3 text-xs font-black text-white uppercase tracking-wider transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(225,6,0,0.25)]">
+                  {loginLoading ? 'Enviando...' : 'Enviar enlace de acceso'}
+                </button>
+              </form>
+            </div>
           </div>
         )}
 
         {/* Step: register */}
         {step === 'register' && (
-          <div className="border border-[#38383f] bg-[#1f1f27] p-6 space-y-4">
-            <button
-              onClick={() => setStep('search')}
-              className="text-xs text-white/40 hover:text-white transition-colors"
-            >
-              ← Volver
-            </button>
-            <div>
-              <h2 className="font-black text-white uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                Nuevo piloto
-              </h2>
-              <p className="text-xs text-white/40 mt-0.5">Crea tu perfil de piloto en Karting Club México</p>
-            </div>
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] shadow-2xl">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#e10600] to-transparent" />
+            <div className="p-6 space-y-4">
+              <button onClick={() => setStep('search')} className="text-xs text-white/40 hover:text-white transition-colors">
+                ← Volver
+              </button>
+              <div>
+                <h2 className="text-2xl font-black text-white italic uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                  Nuevo <span className="text-[#e10600]">Piloto</span>
+                </h2>
+                <p className="text-xs text-white/40 mt-0.5">Crea tu perfil en Karting Club México</p>
+              </div>
             <form onSubmit={handleRegister} className="space-y-3">
               {[
                 { key: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', required: true },
@@ -259,23 +237,26 @@ export function PilotAccess() {
               <button
                 type="submit"
                 disabled={registerMutation.isPending}
-                className="w-full bg-[#e10600] hover:bg-[#b30500] px-4 py-2.5 text-xs font-black text-white uppercase tracking-wider transition-colors disabled:opacity-60"
+                className="w-full rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3 text-xs font-black text-white uppercase tracking-wider transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(225,6,0,0.25)]"
               >
                 {registerMutation.isPending ? 'Registrando...' : 'Registrarme'}
               </button>
             </form>
+            </div>
           </div>
         )}
 
         {/* Step: sent */}
         {step === 'sent' && (
-          <div className="border border-green-500/30 bg-green-500/10 p-6 text-center space-y-3">
-            <Mail className="h-10 w-10 text-green-400 mx-auto" />
+          <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-8 text-center space-y-4 shadow-2xl">
+            <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-full bg-green-500/10 border border-green-500/20">
+              <Mail className="h-7 w-7 text-green-400" />
+            </div>
             <div>
-              <p className="text-white font-black uppercase tracking-tight">
+              <p className="text-2xl font-black text-white italic uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 {registerMutation.isSuccess ? '¡Registro exitoso!' : '¡Enlace enviado!'}
               </p>
-              <p className="text-sm text-white/50 mt-1">
+              <p className="text-sm text-white/50 mt-2 leading-relaxed">
                 {registerMutation.isSuccess
                   ? `Revisa tu correo ${form.email} — te enviamos un enlace para acceder a tu perfil.`
                   : `Revisa tu correo ${email} y haz clic en el enlace para acceder. Expira en 24 horas.`

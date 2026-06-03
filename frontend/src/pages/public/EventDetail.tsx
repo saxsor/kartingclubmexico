@@ -117,7 +117,7 @@ export function EventDetail() {
           )}
 
           {/* Google Maps */}
-          {(event as any).address && (
+          {event.address && (
             <div className="overflow-hidden rounded-lg border border-[#38383f]">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export function EventDetail() {
                   <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Ubicación</h2>
                 </div>
                 <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent((event as any).address)}`}
+                  href={`https://maps.google.com/?q=${encodeURIComponent(event.address)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[10px] font-bold uppercase tracking-widest text-[#e10600] hover:text-white transition-colors"
@@ -135,7 +135,7 @@ export function EventDetail() {
               </div>
               <iframe
                 title="Ubicación del evento"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent((event as any).address)}&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(event.address)}&output=embed`}
                 width="100%"
                 height="220"
                 style={{ border: 0, display: 'block' }}
@@ -143,20 +143,20 @@ export function EventDetail() {
                 referrerPolicy="no-referrer-when-downgrade"
               />
               <div className="bg-[#1a1a21] px-5 py-3">
-                <p className="text-xs text-white/50">{(event as any).address}</p>
+                <p className="text-xs text-white/50">{event.address}</p>
               </div>
             </div>
           )}
 
           {/* Schedule */}
-          {(event as any).schedule && (
+          {event.schedule && (
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
                 <Clock className="h-4 w-4 text-[#e10600]" />
                 <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Horarios del Día</h2>
               </div>
               <div className="divide-y divide-[#38383f]/50">
-                {(event as any).schedule.split('\n').filter(Boolean).map((line: string, i: number) => {
+                {event.schedule.split('\n').filter(Boolean).map((line: string, i: number) => {
                   const [time, ...rest] = line.split('—');
                   const desc = rest.join('—').trim();
                   return (
@@ -211,7 +211,7 @@ export function EventDetail() {
               </div>
               <div className="p-4 space-y-2">
                 {event.eventCategories.filter(c => c.active).map(c => {
-                  const count = ((event as any).inscriptions ?? []).filter((i: any) => i.category === c.category).length;
+                  const count = (event.inscriptions ?? []).filter((i: any) => i.category === c.category).length;
                   return (
                     <div key={c.id} className="flex justify-between items-center">
                       <span className="text-xs text-white/70 font-bold uppercase tracking-wider">{CATEGORY_LABELS[c.category] ?? c.category}</span>
@@ -224,14 +224,14 @@ export function EventDetail() {
           </div>
 
           {/* Conditions */}
-          {(event as any).conditions && (
+          {event.conditions && (
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-[#e10600]" />
                 <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Condiciones del Evento</h2>
               </div>
               <div className="p-4 flex flex-wrap gap-2">
-                {(event as any).conditions.split('•').map((c: string) => c.trim()).filter(Boolean).map((cond: string, i: number) => (
+                {event.conditions.split('•').map((c: string) => c.trim()).filter(Boolean).map((cond: string, i: number) => (
                   <span key={i} className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/70">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#e10600] flex-shrink-0" />
                     {cond}

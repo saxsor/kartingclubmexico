@@ -35,9 +35,13 @@ export interface KartEvent {
   diplomaTextColor: string;
   diplomaTextAlign: string;
   track: string | null;
+  address: string | null;
+  schedule: string | null;
+  conditions: string | null;
   championshipId: string | null;
   championship: { id: string; name: string } | null;
   eventCategories: EventCategory[];
+  inscriptions?: { category: string; status: string }[];
   createdAt: string;
   updatedAt: string;
 }

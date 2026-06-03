@@ -74,7 +74,7 @@ export function EventList() {
         </div>
         <Link
           to="/app/eventos/nuevo"
-          className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+          className="flex items-center gap-2 bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors"
         >
           <Plus className="h-4 w-4" />
           Nuevo evento
@@ -89,13 +89,13 @@ export function EventList() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Buscar por nombre..."
-            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+            className="w-full border border-[#38383f] bg-[#15151e] pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+          className="border border-[#38383f] bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
         >
           <option value="">Todos los estados</option>
           <option value="DRAFT">Borrador</option>
@@ -106,7 +106,7 @@ export function EventList() {
         <select
           value={yearFilter}
           onChange={(e) => { setYearFilter(e.target.value); setPage(1); }}
-          className="rounded-lg border border-white/10 bg-racing-dark px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
+          className="border border-[#38383f] bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
         >
           <option value="">Todos los años</option>
           {yearOptions.map((y) => <option key={y} value={String(y)}>{y}</option>)}
@@ -114,7 +114,7 @@ export function EventList() {
         {(search || statusFilter || yearFilter) && (
           <button
             onClick={() => { setSearch(''); setStatusFilter(''); setYearFilter(''); setPage(1); }}
-            className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-2 text-xs text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            className="flex items-center gap-1 border border-[#38383f] px-3 py-2 text-xs text-white/50 hover:text-white hover:bg-[#2a2a35] transition-colors"
           >
             <X className="h-3.5 w-3.5" /> Limpiar
           </button>
@@ -131,9 +131,9 @@ export function EventList() {
           action={{ label: 'Crear evento', href: '/app/eventos/nuevo' }}
         />
       ) : (
-        <div className="space-y-3">
+        <div className="border border-[#38383f] divide-y divide-[#38383f]">
           {events.map((event) => (
-            <div key={event.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div key={event.id} className="bg-[#1f1f27] hover:bg-[#2a2a35] transition-colors p-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -150,13 +150,13 @@ export function EventList() {
                 <div className="flex gap-2">
                   <Link
                     to={`/app/eventos/${event.slug}`}
-                    className="rounded-lg bg-racing-red px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors"
+                    className="bg-[#e10600] hover:bg-[#b30500] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition-colors"
                   >
                     Gestionar
                   </Link>
                   <Link
                     to={`/app/eventos/${event.slug}/editar`}
-                    className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 transition-colors"
+                    className="border border-[#38383f] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-[#2a2a35] transition-colors"
                   >
                     Editar
                   </Link>
@@ -164,7 +164,7 @@ export function EventList() {
                     onClick={() => handleDelete(event)}
                     disabled={deleting === event.slug}
                     aria-label={`Eliminar evento ${event.name}`}
-                    className="rounded-lg border border-red-500/30 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                    className="border border-red-500/30 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

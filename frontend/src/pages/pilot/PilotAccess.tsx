@@ -10,7 +10,7 @@ import { InlineLoadingState } from '../../components/shared/LoadingSkeleton';
 type Step = 'search' | 'login' | 'register' | 'sent';
 
 const inputClass =
-  'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none';
+  'w-full border border-[#38383f] bg-[#15151e] px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors';
 
 export function PilotAccess() {
   useRouteScrollTop();
@@ -78,19 +78,19 @@ export function PilotAccess() {
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-racing-red">
+          <div className="flex h-10 w-10 items-center justify-center bg-[#e10600]">
             <Flag className="h-5 w-5 text-white" />
           </div>
           <div>
             <p className="text-xs text-white/40 uppercase tracking-widest">Karting Club México</p>
-            <h1 className="text-lg font-black text-white leading-tight">Portal de Piloto</h1>
+            <h1 className="text-lg font-black text-white uppercase leading-tight tracking-tight">Portal de Piloto</h1>
           </div>
         </div>
 
         {/* Step: search */}
         {step === 'search' && (
           <div className="space-y-4">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-6 space-y-4">
+            <div className="border border-[#38383f] bg-[#1f1f27] p-6 space-y-4">
               <p className="text-sm text-white/60">
                 Busca tu nombre para acceder a tu perfil o regístrate si eres nuevo.
               </p>
@@ -101,32 +101,29 @@ export function PilotAccess() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="Busca por tu nombre..."
-                  className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+                  className="w-full border border-[#38383f] bg-[#15151e] pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors"
                   autoFocus
                 />
               </div>
 
-              {/* Results */}
               {debouncedSearch.length >= 2 && (
                 <div className="space-y-1">
-                  {searching && (
-                    <InlineLoadingState lines={2} />
-                  )}
+                  {searching && <InlineLoadingState lines={2} />}
                   {!searching && pilots.map((pilot) => (
                     <button
                       key={pilot.id}
                       onClick={() => handleSelectPilot(pilot)}
-                      className="w-full flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 hover:border-racing-red/40 transition-colors group"
+                      className="w-full flex items-center justify-between border border-[#38383f] bg-[#15151e] px-4 py-3 hover:bg-[#2a2a35] hover:border-[#e10600]/40 transition-colors group"
                     >
                       <div className="text-left">
-                        <p className="text-sm font-semibold text-white group-hover:text-racing-red transition-colors">
+                        <p className="text-sm font-bold text-white group-hover:text-[#e10600] transition-colors">
                           {pilot.name}
                         </p>
                         {pilot.alias && (
                           <p className="text-xs text-white/40 italic">"{pilot.alias}"</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-white/40 group-hover:text-racing-red transition-colors">
+                      <div className="flex items-center gap-1.5 text-xs text-white/40 group-hover:text-[#e10600] transition-colors">
                         <UserCheck className="h-4 w-4" />
                         Soy yo
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -134,15 +131,17 @@ export function PilotAccess() {
                     </button>
                   ))}
                   {!searching && pilots.length === 0 && (
-                    <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-4 text-center space-y-3">
-                      <p className="text-sm text-white/50">No encontramos a <span className="text-white font-semibold">"{debouncedSearch}"</span> en la plataforma.</p>
+                    <div className="border border-[#38383f] bg-[#15151e] px-4 py-5 text-center space-y-3">
+                      <p className="text-sm text-white/50">
+                        No encontramos a <span className="text-white font-bold">"{debouncedSearch}"</span> en la plataforma.
+                      </p>
                       <p className="text-xs text-white/30">¿Es tu primera vez en Karting Club México?</p>
                       <button
                         onClick={() => {
                           setForm((f) => ({ ...f, name: searchInput }));
                           setStep('register');
                         }}
-                        className="flex items-center gap-1.5 mx-auto rounded-lg bg-racing-red px-4 py-2 text-xs font-bold text-white uppercase tracking-wider hover:bg-red-700 transition-colors"
+                        className="flex items-center gap-1.5 mx-auto bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold text-white uppercase tracking-wider transition-colors"
                       >
                         <UserPlus className="h-3.5 w-3.5" />
                         Registrarme como piloto
@@ -161,7 +160,7 @@ export function PilotAccess() {
 
         {/* Step: login (magic link) */}
         {step === 'login' && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-6 space-y-4">
+          <div className="border border-[#38383f] bg-[#1f1f27] p-6 space-y-4">
             <button
               onClick={() => setStep('search')}
               className="text-xs text-white/40 hover:text-white transition-colors"
@@ -169,9 +168,9 @@ export function PilotAccess() {
               ← Volver
             </button>
             {selectedPilot && (
-              <div className="border border-white/10 rounded-lg px-4 py-3 bg-white/5">
-                <p className="text-xs text-white/40 mb-0.5">Accediendo como</p>
-                <p className="font-semibold text-white">{selectedPilot.name}</p>
+              <div className="border-l-4 border-[#e10600] bg-[#15151e] px-4 py-3">
+                <p className="text-xs text-white/40 mb-0.5 uppercase tracking-wider">Accediendo como</p>
+                <p className="font-black text-white uppercase tracking-tight">{selectedPilot.name}</p>
                 {selectedPilot.alias && (
                   <p className="text-xs text-white/40 italic">"{selectedPilot.alias}"</p>
                 )}
@@ -182,7 +181,7 @@ export function PilotAccess() {
             </p>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">
                   Correo electrónico
                 </label>
                 <input
@@ -195,11 +194,15 @@ export function PilotAccess() {
                   className={inputClass}
                 />
               </div>
-              {loginError && <p className="text-xs text-red-400">{loginError}</p>}
+              {loginError && (
+                <div className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-xs text-red-400">
+                  {loginError}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full rounded-lg bg-racing-red px-4 py-2.5 text-sm font-black text-white uppercase tracking-wider hover:bg-red-700 transition-colors disabled:opacity-60"
+                className="w-full bg-[#e10600] hover:bg-[#b30500] px-4 py-2.5 text-xs font-black text-white uppercase tracking-wider transition-colors disabled:opacity-60"
               >
                 {loginLoading ? 'Enviando...' : 'Enviar enlace de acceso'}
               </button>
@@ -209,7 +212,7 @@ export function PilotAccess() {
 
         {/* Step: register */}
         {step === 'register' && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-6 space-y-4">
+          <div className="border border-[#38383f] bg-[#1f1f27] p-6 space-y-4">
             <button
               onClick={() => setStep('search')}
               className="text-xs text-white/40 hover:text-white transition-colors"
@@ -217,67 +220,43 @@ export function PilotAccess() {
               ← Volver
             </button>
             <div>
-              <h2 className="font-black text-white text-base uppercase tracking-wide">Nuevo piloto</h2>
+              <h2 className="font-black text-white uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                Nuevo piloto
+              </h2>
               <p className="text-xs text-white/40 mt-0.5">Crea tu perfil de piloto en Karting Club México</p>
             </div>
             <form onSubmit={handleRegister} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">
-                  Nombre completo *
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                  minLength={2}
-                  autoFocus
-                  placeholder="Tu nombre"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">
-                  Alias / Apodo <span className="text-white/25 normal-case font-normal">(opcional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.alias}
-                  onChange={(e) => setForm({ ...form, alias: e.target.value })}
-                  placeholder="El Chapo, La Cobra..."
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">
-                  Correo electrónico *
-                </label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  placeholder="tu@correo.com"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">
-                  Teléfono <span className="text-white/25 normal-case font-normal">(opcional)</span>
-                </label>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="+52 55 1234 5678"
-                  className={inputClass}
-                />
-              </div>
-              {registerError && <p className="text-xs text-red-400">{registerError}</p>}
+              {[
+                { key: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', required: true },
+                { key: 'alias', label: 'Alias / Apodo', type: 'text', placeholder: 'El Chapo, La Cobra...', required: false, optional: true },
+                { key: 'email', label: 'Correo electrónico', type: 'email', placeholder: 'tu@correo.com', required: true },
+                { key: 'phone', label: 'Teléfono', type: 'tel', placeholder: '+52 55 1234 5678', required: false, optional: true },
+              ].map((f) => (
+                <div key={f.key}>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">
+                    {f.label}
+                    {f.optional && <span className="text-white/25 normal-case font-normal ml-1">(opcional)</span>}
+                    {f.required && <span className="text-[#e10600] ml-1">*</span>}
+                  </label>
+                  <input
+                    type={f.type}
+                    value={form[f.key as keyof typeof form]}
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                    required={f.required}
+                    placeholder={f.placeholder}
+                    className={inputClass}
+                  />
+                </div>
+              ))}
+              {registerError && (
+                <div className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-xs text-red-400">
+                  {registerError}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={registerMutation.isPending}
-                className="w-full rounded-lg bg-racing-red px-4 py-2.5 text-sm font-black text-white uppercase tracking-wider hover:bg-red-700 transition-colors disabled:opacity-60"
+                className="w-full bg-[#e10600] hover:bg-[#b30500] px-4 py-2.5 text-xs font-black text-white uppercase tracking-wider transition-colors disabled:opacity-60"
               >
                 {registerMutation.isPending ? 'Registrando...' : 'Registrarme'}
               </button>
@@ -287,10 +266,10 @@ export function PilotAccess() {
 
         {/* Step: sent */}
         {step === 'sent' && (
-          <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-6 text-center space-y-3">
+          <div className="border border-green-500/30 bg-green-500/10 p-6 text-center space-y-3">
             <Mail className="h-10 w-10 text-green-400 mx-auto" />
             <div>
-              <p className="text-white font-semibold">
+              <p className="text-white font-black uppercase tracking-tight">
                 {registerMutation.isSuccess ? '¡Registro exitoso!' : '¡Enlace enviado!'}
               </p>
               <p className="text-sm text-white/50 mt-1">

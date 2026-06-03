@@ -22,6 +22,8 @@ const CATEGORY_LABEL: Record<string, string> = {
   NUEVE_HP: '9 HP', ROOKIES: 'Rookies', MINIS: 'Minis',
 };
 
+const inputClass = 'w-full border border-[#38383f] bg-[#15151e] px-3 py-1.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors';
+
 function getTotalPaid(insc: PilotInscription) {
   return insc.payments.reduce((s, p) => s + Number(p.amount), 0);
 }
@@ -36,14 +38,12 @@ export function PilotPortal() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  // Profile edit state
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: '', alias: '', phone: '', engine: '', kartNumber: '' });
   const [profileTeamName, setProfileTeamName] = useState('');
   const [profileTeamId, setProfileTeamId] = useState<string | null>(null);
   const photoRef = useRef<HTMLInputElement>(null);
 
-  // Inscription edit state
   const [editingInsc, setEditingInsc] = useState<string | null>(null);
   const [inscForm, setInscForm] = useState({ companions: 0, kartNumber: '', engine: '' });
 
@@ -112,10 +112,10 @@ export function PilotPortal() {
   return (
     <div className="racing-carbon-bg min-h-screen text-white">
       {/* Header */}
-      <div className="border-b border-white/10 bg-black/30 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Flag className="h-5 w-5 text-racing-red" />
-          <span className="font-black text-sm uppercase tracking-wider">Mi Perfil</span>
+      <div className="border-b border-[#38383f] bg-[#15151e] px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Flag className="h-5 w-5 text-[#e10600]" />
+          <span className="font-black text-sm uppercase tracking-widest">Mi Perfil</span>
         </div>
         <button
           onClick={handleLogout}
@@ -129,11 +129,11 @@ export function PilotPortal() {
       <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
 
         {/* Profile card */}
-        <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+        <div className="border-t-[3px] border-[#e10600] border-x border-b border-[#38383f] bg-[#1f1f27] p-5">
           <div className="flex items-start gap-4">
             {/* Photo */}
             <div className="relative flex-shrink-0">
-              <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-white/10 bg-white/10 flex items-center justify-center">
+              <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-[#38383f] bg-[#15151e] flex items-center justify-center">
                 {pilot.photoUrl ? (
                   <img src={resolveMediaUrl(pilot.photoUrl) ?? ''} alt={pilot.name} className="h-full w-full object-cover" />
                 ) : (
@@ -143,7 +143,7 @@ export function PilotPortal() {
               <button
                 onClick={() => photoRef.current?.click()}
                 disabled={uploadPhotoMutation.isPending}
-                className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-racing-red flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-60"
+                className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#e10600] flex items-center justify-center hover:bg-[#b30500] transition-colors disabled:opacity-60"
                 title="Cambiar foto"
                 aria-label="Cambiar foto de perfil"
               >
@@ -176,39 +176,12 @@ export function PilotPortal() {
                     teamId: profileTeamName.trim() ? resolvedTeamId ?? null : null,
                   });
                 }} className="space-y-2">
-                  <input
-                    value={profileForm.name}
-                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                    placeholder="Nombre"
-                    required
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
-                  />
-                  <input
-                    value={profileForm.alias}
-                    onChange={(e) => setProfileForm({ ...profileForm, alias: e.target.value })}
-                    placeholder="Alias (opcional)"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
-                  />
-                  <input
-                    value={profileForm.phone}
-                    onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                    placeholder="Teléfono (opcional)"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
-                  />
+                  <input value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="Nombre" required className={inputClass} />
+                  <input value={profileForm.alias} onChange={(e) => setProfileForm({ ...profileForm, alias: e.target.value })} placeholder="Alias (opcional)" className={inputClass} />
+                  <input value={profileForm.phone} onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="Teléfono (opcional)" className={inputClass} />
                   <div className="flex gap-2">
-                    <input
-                      value={profileForm.engine}
-                      onChange={(e) => setProfileForm({ ...profileForm, engine: e.target.value })}
-                      placeholder="Motor (ej. TM KZ10C...)"
-                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
-                    />
-                    <input
-                      type="number" min="1"
-                      value={profileForm.kartNumber}
-                      onChange={(e) => setProfileForm({ ...profileForm, kartNumber: e.target.value })}
-                      placeholder="# Kart"
-                      className="w-20 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
-                    />
+                    <input value={profileForm.engine} onChange={(e) => setProfileForm({ ...profileForm, engine: e.target.value })} placeholder="Motor (ej. TM KZ10C...)" className={`flex-1 ${inputClass}`} />
+                    <input type="number" min="1" value={profileForm.kartNumber} onChange={(e) => setProfileForm({ ...profileForm, kartNumber: e.target.value })} placeholder="# Kart" className={`w-20 ${inputClass}`} />
                   </div>
                   <TeamAutocomplete
                     value={profileTeamName}
@@ -216,7 +189,7 @@ export function PilotPortal() {
                     onChange={(name, id) => { setProfileTeamName(name); setProfileTeamId(id); }}
                     placeholder="Equipo (opcional)"
                   />
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex gap-3 pt-1">
                     <button type="submit" disabled={updateProfileMutation.isPending} className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
                       <CheckCircle className="h-3.5 w-3.5" /> {updateProfileMutation.isPending ? 'Guardando...' : 'Guardar'}
                     </button>
@@ -228,21 +201,16 @@ export function PilotPortal() {
               ) : (
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="font-black text-lg leading-tight">{pilot.name}</h2>
-                    <button
-                      onClick={startEditProfile}
-                      className="text-white/30 hover:text-white transition-colors"
-                      title="Editar perfil"
-                      aria-label="Editar perfil"
-                    >
+                    <h2 className="font-black text-lg leading-tight uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{pilot.name}</h2>
+                    <button onClick={startEditProfile} className="text-white/30 hover:text-white transition-colors" title="Editar perfil" aria-label="Editar perfil">
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  {pilot.alias && <p className="text-sm text-white/50">{pilot.alias}</p>}
+                  {pilot.alias && <p className="text-sm text-white/50 italic">"{pilot.alias}"</p>}
                   {pilot.email && <p className="text-xs text-white/30 mt-0.5">{pilot.email}</p>}
                   {pilot.phone && <p className="text-xs text-white/30">{pilot.phone}</p>}
                   {pilot.engine && <p className="text-xs text-white/40 mt-1">Motor: {pilot.engine}</p>}
-                  {pilot.kartNumber && <p className="text-xs text-white/40">Kart: #{pilot.kartNumber}</p>}
+                  {pilot.kartNumber && <p className="text-xs text-white/40">Kart: <span className="text-[#e10600] font-black">#{pilot.kartNumber}</span></p>}
                   {pilot.team && (
                     <p className="text-xs text-purple-400/80 mt-0.5 flex items-center gap-1">
                       <Users className="h-3 w-3" />{pilot.team.name}
@@ -257,10 +225,10 @@ export function PilotPortal() {
         {/* Active event inscriptions */}
         {openInscriptions.length > 0 && (
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
-              <Calendar className="h-3.5 w-3.5" /> Eventos abiertos
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
+              <Calendar className="h-3.5 w-3.5 text-[#e10600]" /> Eventos abiertos
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-px">
               {openInscriptions.map((insc) => {
                 const paid = getTotalPaid(insc);
                 const required = getRequired(insc);
@@ -268,23 +236,28 @@ export function PilotPortal() {
                 const isEditing = editingInsc === insc.id;
 
                 return (
-                  <div key={insc.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div key={insc.id} className="border border-[#38383f] bg-[#1f1f27] p-4">
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div>
-                        <p className="font-semibold text-sm">{insc.event.name}</p>
-                        <p className="text-xs text-white/40">{formatDate(insc.event.date)} · {CATEGORY_LABEL[insc.category] ?? insc.category}</p>
+                        <p className="font-black text-sm uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{insc.event.name}</p>
+                        <p className="text-xs text-white/40 mt-0.5">{formatDate(insc.event.date)} · {CATEGORY_LABEL[insc.category] ?? insc.category}</p>
                       </div>
-                      <span className={`text-xs font-semibold ${STATUS_LABEL[insc.status]?.color ?? 'text-white/50'}`}>
+                      <span className={`text-xs font-bold uppercase tracking-wider ${STATUS_LABEL[insc.status]?.color ?? 'text-white/50'}`}>
                         {STATUS_LABEL[insc.status]?.label ?? insc.status}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs text-white/50 mb-3">
-                      <div><span className="block text-white/30">Pagado</span><span className="text-white font-semibold">{formatCurrency(paid)}</span></div>
-                      <div><span className="block text-white/30">Saldo</span><span className={`font-semibold ${outstanding > 0 ? 'text-orange-400' : 'text-green-400'}`}>{formatCurrency(outstanding)}</span></div>
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                      <div className="bg-[#15151e] border border-[#38383f] px-3 py-2">
+                        <span className="block text-white/30 uppercase tracking-wider text-[10px]">Pagado</span>
+                        <span className="text-white font-black">{formatCurrency(paid)}</span>
+                      </div>
+                      <div className="bg-[#15151e] border border-[#38383f] px-3 py-2">
+                        <span className="block text-white/30 uppercase tracking-wider text-[10px]">Saldo</span>
+                        <span className={`font-black ${outstanding > 0 ? 'text-orange-400' : 'text-green-400'}`}>{formatCurrency(outstanding)}</span>
+                      </div>
                     </div>
 
-                    {/* Editable fields */}
                     {isEditing ? (
                       <form onSubmit={(e) => {
                         e.preventDefault();
@@ -296,38 +269,21 @@ export function PilotPortal() {
                             engine: inscForm.engine || undefined,
                           },
                         });
-                      }} className="border-t border-white/10 pt-3 space-y-2">
+                      }} className="border-t border-[#38383f] pt-3 space-y-2">
                         <div className="flex gap-3">
                           <div className="flex-1">
-                            <label className="text-xs text-white/40 block mb-1">Acompañantes</label>
-                            <input
-                              type="number" min="0" max="20"
-                              value={inscForm.companions}
-                              onChange={(e) => setInscForm({ ...inscForm, companions: parseInt(e.target.value) || 0 })}
-                              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
-                            />
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 block mb-1">Acompañantes</label>
+                            <input type="number" min="0" max="20" value={inscForm.companions} onChange={(e) => setInscForm({ ...inscForm, companions: parseInt(e.target.value) || 0 })} className={inputClass} />
                             <p className="text-xs text-white/30 mt-0.5">{inscForm.companions} comensales en total</p>
                           </div>
                           <div className="flex-1">
-                            <label className="text-xs text-white/40 block mb-1">Número de kart</label>
-                            <input
-                              type="number" min="1"
-                              value={inscForm.kartNumber}
-                              onChange={(e) => setInscForm({ ...inscForm, kartNumber: e.target.value })}
-                              placeholder="Sin asignar"
-                              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
-                            />
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 block mb-1">Número de kart</label>
+                            <input type="number" min="1" value={inscForm.kartNumber} onChange={(e) => setInscForm({ ...inscForm, kartNumber: e.target.value })} placeholder="Sin asignar" className={inputClass} />
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs text-white/40 block mb-1">Motor</label>
-                          <input
-                            type="text"
-                            value={inscForm.engine}
-                            onChange={(e) => setInscForm({ ...inscForm, engine: e.target.value })}
-                            placeholder="ej. TM KZ10C, Rotax Max, IAME X30"
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white focus:border-racing-red focus:outline-none"
-                          />
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 block mb-1">Motor</label>
+                          <input type="text" value={inscForm.engine} onChange={(e) => setInscForm({ ...inscForm, engine: e.target.value })} placeholder="ej. TM KZ10C, Rotax Max, IAME X30" className={inputClass} />
                         </div>
                         <div className="flex gap-3">
                           <button type="submit" disabled={updateInscMutation.isPending} className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300 disabled:opacity-50">
@@ -339,7 +295,7 @@ export function PilotPortal() {
                         </div>
                       </form>
                     ) : (
-                      <div className="border-t border-white/10 pt-3 flex items-center justify-between">
+                      <div className="border-t border-[#38383f] pt-3 flex items-center justify-between">
                         <div className="text-xs text-white/50 space-y-0.5">
                           <p>{insc.companions} comensales</p>
                           <p>Kart: {insc.kartNumber ?? <span className="text-white/30">Sin asignar</span>}</p>
@@ -347,7 +303,7 @@ export function PilotPortal() {
                         </div>
                         <button
                           onClick={() => startEditInsc(insc)}
-                          className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+                          className="flex items-center gap-1.5 border border-[#38383f] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/50 hover:bg-[#2a2a35] hover:text-white transition-colors"
                         >
                           <Pencil className="h-3 w-3" /> Editar
                         </button>
@@ -363,28 +319,28 @@ export function PilotPortal() {
         {/* Championship standings */}
         {pilot.standings.length > 0 && (
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
-              <Trophy className="h-3.5 w-3.5" /> Posición en campeonato
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
+              <Trophy className="h-3.5 w-3.5 text-[#e10600]" /> Posición en campeonato
             </h3>
-            <div className="rounded-xl border border-white/10 overflow-hidden">
+            <div className="border border-[#38383f] overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
-                    <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-white/40">Año</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-white/40">Categoría</th>
-                    <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-white/40">Pos.</th>
-                    <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-white/40">Pts.</th>
+                  <tr className="border-b border-[#38383f] bg-[#1a1a21]">
+                    <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Año</th>
+                    <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-white/40">Categoría</th>
+                    <th className="px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-widest text-white/40">Pos.</th>
+                    <th className="px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-widest text-white/40">Pts.</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pilot.standings.map((s) => (
-                    <tr key={s.id} className="border-b border-white/5 transition-colors hover:bg-white/5">
+                    <tr key={s.id} className="border-b border-[#38383f]/50 transition-colors hover:bg-[#2a2a35]">
                       <td className="px-4 py-2.5 text-white/60">{s.year}</td>
                       <td className="px-4 py-2.5 text-white/60">{CATEGORY_LABEL[s.category] ?? s.category}</td>
-                      <td className="px-4 py-2.5 text-right font-bold text-white">
+                      <td className="px-4 py-2.5 text-right font-black text-white">
                         {s.position != null ? `#${s.position}` : '—'}
                       </td>
-                      <td className="px-4 py-2.5 text-right font-black text-racing-red">{s.totalPoints}</td>
+                      <td className="px-4 py-2.5 text-right font-black text-[#e10600]">{s.totalPoints}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -396,17 +352,17 @@ export function PilotPortal() {
         {/* Past events */}
         {pastInscriptions.length > 0 && (
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
-              <Calendar className="h-3.5 w-3.5" /> Historial de eventos
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
+              <Calendar className="h-3.5 w-3.5 text-[#e10600]" /> Historial de eventos
             </h3>
-            <div className="space-y-2">
+            <div className="border border-[#38383f] divide-y divide-[#38383f]">
               {pastInscriptions.map((insc) => (
-                <div key={insc.id} className="rounded-lg border border-white/10 bg-white/5 p-3 flex items-center justify-between">
+                <div key={insc.id} className="bg-[#1f1f27] p-3 flex items-center justify-between hover:bg-[#2a2a35] transition-colors">
                   <div>
-                    <p className="text-sm font-medium">{insc.event.name}</p>
+                    <p className="text-sm font-bold text-white">{insc.event.name}</p>
                     <p className="text-xs text-white/40">{formatDate(insc.event.date)} · {CATEGORY_LABEL[insc.category] ?? insc.category}</p>
                   </div>
-                  <span className={`text-xs font-semibold ${STATUS_LABEL[insc.status]?.color ?? 'text-white/50'}`}>
+                  <span className={`text-xs font-bold uppercase tracking-wider ${STATUS_LABEL[insc.status]?.color ?? 'text-white/50'}`}>
                     {STATUS_LABEL[insc.status]?.label ?? insc.status}
                   </span>
                 </div>
@@ -416,7 +372,7 @@ export function PilotPortal() {
         )}
 
         {pilot.inscriptions.length === 0 && (
-          <div className="text-center py-12 text-white/30 text-sm">
+          <div className="text-center py-12 border border-dashed border-[#38383f] text-white/30 text-sm">
             No tienes inscripciones registradas.
           </div>
         )}

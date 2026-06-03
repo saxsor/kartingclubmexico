@@ -187,7 +187,7 @@ export function EventDetail() {
                 )}
                 {Number(event.foodFee) > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-white/50 uppercase tracking-wider">Alimentos</span>
+                    <span className="text-xs text-white/50 uppercase tracking-wider">Alimentos por persona</span>
                     <span className="font-black text-white">${Number(event.foodFee).toLocaleString('es-MX')}</span>
                   </div>
                 )}

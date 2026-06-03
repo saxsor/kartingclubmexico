@@ -11,7 +11,7 @@ import { prisma } from '../lib/prisma.js';
 export async function getDashboardAnalytics(_req: Request, res: Response): Promise<void> {
   const currentYear = new Date().getFullYear();
 
-  const [events, payments, inscriptions, standings, totalTeams, constructorStandings, teamResultRows, foodEvents, recentPilots] = await prisma.$transaction([
+  const [events, payments, inscriptions, standings, totalTeams, constructorStandings, teamResultRows, foodEvents, recentPilots, recentTeams] = await prisma.$transaction([
     // Last 10 events ordered by date descending
     prisma.event.findMany({
       orderBy: { date: 'desc' },
@@ -86,6 +86,14 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
       orderBy: { createdAt: 'desc' },
       take: 5,
       select: { id: true, name: true, alias: true, kartNumber: true, photoUrl: true, createdAt: true },
+    }),
+
+    // 5 most recently created teams
+    prisma.team.findMany({
+      where: { active: true },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: { id: true, name: true, slug: true, createdAt: true, _count: { select: { pilots: true } } },
     }),
   ]);
 
@@ -213,6 +221,7 @@ export async function getDashboardAnalytics(_req: Request, res: Response): Promi
     teamsPerEvent,
     foodByEvent,
     recentPilots,
+    recentTeams,
     year: currentYear,
   });
 }

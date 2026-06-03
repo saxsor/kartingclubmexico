@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { eventsApi } from '../../api/events.api';
 import { pilotsApi } from '../../api/pilots.api';
-import { analyticsApi, StandingEntry, ConstructorEntry, FoodByEvent, RecentPilot } from '../../api/analytics.api';
+import { analyticsApi, StandingEntry, ConstructorEntry, FoodByEvent, RecentPilot, RecentTeam } from '../../api/analytics.api';
 import { resolveMediaUrl } from '../../lib/utils';
 import { formatDate, CATEGORY_LABELS } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -528,45 +528,89 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Recent pilots */}
-      {(analytics?.recentPilots ?? []).length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Users className="h-4 w-4 text-blue-400" />
+      {/* Recent pilots + teams */}
+      {((analytics?.recentPilots ?? []).length > 0 || (analytics?.recentTeams ?? []).length > 0) && (
+        <div className="grid gap-6 lg:grid-cols-2">
+
+          {/* Recent pilots */}
+          {(analytics?.recentPilots ?? []).length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Users className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Nuevos pilotos</h2>
+                </div>
+                <Link to="/app/pilotos" className="text-xs text-[#e10600] hover:underline font-bold uppercase tracking-wider">Ver todos</Link>
               </div>
-              <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Nuevos pilotos</h2>
+              <div className="rounded-xl border border-white/10 overflow-hidden">
+                {analytics!.recentPilots.map((pilot: RecentPilot, i: number) => (
+                  <Link
+                    key={pilot.id}
+                    to={`/app/pilotos/${pilot.id}`}
+                    className={`flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors group ${i < analytics!.recentPilots.length - 1 ? 'border-b border-white/5' : ''}`}
+                  >
+                    <div className="h-9 w-9 rounded-full overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                      {pilot.photoUrl
+                        ? <img src={resolveMediaUrl(pilot.photoUrl) ?? ''} alt={pilot.name} className="h-full w-full object-cover" />
+                        : <Users className="h-4 w-4 text-white/20" />
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-white text-sm truncate group-hover:text-[#e10600] transition-colors">
+                        {pilot.name}
+                        {pilot.alias && <span className="text-white/40 font-normal ml-1.5 text-xs">"{pilot.alias}"</span>}
+                      </p>
+                      <p className="text-xs text-white/30">
+                        {pilot.kartNumber ? `#${pilot.kartNumber} · ` : ''}
+                        {new Date(pilot.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full flex-shrink-0">Nuevo</span>
+                  </Link>
+                ))}
+              </div>
             </div>
-            <Link to="/app/pilotos" className="text-xs text-[#e10600] hover:underline font-bold uppercase tracking-wider">Ver todos</Link>
-          </div>
-          <div className="rounded-xl border border-white/10 overflow-hidden">
-            {(analytics!.recentPilots).map((pilot: RecentPilot, i: number) => (
-              <Link
-                key={pilot.id}
-                to={`/app/pilotos/${pilot.id}`}
-                className={`flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors group ${i < (analytics!.recentPilots.length - 1) ? 'border-b border-white/5' : ''}`}
-              >
-                <div className="h-9 w-9 rounded-full overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                  {pilot.photoUrl
-                    ? <img src={resolveMediaUrl(pilot.photoUrl) ?? ''} alt={pilot.name} className="h-full w-full object-cover" />
-                    : <Users className="h-4 w-4 text-white/20" />
-                  }
+          )}
+
+          {/* Recent teams */}
+          {(analytics?.recentTeams ?? []).length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <ShieldCheck className="h-4 w-4 text-purple-400" />
+                  </div>
+                  <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Nuevos equipos</h2>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-white text-sm truncate group-hover:text-[#e10600] transition-colors">
-                    {pilot.name}
-                    {pilot.alias && <span className="text-white/40 font-normal ml-1.5 text-xs">"{pilot.alias}"</span>}
-                  </p>
-                  <p className="text-xs text-white/30">
-                    {pilot.kartNumber ? `#${pilot.kartNumber} · ` : ''}
-                    {new Date(pilot.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })}
-                  </p>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">Nuevo</span>
-              </Link>
-            ))}
-          </div>
+                <Link to="/app/equipos" className="text-xs text-[#e10600] hover:underline font-bold uppercase tracking-wider">Ver todos</Link>
+              </div>
+              <div className="rounded-xl border border-white/10 overflow-hidden">
+                {analytics!.recentTeams.map((team: RecentTeam, i: number) => (
+                  <Link
+                    key={team.id}
+                    to="/app/equipos"
+                    className={`flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors group ${i < analytics!.recentTeams.length - 1 ? 'border-b border-white/5' : ''}`}
+                  >
+                    <div className="h-9 w-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
+                      <ShieldCheck className="h-4 w-4 text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-white text-sm truncate group-hover:text-[#e10600] transition-colors">
+                        {team.name}
+                      </p>
+                      <p className="text-xs text-white/30">
+                        {team._count.pilots} piloto{team._count.pilots !== 1 ? 's' : ''} · {new Date(team.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full flex-shrink-0">Nuevo</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
       )}
 

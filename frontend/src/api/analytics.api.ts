@@ -58,6 +58,14 @@ export interface RecentPilot {
   createdAt: string;
 }
 
+export interface RecentTeam {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  _count: { pilots: number };
+}
+
 export interface DashboardAnalytics {
   revenueByEvent: RevenueByEvent[];
   participationByEvent: ParticipationByEvent[];
@@ -68,6 +76,7 @@ export interface DashboardAnalytics {
   teamsPerEvent: TeamsPerEvent[];
   foodByEvent: FoodByEvent[];
   recentPilots: RecentPilot[];
+  recentTeams: RecentTeam[];
   year: number;
 }
 

@@ -54,7 +54,13 @@ export async function selfRegisterPilot(req: Request, res: Response): Promise<vo
       expiresAt: new Date(Date.now() + MAGIC_LINK_TTL_MS),
     },
   });
-  await sendPilotMagicLinkEmail(email, name, rawToken);
+  try {
+    await sendPilotMagicLinkEmail(email, name, rawToken);
+  } catch (err) {
+    console.error('[pilot-portal] email send failed:', err);
+    res.status(503).json({ error: 'Tu cuenta fue creada pero no fue posible enviar el correo. Contacta al organizador.' });
+    return;
+  }
 
   res.status(201).json({ message: 'Piloto registrado. Revisa tu correo para acceder a tu perfil.' });
 }
@@ -86,7 +92,13 @@ export async function requestMagicLink(req: Request, res: Response): Promise<voi
     },
   });
 
-  await sendPilotMagicLinkEmail(pilot.email, pilot.name, rawToken);
+  try {
+    await sendPilotMagicLinkEmail(pilot.email, pilot.name, rawToken);
+  } catch (err) {
+    console.error('[pilot-portal] email send failed:', err);
+    res.status(503).json({ error: 'No fue posible enviar el correo. Por favor contacta al organizador.' });
+    return;
+  }
 
   res.json({ message: 'Si el correo está registrado, recibirás un enlace de acceso.' });
 }

@@ -214,7 +214,7 @@ export function ChampionshipDetail() {
                     className="w-full flex items-center justify-between px-3 py-2 text-left text-sm border border-[#38383f] hover:bg-[#2a2a35] text-white transition-colors disabled:opacity-50"
                   >
                     <span>{e.name}</span>
-                    <span className="text-xs text-white/40">{new Date(e.date).toLocaleDateString('es-MX')} · {e.status}</span>
+                    <span className="text-xs text-white/40">{new Date(e.date).toLocaleDateString('es-MX', { timeZone: 'UTC' })} · {e.status}</span>
                   </button>
                 ))}
               </div>
@@ -238,7 +238,7 @@ export function ChampionshipDetail() {
               <div key={e.id} className="flex items-center justify-between bg-[#1f1f27] border border-[#38383f] px-4 py-2.5">
                 <div>
                   <p className="text-sm text-white font-medium">{e.name}</p>
-                  <p className="text-xs text-white/40">{new Date(e.date).toLocaleDateString('es-MX')} · {e.status}</p>
+                  <p className="text-xs text-white/40">{new Date(e.date).toLocaleDateString('es-MX', { timeZone: 'UTC' })} · {e.status}</p>
                 </div>
                 <button
                   onClick={() => {

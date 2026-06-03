@@ -41,7 +41,7 @@ export function EventDetail() {
     <div className="pb-24 md:pb-10">
       <SEO
         title={event.name}
-        description={event.description ?? `Evento de karting el ${new Date(event.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}${event.track ? ` en ${event.track}` : ''}.`}
+        description={event.description ?? `Evento de karting el ${new Date(event.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}${event.track ? ` en ${event.track}` : ''}.`}
         image={event.posterUrl ? resolveMediaUrl(event.posterUrl) ?? undefined : undefined}
         url={`/eventos/${slug}`}
         type="article"

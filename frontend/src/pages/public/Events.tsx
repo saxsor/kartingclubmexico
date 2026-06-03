@@ -84,10 +84,10 @@ export function Events() {
                   {/* Date Block */}
                   <div className="hidden sm:flex flex-col items-center justify-center w-24 py-6 bg-[#1a1a21] border-r border-[#38383f] group-hover:bg-[#e10600]/10 transition-colors">
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/30">
-                      {new Date(event.date).toLocaleDateString('es-MX', { month: 'short' })}
+                      {new Date(event.date).toLocaleDateString('es-MX', { month: 'short', timeZone: 'UTC' })}
                     </span>
                     <span className="text-3xl font-black text-white italic" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                      {new Date(event.date).getDate().toString().padStart(2, '0')}
+                      {new Date(event.date).getUTCDate().toString().padStart(2, '0')}
                     </span>
                   </div>
 

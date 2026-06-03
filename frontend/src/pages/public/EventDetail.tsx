@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight, MapPin, Users, Camera, Info } from 'lucide-react';
+import { Calendar, Grid, Flag, BarChart2, ClipboardList, ChevronRight, MapPin, Users, Camera, Info, Clock, DollarSign, CheckCircle } from 'lucide-react';
+import { CATEGORY_LABELS } from '../../lib/utils';
 import { SEO } from '../../components/shared/SEO';
 import { eventsApi } from '../../api/events.api';
 import { photosApi } from '../../api/photos.api';
@@ -100,35 +101,13 @@ export function EventDetail() {
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Info Column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Description Card */}
-          <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 shadow-xl">
-            <div className="border-b border-[#38383f] bg-[#1a1a21] px-6 py-4 flex items-center gap-3">
-              <Info className="h-4 w-4 text-[#e10600]" />
-              <h2 className="text-lg font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Información del Evento</h2>
-            </div>
-            <div className="p-6">
-              {event.description ? (
-                <p className="text-white/60 leading-relaxed font-sans">{event.description}</p>
-              ) : (
-                <p className="text-white/20 italic text-sm">No hay descripción adicional para este evento.</p>
-              )}
-              
-              <div className="mt-6 flex flex-wrap gap-2">
-                {event.eventCategories.filter(c => c.active).map(c => (
-                  <span key={c.id} className="bg-white/5 text-white/40 border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded">
-                    {c.category.replace(/_/g, ' ')}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className="lg:col-span-2 space-y-5">
 
           {/* In progress notice */}
           {event.status === 'IN_PROGRESS' && (
-            <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-6 flex items-center gap-4 text-yellow-400">
-              <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
-                <Flag className="h-6 w-6" />
+            <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-5 flex items-center gap-4 text-yellow-400">
+              <div className="h-10 w-10 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
+                <Flag className="h-5 w-5" />
               </div>
               <div>
                 <p className="font-black uppercase text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Evento en Curso</p>
@@ -136,6 +115,145 @@ export function EventDetail() {
               </div>
             </div>
           )}
+
+          {/* Google Maps */}
+          {(event as any).address && (
+            <div className="overflow-hidden rounded-lg border border-[#38383f]">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-[#e10600]" />
+                  <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Ubicación</h2>
+                </div>
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent((event as any).address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-bold uppercase tracking-widest text-[#e10600] hover:text-white transition-colors"
+                >
+                  Abrir en Maps ↗
+                </a>
+              </div>
+              <iframe
+                title="Ubicación del evento"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent((event as any).address)}&output=embed`}
+                width="100%"
+                height="220"
+                style={{ border: 0, display: 'block' }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <div className="bg-[#1a1a21] px-5 py-3">
+                <p className="text-xs text-white/50">{(event as any).address}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Schedule */}
+          {(event as any).schedule && (
+            <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#e10600]" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Horarios del Día</h2>
+              </div>
+              <div className="divide-y divide-[#38383f]/50">
+                {(event as any).schedule.split('\n').filter(Boolean).map((line: string, i: number) => {
+                  const [time, ...rest] = line.split('—');
+                  const desc = rest.join('—').trim();
+                  return (
+                    <div key={i} className="flex items-center gap-4 px-5 py-3">
+                      <span className="text-[#e10600] font-black text-sm font-mono w-16 flex-shrink-0">{time.trim()}</span>
+                      <span className="text-white/70 text-sm">{desc || time.trim()}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Costs + Categories grid */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Costs */}
+            <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-[#e10600]" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Costos</h2>
+              </div>
+              <div className="p-4 space-y-2">
+                {Number(event.serviceFee) > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-white/50 uppercase tracking-wider">Inscripción</span>
+                    <span className="font-black text-white">${Number(event.serviceFee).toLocaleString('es-MX')}</span>
+                  </div>
+                )}
+                {Number(event.foodFee) > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-white/50 uppercase tracking-wider">Alimentos</span>
+                    <span className="font-black text-white">${Number(event.foodFee).toLocaleString('es-MX')}</span>
+                  </div>
+                )}
+                {Number(event.serviceFee) > 0 && Number(event.foodFee) > 0 && (
+                  <div className="flex justify-between items-center border-t border-[#38383f] pt-2 mt-2">
+                    <span className="text-xs text-white/50 uppercase tracking-wider">Total</span>
+                    <span className="font-black text-[#e10600] text-lg">${(Number(event.serviceFee) + Number(event.foodFee)).toLocaleString('es-MX')}</span>
+                  </div>
+                )}
+                {Number(event.serviceFee) === 0 && Number(event.foodFee) === 0 && (
+                  <p className="text-xs text-white/30 italic">Costos no publicados aún.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Categories + counts */}
+            <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
+                <Users className="h-4 w-4 text-[#e10600]" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Categorías</h2>
+              </div>
+              <div className="p-4 space-y-2">
+                {event.eventCategories.filter(c => c.active).map(c => {
+                  const count = ((event as any).inscriptions ?? []).filter((i: any) => i.category === c.category).length;
+                  return (
+                    <div key={c.id} className="flex justify-between items-center">
+                      <span className="text-xs text-white/70 font-bold uppercase tracking-wider">{CATEGORY_LABELS[c.category] ?? c.category}</span>
+                      {count > 0 && <span className="text-xs font-black text-[#e10600]">{count} piloto{count !== 1 ? 's' : ''}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Conditions */}
+          {(event as any).conditions && (
+            <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-[#e10600]" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Condiciones del Evento</h2>
+              </div>
+              <div className="p-4 flex flex-wrap gap-2">
+                {(event as any).conditions.split('•').map((c: string) => c.trim()).filter(Boolean).map((cond: string, i: number) => (
+                  <span key={i} className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/70">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#e10600] flex-shrink-0" />
+                    {cond}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Description */}
+          {event.description && (
+            <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
+                <Info className="h-4 w-4 text-[#e10600]" />
+                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Información del Evento</h2>
+              </div>
+              <div className="p-5">
+                <p className="text-white/60 leading-relaxed text-sm whitespace-pre-wrap">{event.description}</p>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Actions Column */}

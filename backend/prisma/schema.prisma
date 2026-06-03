@@ -191,6 +191,9 @@ model Event {
   diplomaTextColor   String      @default("#111111")
   diplomaTextAlign   String      @default("center")
   track              String?
+  address            String?
+  schedule           String?
+  conditions         String?
   championshipId     String?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt

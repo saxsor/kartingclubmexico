@@ -63,7 +63,7 @@ export async function listEvents(req: Request, res: Response): Promise<void> {
 }
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, categories, championshipId, diplomaNameX, diplomaNameY, diplomaNameWidth, diplomaNameHeight, diplomaFontSize, diplomaTextColor, diplomaTextAlign } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, address, schedule, conditions, categories, championshipId, diplomaNameX, diplomaNameY, diplomaNameWidth, diplomaNameHeight, diplomaFontSize, diplomaTextColor, diplomaTextAlign } = req.body;
 
   const baseSlug = slugify(name, { lower: true, strict: true });
   let slug = baseSlug;
@@ -92,6 +92,9 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
       diplomaTextColor: diplomaTextColor ?? '#111111',
       diplomaTextAlign: diplomaTextAlign ?? 'center',
       track: track ?? null,
+      address: address ?? null,
+      schedule: schedule ?? null,
+      conditions: conditions ?? null,
       championshipId: championshipId ?? null,
       eventCategories: {
         create: (categories as Category[] ?? []).map((c) => ({ category: c })),
@@ -105,14 +108,18 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
 export async function getEvent(req: Request, res: Response): Promise<void> {
   const event = await prisma.event.findUnique({
     where: { slug: req.params.slug },
-    include: { eventCategories: true, championship: { select: { id: true, name: true } } },
+    include: {
+      eventCategories: true,
+      championship: { select: { id: true, name: true } },
+      inscriptions: { select: { category: true, status: true } },
+    },
   });
   if (!event) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
   res.json(event);
 }
 
 export async function updateEvent(req: Request, res: Response): Promise<void> {
-  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, championshipId, diplomaNameX, diplomaNameY, diplomaNameWidth, diplomaNameHeight, diplomaFontSize, diplomaTextColor, diplomaTextAlign } = req.body;
+  const { name, date, description, year, serviceFee, foodFee, staffCount, blockCheckInOnDebt, transferInfo, track, address, schedule, conditions, championshipId, diplomaNameX, diplomaNameY, diplomaNameWidth, diplomaNameHeight, diplomaFontSize, diplomaTextColor, diplomaTextAlign } = req.body;
   const existing = await prisma.event.findUnique({ where: { slug: req.params.slug } });
   if (!existing) { res.status(404).json({ error: 'Evento no encontrado' }); return; }
 
@@ -138,6 +145,9 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
       ...(blockCheckInOnDebt !== undefined && { blockCheckInOnDebt }),
       ...(transferInfo !== undefined && { transferInfo }),
       ...(track !== undefined && { track: track || null }),
+      ...(address !== undefined && { address: address || null }),
+      ...(schedule !== undefined && { schedule: schedule || null }),
+      ...(conditions !== undefined && { conditions: conditions || null }),
       ...('championshipId' in req.body && { championshipId: championshipId || null }),
       ...(diplomaNameX !== undefined && { diplomaNameX }),
       ...(diplomaNameY !== undefined && { diplomaNameY }),

@@ -21,6 +21,9 @@ export function EventForm() {
     date: '',
     description: '',
     track: '',
+    address: '',
+    schedule: '',
+    conditions: 'Llanta libre • Motor libre • Chasis libre • Peso libre',
     serviceFee: '0',
     foodFee: '0',
     blockCheckInOnDebt: false,
@@ -80,6 +83,9 @@ export function EventForm() {
       date: event.date.substring(0, 10),
       description: event.description ?? '',
       track: event.track ?? '',
+      address: (event as any).address ?? '',
+      schedule: (event as any).schedule ?? '',
+      conditions: (event as any).conditions ?? 'Llanta libre • Motor libre • Chasis libre • Peso libre',
       serviceFee: event.serviceFee,
       foodFee: event.foodFee,
       blockCheckInOnDebt: event.blockCheckInOnDebt,
@@ -231,6 +237,9 @@ export function EventForm() {
         date: form.date,
         description: form.description || undefined,
         track: form.track || undefined,
+        address: form.address || undefined,
+        schedule: form.schedule || undefined,
+        conditions: form.conditions || undefined,
         serviceFee: parseFloat(form.serviceFee),
         foodFee: parseFloat(form.foodFee),
         blockCheckInOnDebt: form.blockCheckInOnDebt,
@@ -671,6 +680,42 @@ export function EventForm() {
             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
           />
           <p className="mt-1 text-xs text-white/40">Se mostrará en los banners debajo de la fecha.</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Dirección / Ubicación</label>
+          <input
+            type="text"
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+            placeholder="Av. Circuito 123, Col. Karting, Guadalajara, Jalisco"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-white/40">Se mostrará con mapa interactivo en la página del evento.</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Horarios del día</label>
+          <textarea
+            value={form.schedule}
+            onChange={(e) => setForm({ ...form, schedule: e.target.value })}
+            rows={5}
+            placeholder={'8:00 — Apertura de puertas\n9:00 — Registro y pesaje\n10:00 — Calentamiento libre\n11:00 — Inicio de carreras\n16:00 — Premiación'}
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none resize-none font-mono"
+          />
+          <p className="mt-1 text-xs text-white/40">Una línea por hora. Formato: 9:00 — Descripción</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">Condiciones del evento</label>
+          <input
+            type="text"
+            value={form.conditions}
+            onChange={(e) => setForm({ ...form, conditions: e.target.value })}
+            placeholder="Llanta libre • Motor libre • Chasis libre • Peso libre"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-racing-red focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-white/40">Separa con • para mostrar como etiquetas individuales.</p>
         </div>
 
         <div>

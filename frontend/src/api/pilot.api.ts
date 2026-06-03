@@ -48,7 +48,14 @@ export interface PilotStanding {
 
 export const pilotApi = {
   selfRegister: (data: { name: string; alias?: string; email: string; phone?: string }) =>
-    api.post<{ message: string }>('/pilot/self-register', data),
+    api.post<{ message: string; pilotId: string }>('/pilot/self-register', data),
+
+  uploadRegistrationPhoto: (pilotId: string, file: File) => {
+    const fd = new FormData();
+    fd.append('photo', file);
+    return fetch(`/api/pilot/registration-photo/${pilotId}`, { method: 'POST', body: fd })
+      .then((r) => { if (!r.ok) throw new Error('Error al subir foto'); return r.json(); });
+  },
 
   requestAccess: (email: string) =>
     api.post<{ message: string }>('/pilot/request-access', { email }),

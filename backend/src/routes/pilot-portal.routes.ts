@@ -11,6 +11,8 @@ import {
   updateMyPhoto,
   uploadMyPhotoMiddleware,
   updateMyInscription,
+  uploadRegistrationPhoto,
+  registrationPhotoMiddleware,
 } from '../controllers/pilot-portal.controller.js';
 
 const router = Router();
@@ -37,6 +39,7 @@ const updateInscriptionSchema = z.object({
 
 // Public — no auth required
 router.post('/self-register', validate(selfRegisterSchema), selfRegisterPilot);
+router.post('/registration-photo/:pilotId', registrationPhotoMiddleware, uploadRegistrationPhoto);
 router.post('/request-access', validate(requestSchema), requestMagicLink);
 router.post('/verify-access', validate(verifySchema), verifyMagicLink);
 

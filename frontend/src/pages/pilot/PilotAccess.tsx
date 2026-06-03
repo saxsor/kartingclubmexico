@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { pilotApi } from '../../api/pilot.api';
 import { pilotsApi, Pilot } from '../../api/pilots.api';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useRouteScrollTop } from '../../hooks/useRouteScrollTop';
-import { Mail, Flag, Search, UserCheck, UserPlus, ChevronRight } from 'lucide-react';
+import { Mail, Flag, Search, UserCheck, UserPlus, ChevronRight, Camera, User } from 'lucide-react';
 import { InlineLoadingState } from '../../components/shared/LoadingSkeleton';
 
 type Step = 'search' | 'login' | 'register' | 'sent';
@@ -27,6 +27,9 @@ export function PilotAccess() {
   // Register state
   const [form, setForm] = useState({ name: '', alias: '', email: '', phone: '' });
   const [registerError, setRegisterError] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const pilotSearchQuery = useQuery({
     queryKey: ['pilots', 'search', debouncedSearch],
@@ -36,7 +39,16 @@ export function PilotAccess() {
 
   const registerMutation = useMutation({
     mutationFn: pilotApi.selfRegister,
-    onSuccess: () => setStep('sent'),
+    onSuccess: async (data) => {
+      if (photoFile && data.pilotId) {
+        try {
+          await pilotApi.uploadRegistrationPhoto(data.pilotId, photoFile);
+        } catch {
+          // Photo upload failure is non-blocking — registration already succeeded
+        }
+      }
+      setStep('sent');
+    },
     onError: (err: Error) => setRegisterError(err.message),
   });
 
@@ -207,6 +219,49 @@ export function PilotAccess() {
                 <p className="text-xs text-white/40 mt-0.5">Crea tu perfil en Karting Club México</p>
               </div>
             <form onSubmit={handleRegister} className="space-y-3">
+              {/* Photo picker */}
+              <div className="flex items-center gap-4 pb-1">
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  className="relative group flex-shrink-0"
+                >
+                  <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-white/10 bg-white/5 flex items-center justify-center">
+                    {photoPreview
+                      ? <img src={photoPreview} alt="preview" className="h-full w-full object-cover" />
+                      : <User className="h-7 w-7 text-white/20" />
+                    }
+                  </div>
+                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Camera className="h-5 w-5 text-white" />
+                  </div>
+                </button>
+                <div>
+                  <p className="text-xs font-bold text-white/60 uppercase tracking-wider">Foto de perfil</p>
+                  <p className="text-xs text-white/30 mt-0.5">Opcional — puedes agregarla después</p>
+                  {photoFile && (
+                    <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                      className="text-[10px] text-red-400/60 hover:text-red-400 mt-1 transition-colors">
+                      Quitar foto
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setPhotoFile(file);
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </div>
+
               {[
                 { key: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', required: true },
                 { key: 'alias', label: 'Alias / Apodo', type: 'text', placeholder: 'El Chapo, La Cobra...', required: false, optional: true },

@@ -62,7 +62,7 @@ export async function selfRegisterPilot(req: Request, res: Response): Promise<vo
     return;
   }
 
-  res.status(201).json({ message: 'Piloto registrado. Revisa tu correo para acceder a tu perfil.' });
+  res.status(201).json({ message: 'Piloto registrado. Revisa tu correo para acceder a tu perfil.', pilotId: pilot.id });
 }
 
 // POST /api/pilot/request-access
@@ -235,6 +235,33 @@ export async function updateMyPhoto(req: Request, res: Response): Promise<void> 
   const photoUrl = await uploadToDrive('pilots', req.file.buffer, req.file.originalname, req.file.mimetype, true);
   const pilot = await prisma.pilot.update({ where: { id: pilotId }, data: { photoUrl } });
   res.json(pilot);
+}
+
+// POST /api/pilot/registration-photo/:pilotId — public, only for pilots created in the last 30 min
+export const registrationPhotoMiddleware = uploadPilotPhoto.single('photo');
+
+export async function uploadRegistrationPhoto(req: Request, res: Response): Promise<void> {
+  if (!req.file) { res.status(400).json({ error: 'No se recibió ninguna imagen.' }); return; }
+
+  const pilot = await prisma.pilot.findUnique({
+    where: { id: req.params.pilotId },
+    select: { id: true, photoUrl: true, createdAt: true },
+  });
+  if (!pilot) { res.status(404).json({ error: 'Piloto no encontrado.' }); return; }
+
+  const minutesSinceCreation = (Date.now() - pilot.createdAt.getTime()) / 60000;
+  if (minutesSinceCreation > 30) {
+    res.status(403).json({ error: 'Este enlace de foto ya expiró. Accede a tu perfil con el magic link para subir tu foto.' });
+    return;
+  }
+
+  if (pilot.photoUrl && isDriveValue(pilot.photoUrl)) {
+    await deleteFromDrive(pilot.photoUrl);
+  }
+
+  const photoUrl = await uploadToDrive('pilots', req.file.buffer, req.file.originalname, req.file.mimetype, true);
+  await prisma.pilot.update({ where: { id: pilot.id }, data: { photoUrl } });
+  res.json({ ok: true });
 }
 
 // PUT /api/pilot/inscriptions/:id

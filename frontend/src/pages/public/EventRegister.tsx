@@ -128,8 +128,8 @@ export function EventRegister() {
             ...teamPayload,
           };
       const result = await selfRegisterMutation.mutateAsync(payload);
-      // Upload photo for new pilots (non-blocking)
-      if (!selectedPilot && photoFile && result.inscription.pilotId) {
+      // Upload photo (non-blocking) — works for both new and existing pilots
+      if (photoFile && result.inscription.pilotId) {
         pilotApi.uploadRegistrationPhoto(result.inscription.pilotId, photoFile).catch(() => {});
       }
       setRegisterResult(result);
@@ -307,20 +307,57 @@ export function EventRegister() {
       {/* Step 2: Form */}
       {step === 'form' && (
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Selected pilot banner */}
+          {/* Selected pilot banner + photo */}
           {selectedPilot && (
-            <div className="flex items-center justify-between border border-green-500/30 bg-green-500/10 px-4 py-3">
-              <div>
-                <p className="text-sm font-bold text-green-400">{selectedPilot.name}</p>
-                {selectedPilot.alias && <p className="text-xs text-green-400/60">"{selectedPilot.alias}"</p>}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border border-green-500/30 bg-green-500/10 px-4 py-3">
+                <div>
+                  <p className="text-sm font-bold text-green-400">{selectedPilot.name}</p>
+                  {selectedPilot.alias && <p className="text-xs text-green-400/60">"{selectedPilot.alias}"</p>}
+                </div>
+                <button type="button" onClick={() => { setSelectedPilot(null); setStep('search'); }}
+                  className="text-green-400/50 hover:text-green-400 transition-colors text-xs uppercase tracking-wide">
+                  Cambiar
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => { setSelectedPilot(null); setStep('search'); }}
-                className="text-green-400/50 hover:text-green-400 transition-colors text-xs uppercase tracking-wide"
-              >
-                Cambiar
-              </button>
+              {/* Photo picker for existing pilot */}
+              <div className="flex items-center gap-4">
+                <button type="button" onClick={() => photoInputRef.current?.click()} className="relative group flex-shrink-0">
+                  <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-white/10 bg-[#1f1f27] flex items-center justify-center">
+                    {photoPreview
+                      ? <img src={photoPreview} alt="preview" className="h-full w-full object-cover" />
+                      : (selectedPilot as any).photoUrl
+                        ? <img src={(selectedPilot as any).photoUrl} alt={selectedPilot.name} className="h-full w-full object-cover" />
+                        : <User className="h-7 w-7 text-white/20" />
+                    }
+                  </div>
+                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Camera className="h-5 w-5 text-white" />
+                  </div>
+                </button>
+                <div>
+                  <p className="text-xs font-bold text-white/60 uppercase tracking-wider">Foto de perfil</p>
+                  <p className="text-xs text-white/30 mt-0.5">
+                    {photoFile ? 'Nueva foto seleccionada' : 'Opcional — toca para cambiar'}
+                  </p>
+                  {photoFile && (
+                    <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                      className="text-[10px] text-red-400/60 hover:text-red-400 mt-1 transition-colors">
+                      Quitar foto
+                    </button>
+                  )}
+                </div>
+                <input ref={photoInputRef} type="file" accept="image/*" className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setPhotoFile(file);
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </div>
             </div>
           )}
 

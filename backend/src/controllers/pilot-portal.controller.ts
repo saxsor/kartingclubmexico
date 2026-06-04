@@ -245,15 +245,9 @@ export async function uploadRegistrationPhoto(req: Request, res: Response): Prom
 
   const pilot = await prisma.pilot.findUnique({
     where: { id: req.params.pilotId },
-    select: { id: true, photoUrl: true, createdAt: true },
+    select: { id: true, photoUrl: true },
   });
   if (!pilot) { res.status(404).json({ error: 'Piloto no encontrado.' }); return; }
-
-  const minutesSinceCreation = (Date.now() - pilot.createdAt.getTime()) / 60000;
-  if (minutesSinceCreation > 30) {
-    res.status(403).json({ error: 'Este enlace de foto ya expiró. Accede a tu perfil con el magic link para subir tu foto.' });
-    return;
-  }
 
   if (pilot.photoUrl && isDriveValue(pilot.photoUrl)) {
     await deleteFromDrive(pilot.photoUrl);

@@ -6,6 +6,7 @@ import { formatDate, resolveMediaUrl } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
+import { PartnerBelt } from '../../components/shared/PartnerBelt';
 
 const pillars = [
   {
@@ -27,49 +28,6 @@ const pillars = [
     icon: ShieldCheck,
     title: 'Gestión Operativa',
     description: 'Inscripciones, pagos y portal de piloto resueltos en un ecosistema integrado y seguro.',
-  },
-];
-
-const partnerLogos = [
-  {
-    name: 'Edel Racing',
-    label: 'Development Partner',
-    logo: '/partners/edel-logo.png',
-    tone: 'gold',
-    href: '',
-  },
-  {
-    name: 'Eileen',
-    label: 'Racing Family',
-    logo: '/partners/logo_eileen.webp',
-    tone: 'light',
-    logoClassName: 'max-h-16 max-w-[205px]',
-    href: '',
-  },
-  {
-    name: 'Velora Labs',
-    label: 'Technology Partner',
-    logo: '/partners/velora_logo_grande.png',
-    tone: 'light',
-    href: '',
-  },
-  {
-    name: 'De 0 a mi Primer Carrera',
-    label: 'Racing Partner',
-    logo: '/partners/de0_carrera_logo_blanco.webp',
-    tone: 'light',
-    logoClassName: 'max-h-16 max-w-[210px]',
-    href: '',
-  },
-  {
-    name: 'Próximamente',
-    label: 'Partner Slot',
-    tone: 'muted',
-  },
-  {
-    name: 'Próximamente',
-    label: 'Sponsor Slot',
-    tone: 'muted',
   },
 ];
 
@@ -278,66 +236,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* --- PARTNER BELT --- */}
-      <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden border-y border-[#f5c400]/15 bg-[#101016] py-5">
-        <div className="absolute inset-0 racing-stripe opacity-10 pointer-events-none" />
-        <div className="relative mx-auto flex max-w-7xl flex-col gap-3 px-4 sm:flex-row sm:items-center sm:gap-5 sm:px-6 lg:px-8">
-          <div className="shrink-0 border-b border-white/10 pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#f5c400]">Aliados</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Powered by racing</p>
-          </div>
-
-          <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-            <div className="sponsor-marquee flex w-max items-center gap-4">
-              {[...partnerLogos, ...partnerLogos, ...partnerLogos].map((partner, index) => {
-                const content = partner.logo ? (
-                  <img
-                    src={partner.logo}
-                    alt={partner.name}
-                    className={[
-                      'max-h-14 max-w-[185px] object-contain opacity-95 transition-opacity duration-300 hover:opacity-100',
-                      partner.logoClassName ?? '',
-                    ].join(' ')}
-                  />
-                ) : (
-                  <div>
-                    <p
-                      className={[
-                        'whitespace-nowrap text-2xl font-black uppercase italic leading-none tracking-tight',
-                        partner.tone === 'gold' ? 'text-[#f5c400]' : partner.tone === 'light' ? 'text-white' : 'text-white/28',
-                      ].join(' ')}
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
-                    >
-                      {partner.name}
-                    </p>
-                    <p className="mt-1 whitespace-nowrap text-[8px] font-black uppercase tracking-[0.2em] text-white/28">
-                      {partner.label}
-                    </p>
-                  </div>
-                );
-                const className = 'flex h-20 w-60 shrink-0 items-center justify-center border border-white/10 bg-black/35 px-5 text-center shadow-[0_0_18px_rgba(0,0,0,0.18)] transition-colors hover:border-[#f5c400]/30';
-
-                return partner.href ? (
-                  <a
-                    key={`${partner.name}-${partner.label}-${index}`}
-                    href={partner.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`Abrir ${partner.name}`}
-                    className={className}
-                  >
-                    {content}
-                  </a>
-                ) : (
-                  <div key={`${partner.name}-${partner.label}-${index}`} className={className}>
-                    {content}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
+      <PartnerBelt variant="marquee" />
 
       {/* --- PILLARS --- */}
       <section className="max-w-7xl mx-auto px-4">

@@ -6,6 +6,7 @@ import { CATEGORY_LABELS, resolveMediaUrl } from '../../lib/utils';
 import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 import { useState } from 'react';
+import { PartnerBelt } from '../../components/shared/PartnerBelt';
 
 const ALL_CATEGORY_ORDER = ['SHIFTER', 'DOS_TIEMPOS', 'FORMULA_MUNDIAL', 'NUEVE_HP', 'ROOKIES', 'MINIS'];
 
@@ -226,6 +227,8 @@ export function EventPilots() {
           )}
         </div>
       )}
+
+      <PartnerBelt variant="compact" className="mt-10" />
     </div>
   );
 }

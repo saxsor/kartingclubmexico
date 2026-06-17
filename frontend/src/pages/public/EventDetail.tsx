@@ -9,6 +9,7 @@ import { formatDate, resolveMediaUrl, cn } from '../../lib/utils';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { queryKeys } from '../../lib/react-query';
 import { HeroLoadingState } from '../../components/shared/LoadingSkeleton';
+import { PartnerBelt } from '../../components/shared/PartnerBelt';
 
 export function EventDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -291,6 +292,8 @@ export function EventDetail() {
 
         </div>
       </div>
+
+      <PartnerBelt variant="compact" className="mt-10" />
 
       {/* Sticky Mobile CTA */}
       {event.status === 'OPEN' && (

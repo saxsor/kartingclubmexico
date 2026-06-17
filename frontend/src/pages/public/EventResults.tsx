@@ -12,6 +12,7 @@ import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 import { toast } from '../../store/toast.store';
 import { SocialStandingsExport } from '../../components/shared/SocialStandingsExport';
+import { PartnerBelt } from '../../components/shared/PartnerBelt';
 
 export function EventResults() {
   const { slug } = useParams<{ slug: string }>();
@@ -187,6 +188,8 @@ export function EventResults() {
           Selecciona una categoría para ver los resultados.
         </div>
       )}
+
+      <PartnerBelt variant="compact" className="mt-10" />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { Category } from '../../api/events.api';
 import { InlineLoadingState, PageLoadingState } from '../../components/shared/LoadingSkeleton';
 import { SocialStandingsExport } from '../../components/shared/SocialStandingsExport';
 import { EmptyState } from '../../components/shared/EmptyState';
+import { PartnerBelt } from '../../components/shared/PartnerBelt';
 
 type ViewMode = 'pilots' | 'constructors';
 
@@ -94,6 +95,7 @@ export function Championship() {
           ))}
         </div>
       )}
+      <PartnerBelt variant="compact" className="mt-10" />
     </div>
   );
 }
@@ -309,10 +311,11 @@ export function ChampionshipDetailPublic() {
           <div className="text-center py-16 text-white/40 text-sm uppercase tracking-widest">
             No hay equipos con puntos en esta categoría
           </div>
-        ) : (
-          <ConstructorPublicTable standings={constructorStandings} />
-        )
+      ) : (
+        <ConstructorPublicTable standings={constructorStandings} />
+      )
       )}
+      <PartnerBelt variant="compact" className="mt-10" />
     </div>
   );
 }

@@ -37,6 +37,7 @@ export function EventDetail() {
     { label: 'Starting Grid', to: `/eventos/${slug}/parrilla`, icon: Grid, show: event.status !== 'DRAFT', highlight: false },
     { label: 'Resultados Finales', to: `/eventos/${slug}/resultados`, icon: BarChart2, show: event.status === 'FINISHED' || event.status === 'IN_PROGRESS', highlight: false },
   ].filter((a) => a.show);
+  const totalRegisteredPilots = event.inscriptions?.length ?? 0;
 
   return (
     <div className="pb-24 md:pb-10">
@@ -151,9 +152,14 @@ export function EventDetail() {
 
             {/* Categories + counts */}
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
-              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
-                <Users className="h-4 w-4 text-[#f5c400]" />
-                <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Categorías</h2>
+              <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-[#f5c400]" />
+                  <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Categorías</h2>
+                </div>
+                <span className="rounded-sm border border-[#f5c400]/20 bg-[#f5c400]/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-[#f5c400]">
+                  {totalRegisteredPilots} total
+                </span>
               </div>
               <div className="p-4 space-y-2">
                 {event.eventCategories.filter(c => c.active).map(c => {

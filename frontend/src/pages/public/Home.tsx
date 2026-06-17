@@ -244,13 +244,24 @@ export function Home() {
                     </div>
                   </div>
 
-                  <Link
-                    to={nextEvent.status === 'OPEN' ? `/eventos/${nextEvent.slug}/inscribirse` : `/eventos/${nextEvent.slug}`}
-                    className={`${nextEvent.status === 'OPEN' ? 'bg-[#f5c400] text-[#111111] shadow-[0_0_24px_rgba(245,196,0,0.35)] hover:bg-[#ffd84d]' : 'bg-white text-black group-hover:bg-[#f5c400] group-hover:text-[#111111]'} mt-8 flex items-center justify-between w-full px-6 py-4 text-xs font-black uppercase tracking-widest transition-all italic`}
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
-                  >
-                    {nextEvent.status === 'OPEN' ? 'Inscribirme Ahora' : 'Ver Detalles del Evento'} <ChevronRight className="h-4 w-4" />
-                  </Link>
+                  <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                    {nextEvent.status === 'OPEN' && (
+                      <Link
+                        to={`/eventos/${nextEvent.slug}/inscribirse`}
+                        className="flex items-center justify-between bg-[#f5c400] px-6 py-4 text-xs font-black uppercase tracking-widest text-[#111111] shadow-[0_0_24px_rgba(245,196,0,0.35)] transition-all hover:bg-[#ffd84d] italic"
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+                      >
+                        Inscribirme Ahora <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    )}
+                    <Link
+                      to={`/eventos/${nextEvent.slug}`}
+                      className={`${nextEvent.status === 'OPEN' ? 'border border-white/10 bg-white/5 text-white/80 hover:border-[#f5c400]/40 hover:text-white' : 'bg-white text-black group-hover:bg-[#f5c400] group-hover:text-[#111111]'} flex items-center justify-between px-6 py-4 text-xs font-black uppercase tracking-widest transition-all italic`}
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+                    >
+                      Ver Detalles <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             ) : (

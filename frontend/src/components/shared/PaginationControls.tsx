@@ -48,7 +48,7 @@ export function PaginationControls({
               aria-current={pageNumber === page ? 'page' : undefined}
               className={`h-8 min-w-8 rounded-lg border px-2 text-xs font-semibold transition-colors ${
                 pageNumber === page
-                  ? 'border-racing-red bg-racing-red text-white'
+                  ? 'border-racing-red bg-racing-red text-[#111111]'
                   : 'border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
               }`}
             >

@@ -19,10 +19,10 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
 
 const CATEGORY_LABEL: Record<string, string> = {
   SHIFTER: 'Shifter', DOS_TIEMPOS: '2 Tiempos', FORMULA_MUNDIAL: 'Fórmula Mundial',
-  NUEVE_HP: '9 HP', ROOKIES: 'Rookies', MINIS: 'Minis',
+  NUEVE_HP: '9 HP', ROOKIES: '6.5 HP', MINIS: 'Minis',
 };
 
-const inputClass = 'w-full border border-[#38383f] bg-[#15151e] px-3 py-1.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors';
+const inputClass = 'w-full border border-[#38383f] bg-[#15151e] px-3 py-1.5 text-sm text-white placeholder-white/30 focus:border-[#f5c400] focus:outline-none transition-colors';
 
 function getTotalPaid(insc: PilotInscription) {
   return insc.payments.reduce((s, p) => s + Number(p.amount), 0);
@@ -121,7 +121,7 @@ export function PilotPortal() {
           />
           <div>
             <h1 className="text-xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-              Pilot <span className="text-[#e10600]">Portal</span>
+              Pilot <span className="text-[#f5c400]">Portal</span>
             </h1>
             {pilot.alias
               ? <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em]">"{pilot.alias}"</p>
@@ -141,7 +141,7 @@ export function PilotPortal() {
       <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
 
         {/* Profile card */}
-        <div className="border-t-[3px] border-[#e10600] border-x border-b border-[#38383f] bg-[#1f1f27] p-5">
+        <div className="border-t-[3px] border-[#f5c400] border-x border-b border-[#38383f] bg-[#1f1f27] p-5">
           <div className="flex items-start gap-4">
             {/* Photo */}
             <div className="relative flex-shrink-0">
@@ -155,7 +155,7 @@ export function PilotPortal() {
               <button
                 onClick={() => photoRef.current?.click()}
                 disabled={uploadPhotoMutation.isPending}
-                className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#e10600] flex items-center justify-center hover:bg-[#b30500] transition-colors disabled:opacity-60"
+                className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#f5c400] flex items-center justify-center hover:bg-[#d99a00] transition-colors disabled:opacity-60"
                 title="Cambiar foto"
                 aria-label="Cambiar foto de perfil"
               >
@@ -222,7 +222,7 @@ export function PilotPortal() {
                   {pilot.email && <p className="text-xs text-white/30 mt-0.5">{pilot.email}</p>}
                   {pilot.phone && <p className="text-xs text-white/30">{pilot.phone}</p>}
                   {pilot.engine && <p className="text-xs text-white/40 mt-1">Motor: {pilot.engine}</p>}
-                  {pilot.kartNumber && <p className="text-xs text-white/40">Kart: <span className="text-[#e10600] font-black">#{pilot.kartNumber}</span></p>}
+                  {pilot.kartNumber && <p className="text-xs text-white/40">Kart: <span className="text-[#f5c400] font-black">#{pilot.kartNumber}</span></p>}
                   {pilot.team && (
                     <p className="text-xs text-purple-400/80 mt-0.5 flex items-center gap-1">
                       <Users className="h-3 w-3" />{pilot.team.name}
@@ -238,7 +238,7 @@ export function PilotPortal() {
         {openInscriptions.length > 0 && (
           <div>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
-              <Calendar className="h-3.5 w-3.5 text-[#e10600]" /> Eventos abiertos
+              <Calendar className="h-3.5 w-3.5 text-[#f5c400]" /> Eventos abiertos
             </h3>
             <div className="space-y-px">
               {openInscriptions.map((insc) => {
@@ -332,7 +332,7 @@ export function PilotPortal() {
         {pilot.standings.length > 0 && (
           <div>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
-              <Trophy className="h-3.5 w-3.5 text-[#e10600]" /> Posición en campeonato
+              <Trophy className="h-3.5 w-3.5 text-[#f5c400]" /> Posición en campeonato
             </h3>
             <div className="border border-[#38383f] overflow-hidden">
               <table className="w-full text-sm">
@@ -352,7 +352,7 @@ export function PilotPortal() {
                       <td className="px-4 py-2.5 text-right font-black text-white">
                         {s.position != null ? `#${s.position}` : '—'}
                       </td>
-                      <td className="px-4 py-2.5 text-right font-black text-[#e10600]">{s.totalPoints}</td>
+                      <td className="px-4 py-2.5 text-right font-black text-[#f5c400]">{s.totalPoints}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -365,7 +365,7 @@ export function PilotPortal() {
         {pastInscriptions.length > 0 && (
           <div>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
-              <Calendar className="h-3.5 w-3.5 text-[#e10600]" /> Historial de eventos
+              <Calendar className="h-3.5 w-3.5 text-[#f5c400]" /> Historial de eventos
             </h3>
             <div className="border border-[#38383f] divide-y divide-[#38383f]">
               {pastInscriptions.map((insc) => (

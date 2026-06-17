@@ -199,7 +199,7 @@ export function InscriptionManager() {
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Pilot <span className="text-[#e10600]">Inscriptions</span>
+            Pilot <span className="text-[#f5c400]">Inscriptions</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">{event?.name}</p>
         </div>
@@ -213,7 +213,7 @@ export function InscriptionManager() {
           </button>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+            className="flex items-center gap-2 rounded-lg bg-racing-red text-[#111111] px-4 py-2 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] transition-colors"
           >
             <Plus className="h-4 w-4" /> Inscribir piloto
           </button>
@@ -303,7 +303,7 @@ export function InscriptionManager() {
               />
             </div>
           </div>
-          <button type="submit" className="rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+          <button type="submit" className="rounded-lg bg-racing-red text-[#111111] px-4 py-2 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] transition-colors">
             Inscribir
           </button>
         </form>
@@ -327,7 +327,7 @@ export function InscriptionManager() {
                 <select
                   value={editForm.category}
                   onChange={(e) => setEditForm({ ...editForm, category: e.target.value as Category })}
-                  className="w-full rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
+                  className="w-full rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#f5c400] focus:outline-none"
                 >
                   {activeCategories.map((c) => (
                     <option key={c.id} value={c.category}>{CATEGORY_LABELS[c.category]}</option>
@@ -342,7 +342,7 @@ export function InscriptionManager() {
                   value={editForm.kartNumber}
                   onChange={(e) => setEditForm({ ...editForm, kartNumber: e.target.value })}
                   placeholder="Sin asignar"
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#f5c400] focus:outline-none"
                 />
               </div>
               <div>
@@ -362,7 +362,7 @@ export function InscriptionManager() {
                   value={editForm.engine}
                   onChange={(e) => setEditForm({ ...editForm, engine: e.target.value })}
                   placeholder="ej. TM KZ10C, Rotax Max, IAME X30"
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#f5c400] focus:outline-none"
                 />
               </div>
             </div>
@@ -390,7 +390,7 @@ export function InscriptionManager() {
               </label>
             </div>
             <div className="flex gap-2">
-              <button type="submit" disabled={updateMutation.isPending} className="flex-1 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 transition-colors">
+              <button type="submit" disabled={updateMutation.isPending} className="flex-1 rounded-lg bg-racing-red text-[#111111] px-4 py-2 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] disabled:opacity-50 transition-colors">
                 {updateMutation.isPending ? 'Guardando...' : 'Guardar'}
               </button>
               <button type="button" onClick={() => setEditingInsc(null)} className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/60 hover:bg-white/10 transition-colors">

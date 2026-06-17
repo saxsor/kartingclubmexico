@@ -56,7 +56,7 @@ export function Navbar() {
                   <>
                     {link.label}
                     <span className={cn(
-                      'absolute -bottom-1 left-0 h-0.5 bg-[#e10600] transition-all duration-200',
+                      'absolute -bottom-1 left-0 h-0.5 bg-[#f5c400] transition-all duration-200',
                       isActive ? 'w-full' : 'w-0 group-hover:w-full',
                     )} />
                   </>
@@ -78,7 +78,7 @@ export function Navbar() {
                 <span className="text-white/20">|</span>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-white/60 hover:text-[#e10600] transition-colors font-bold"
+                  className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-white/60 hover:text-[#f5c400] transition-colors font-bold"
                 >
                   <LogOut className="h-4 w-4" />
                   Salir
@@ -97,7 +97,7 @@ export function Navbar() {
                 <span className="text-xs text-white/50">{user?.name}</span>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-white/60 hover:text-[#e10600] transition-colors font-bold"
+                  className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-white/60 hover:text-[#f5c400] transition-colors font-bold"
                 >
                   <LogOut className="h-4 w-4" />
                   Salir
@@ -114,7 +114,7 @@ export function Navbar() {
                 </Link>
                 <Link
                   to="/login"
-                  className="bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors"
+                  className="bg-[#f5c400] hover:bg-[#d99a00] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#111111] transition-colors"
                 >
                   Ingresar
                 </Link>
@@ -144,7 +144,7 @@ export function Navbar() {
               className={({ isActive }) => cn(
                 'block text-xs font-bold uppercase tracking-widest py-1 border-l-2 pl-3 transition-colors',
                 isActive
-                  ? 'border-[#e10600] text-white'
+                  ? 'border-[#f5c400] text-white'
                   : 'border-transparent text-white/60 hover:text-white',
               )}
               onClick={() => setMobileOpen(false)}
@@ -163,7 +163,7 @@ export function Navbar() {
               </Link>
               <button
                 onClick={() => { handleLogout(); setMobileOpen(false); }}
-                className="block text-xs font-bold uppercase tracking-widest text-[#e10600] py-1"
+                className="block text-xs font-bold uppercase tracking-widest text-[#f5c400] py-1"
               >
                 Cerrar sesión
               </button>
@@ -179,7 +179,7 @@ export function Navbar() {
               </Link>
               <button
                 onClick={() => { handleLogout(); setMobileOpen(false); }}
-                className="block text-xs font-bold uppercase tracking-widest text-[#e10600] py-1"
+                className="block text-xs font-bold uppercase tracking-widest text-[#f5c400] py-1"
               >
                 Cerrar sesión
               </button>
@@ -195,7 +195,7 @@ export function Navbar() {
               </Link>
               <Link
                 to="/login"
-                className="inline-block bg-[#e10600] hover:bg-[#b30500] px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors"
+                className="inline-block bg-[#f5c400] hover:bg-[#d99a00] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#111111] transition-colors"
                 onClick={() => setMobileOpen(false)}
               >
                 Ingresar

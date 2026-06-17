@@ -295,7 +295,7 @@ export function CashBox() {
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Payment <span className="text-[#e10600]">Box</span>
+            Payment <span className="text-[#f5c400]">Box</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">{event?.name ?? slug}</p>
         </div>
@@ -433,7 +433,7 @@ export function CashBox() {
                 />
               </div>
               <div className="flex gap-2">
-                <button type="submit" disabled={addGuestMutation.isPending} className="rounded-lg bg-racing-red px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 transition-colors">
+                <button type="submit" disabled={addGuestMutation.isPending} className="rounded-lg bg-racing-red text-[#111111] px-3 py-2 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] disabled:opacity-50 transition-colors">
                   Guardar
                 </button>
                 <button type="button" onClick={() => setShowGuestForm(false)} className="rounded-lg border border-white/10 px-3 py-2 text-sm text-white/50 hover:bg-white/10 transition-colors">
@@ -518,7 +518,7 @@ export function CashBox() {
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div>
                     <p className="font-medium text-white">{insc.pilot.name}</p>
-                    <p className="text-xs text-white/50">{insc.category}</p>
+                    <p className="text-xs text-white/50">{CATEGORY_LABELS[insc.category] ?? insc.category}</p>
                     {insc.receiptPath && (
                       <a
                         href={resolveMediaUrl(insc.receiptPath) ?? '#'}
@@ -612,7 +612,7 @@ export function CashBox() {
                       )}
                     </p>
                     <p className="text-xs text-white/50">
-                      {insc.category} |{' '}
+                      {CATEGORY_LABELS[insc.category] ?? insc.category} |{' '}
                       <span className={
                         insc.status === 'PAID' ? 'text-green-400' :
                         insc.status === 'RECEIPT_SUBMITTED' ? 'text-yellow-400' :
@@ -789,7 +789,7 @@ export function CashBox() {
                       placeholder="Notas (opcional)"
                       className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
                     />
-                    <button type="submit" className="rounded-lg bg-racing-red px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+                    <button type="submit" className="rounded-lg bg-racing-red text-[#111111] px-3 py-2 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] transition-colors">
                       Guardar
                     </button>
                     </div>

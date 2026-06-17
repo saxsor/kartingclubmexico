@@ -21,7 +21,7 @@ export function UploadProgress({ progress, uploading, error, label = 'Subiendo a
       <div className="h-1 w-full bg-[#38383f] overflow-hidden">
         <div
           className={`h-full transition-all duration-200 ${
-            error ? 'bg-red-500' : progress === 100 ? 'bg-green-500' : 'bg-[#e10600]'
+            error ? 'bg-red-500' : progress === 100 ? 'bg-green-500' : 'bg-[#f5c400]'
           }`}
           style={{ width: `${progress}%` }}
         />

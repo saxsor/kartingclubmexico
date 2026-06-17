@@ -274,7 +274,7 @@ export function PilotForm() {
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 rounded-lg bg-racing-red py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+            className="flex-1 rounded-lg bg-racing-red py-2.5 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] transition-colors disabled:opacity-60"
           >
             {loading ? 'Guardando...' : (isEdit ? 'Actualizar' : 'Crear piloto')}
           </button>

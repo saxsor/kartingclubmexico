@@ -105,7 +105,7 @@ export function UserManager() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Control <span className="text-[#e10600]">Usuarios</span>
+            Control <span className="text-[#f5c400]">Usuarios</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">
             {pagination.total} usuario{pagination.total !== 1 ? 's' : ''} registrado{pagination.total !== 1 ? 's' : ''}
@@ -113,7 +113,7 @@ export function UserManager() {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(225,6,0,0.2)]"
+          className="flex items-center gap-2 rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] px-5 py-3 text-xs font-black uppercase tracking-widest text-[#111111] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(245,196,0,0.2)]"
         >
           <Plus className="h-4 w-4" />
           Nuevo usuario
@@ -125,8 +125,8 @@ export function UserManager() {
         <form onSubmit={handleCreate} className="rounded-xl border border-white/10 bg-white/5 p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-[#e10600]/10 rounded-lg">
-                <UserCog className="h-4 w-4 text-[#e10600]" />
+              <div className="p-1.5 bg-[#f5c400]/10 rounded-lg">
+                <UserCog className="h-4 w-4 text-[#f5c400]" />
               </div>
               <h2 className="font-black text-white uppercase tracking-wider text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Nuevo usuario</h2>
             </div>
@@ -151,7 +151,7 @@ export function UserManager() {
                   onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
                   required
                   placeholder={f.placeholder}
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#f5c400] focus:outline-none transition-colors"
                 />
               </div>
             ))}
@@ -160,7 +160,7 @@ export function UserManager() {
               <select
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value as User['role'] })}
-                className="w-full rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
+                className="w-full rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#f5c400] focus:outline-none"
               >
                 <option value="ORGANIZER">Organizador</option>
                 <option value="VALIDATOR">Validador</option>
@@ -170,7 +170,7 @@ export function UserManager() {
           </div>
           <div className="flex gap-2 pt-1">
             <button type="submit" disabled={createMutation.isPending}
-              className="rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-5 py-2 text-xs font-black uppercase tracking-widest text-white transition-all disabled:opacity-50">
+              className="rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] px-5 py-2 text-xs font-black uppercase tracking-widest text-[#111111] transition-all disabled:opacity-50">
               {createMutation.isPending ? 'Creando...' : 'Crear usuario'}
             </button>
             <button type="button" onClick={() => setShowForm(false)}
@@ -190,18 +190,18 @@ export function UserManager() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Buscar por nombre o email..."
-            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
+            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#f5c400] focus:outline-none"
           />
         </div>
         <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value as User['role'] | ''); setPage(1); }}
-          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none">
+          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#f5c400] focus:outline-none">
           <option value="">Todos los roles</option>
           <option value="ADMIN">Admin</option>
           <option value="ORGANIZER">Organizador</option>
           <option value="VALIDATOR">Validador</option>
         </select>
         <select value={activeFilter} onChange={(e) => { setActiveFilter(e.target.value as 'true' | 'false' | ''); setPage(1); }}
-          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none">
+          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#f5c400] focus:outline-none">
           <option value="">Todos los estados</option>
           <option value="true">Activos</option>
           <option value="false">Inactivos</option>

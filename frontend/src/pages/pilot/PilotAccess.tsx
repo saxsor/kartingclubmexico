@@ -10,7 +10,7 @@ import { InlineLoadingState } from '../../components/shared/LoadingSkeleton';
 type Step = 'search' | 'login' | 'register' | 'sent';
 
 const inputClass =
-  'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors';
+  'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#f5c400] focus:outline-none transition-colors';
 
 export function PilotAccess() {
   useRouteScrollTop();
@@ -94,10 +94,10 @@ export function PilotAccess() {
           <img
             src="/karting_club_logo.png"
             alt="Karting Club México"
-            className="h-16 w-auto object-contain mx-auto mb-4 drop-shadow-[0_8px_24px_rgba(225,6,0,0.35)]"
+            className="h-16 w-auto object-contain mx-auto mb-4 drop-shadow-[0_8px_24px_rgba(245,196,0,0.35)]"
           />
           <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Pilot <span className="text-[#e10600]">Portal</span>
+            Pilot <span className="text-[#f5c400]">Portal</span>
           </h1>
           <p className="text-white/30 text-xs font-bold uppercase tracking-[0.25em] mt-2">Acceso para pilotos</p>
         </div>
@@ -105,7 +105,7 @@ export function PilotAccess() {
         {/* Step: search */}
         {step === 'search' && (
           <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] shadow-2xl">
-            <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(225,6,0,0.08),transparent_70%)] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(245,196,0,0.08),transparent_70%)] pointer-events-none" />
             <div className="p-6 space-y-4 relative">
               <p className="text-sm text-white/50">
                 Busca tu nombre para acceder o regístrate si eres nuevo.
@@ -117,7 +117,7 @@ export function PilotAccess() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="Busca por tu nombre..."
-                  className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#f5c400] focus:outline-none transition-colors"
                   autoFocus
                 />
               </div>
@@ -129,17 +129,17 @@ export function PilotAccess() {
                     <button
                       key={pilot.id}
                       onClick={() => handleSelectPilot(pilot)}
-                      className="w-full flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 hover:border-[#e10600]/50 transition-all group"
+                      className="w-full flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 hover:border-[#f5c400]/50 transition-all group"
                     >
                       <div className="text-left">
-                        <p className="text-sm font-bold text-white group-hover:text-[#e10600] transition-colors">
+                        <p className="text-sm font-bold text-white group-hover:text-[#f5c400] transition-colors">
                           {pilot.name}
                         </p>
                         {pilot.alias && (
                           <p className="text-xs text-white/40 italic">"{pilot.alias}"</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-white/40 group-hover:text-[#e10600] transition-colors">
+                      <div className="flex items-center gap-1.5 text-xs text-white/40 group-hover:text-[#f5c400] transition-colors">
                         <UserCheck className="h-4 w-4" />
                         Soy yo
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -154,7 +154,7 @@ export function PilotAccess() {
                       <p className="text-xs text-white/30">¿Es tu primera vez aquí?</p>
                       <button
                         onClick={() => { setForm((f) => ({ ...f, name: searchInput })); setStep('register'); }}
-                        className="flex items-center gap-1.5 mx-auto rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-4 py-2 text-xs font-bold text-white uppercase tracking-wider transition-all hover:scale-[1.02]"
+                        className="flex items-center gap-1.5 mx-auto rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] px-4 py-2 text-xs font-bold text-[#111111] uppercase tracking-wider transition-all hover:scale-[1.02]"
                       >
                         <UserPlus className="h-3.5 w-3.5" />
                         Registrarme como piloto
@@ -174,16 +174,16 @@ export function PilotAccess() {
         {/* Step: login (magic link) */}
         {step === 'login' && (
           <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] shadow-2xl">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#e10600] to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#f5c400] to-transparent" />
             <div className="p-6 space-y-4">
               <button onClick={() => setStep('search')} className="text-xs text-white/40 hover:text-white transition-colors">
                 ← Volver
               </button>
               {selectedPilot && (
-                <div className="rounded-lg border border-[#e10600]/20 bg-[#e10600]/5 px-4 py-3">
+                <div className="rounded-lg border border-[#f5c400]/20 bg-[#f5c400]/5 px-4 py-3">
                   <p className="text-[10px] text-white/40 mb-0.5 uppercase tracking-widest">Accediendo como</p>
                   <p className="font-black text-white text-lg italic uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{selectedPilot.name}</p>
-                  {selectedPilot.alias && <p className="text-xs text-[#e10600]/70 italic">"{selectedPilot.alias}"</p>}
+                  {selectedPilot.alias && <p className="text-xs text-[#f5c400]/70 italic">"{selectedPilot.alias}"</p>}
                 </div>
               )}
               <p className="text-sm text-white/50">
@@ -196,7 +196,7 @@ export function PilotAccess() {
                 </div>
                 {loginError && <div className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-xs text-red-400">{loginError}</div>}
                 <button type="submit" disabled={loginLoading}
-                  className="w-full rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3 text-xs font-black text-white uppercase tracking-wider transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(225,6,0,0.25)]">
+                  className="w-full rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] py-3 text-xs font-black text-[#111111] uppercase tracking-wider transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(245,196,0,0.25)]">
                   {loginLoading ? 'Enviando...' : 'Enviar enlace de acceso'}
                 </button>
               </form>
@@ -207,14 +207,14 @@ export function PilotAccess() {
         {/* Step: register */}
         {step === 'register' && (
           <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] shadow-2xl">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#e10600] to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#f5c400] to-transparent" />
             <div className="p-6 space-y-4">
               <button onClick={() => setStep('search')} className="text-xs text-white/40 hover:text-white transition-colors">
                 ← Volver
               </button>
               <div>
                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-                  Nuevo <span className="text-[#e10600]">Piloto</span>
+                  Nuevo <span className="text-[#f5c400]">Piloto</span>
                 </h2>
                 <p className="text-xs text-white/40 mt-0.5">Crea tu perfil en Karting Club México</p>
               </div>
@@ -273,7 +273,7 @@ export function PilotAccess() {
                     <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5">
                       {f.label}
                       {f.optional && <span className="text-white/25 normal-case font-normal ml-1">(opcional)</span>}
-                      {f.required && <span className="text-[#e10600] ml-1">*</span>}
+                      {f.required && <span className="text-[#f5c400] ml-1">*</span>}
                     </label>
                     <input
                       type={f.type}
@@ -293,7 +293,7 @@ export function PilotAccess() {
                 <button
                   type="submit"
                   disabled={registerMutation.isPending}
-                  className="w-full rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3 text-xs font-black text-white uppercase tracking-wider transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(225,6,0,0.25)]"
+                  className="w-full rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] py-3 text-xs font-black text-[#111111] uppercase tracking-wider transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(245,196,0,0.25)]"
                 >
                   {registerMutation.isPending ? 'Registrando...' : 'Registrarme'}
                 </button>

@@ -2,13 +2,13 @@ import { X } from 'lucide-react';
 import { useToastStore } from '../../store/toast.store';
 
 const STYLES = {
-  error: 'border-l-[3px] border-[#e10600] bg-[#1f1f27] text-white',
+  error: 'border-l-[3px] border-red-500 bg-[#1f1f27] text-white',
   success: 'border-l-[3px] border-green-500 bg-[#1f1f27] text-white',
   info: 'border-l-[3px] border-white/30 bg-[#1f1f27] text-white',
 };
 
 const DOT = {
-  error: 'bg-[#e10600]',
+  error: 'bg-red-500',
   success: 'bg-green-500',
   info: 'bg-white/40',
 };

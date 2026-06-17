@@ -68,7 +68,7 @@ export function PointsTable({ rows, raceNumbers = [], showGap = true, className,
                   C{n}
                 </th>
               ))}
-              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#e10600] w-24">PTS</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#f5c400] w-24">PTS</th>
               {showGap && (
                 <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-20">Gap</th>
               )}
@@ -104,7 +104,7 @@ export function PointsTable({ rows, raceNumbers = [], showGap = true, className,
                       )}
                     </div>
                     <div>
-                      <p className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#e10600] transition-colors"
+                      <p className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#f5c400] transition-colors"
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
                         {row.pilotName}
                       </p>

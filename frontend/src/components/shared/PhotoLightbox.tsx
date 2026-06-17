@@ -93,7 +93,7 @@ export function PhotoLightbox({ photos, currentIndex, onClose, onNavigate, event
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-6 text-white z-20">
         <div className="flex items-center gap-4">
-           <div className="w-1 h-8 bg-[#e10600] skew-x-[-15deg]" />
+           <div className="w-1 h-8 bg-[#f5c400] skew-x-[-15deg]" />
            <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 leading-none">
                 {eventName}
@@ -105,7 +105,7 @@ export function PhotoLightbox({ photos, currentIndex, onClose, onNavigate, event
         </div>
         <button
           onClick={onClose}
-          className="group h-12 w-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-[#e10600] transition-all duration-300 shadow-xl"
+          className="group h-12 w-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-[#f5c400] transition-all duration-300 shadow-xl"
         >
           <X className="h-6 w-6 transition-transform group-hover:rotate-90" />
         </button>
@@ -142,9 +142,9 @@ export function PhotoLightbox({ photos, currentIndex, onClose, onNavigate, event
       <div className="p-8 flex flex-col items-center gap-8 relative z-20">
         {/* Mobile Navigation */}
         <div className="flex md:hidden items-center gap-12 text-white/40 mb-2">
-           <button onClick={handlePrevious} className="p-2 hover:text-[#e10600] active:scale-75 transition-all"><ChevronLeft className="h-10 w-10" /></button>
+           <button onClick={handlePrevious} className="p-2 hover:text-[#f5c400] active:scale-75 transition-all"><ChevronLeft className="h-10 w-10" /></button>
            <span className="text-sm font-black italic tracking-widest">{currentIndex + 1} <span className="text-white/10">OF</span> {photos.length}</span>
-           <button onClick={handleNext} className="p-2 hover:text-[#e10600] active:scale-75 transition-all"><ChevronRight className="h-10 w-10" /></button>
+           <button onClick={handleNext} className="p-2 hover:text-[#f5c400] active:scale-75 transition-all"><ChevronRight className="h-10 w-10" /></button>
         </div>
 
         {/* Fallback Share Menu */}
@@ -180,7 +180,7 @@ export function PhotoLightbox({ photos, currentIndex, onClose, onNavigate, event
           <a
             href={`/api/photos/${currentPhoto.id}/download`}
             download
-            className="group relative flex items-center gap-3 px-10 py-4 overflow-hidden rounded-lg bg-[#e10600] text-white font-black uppercase tracking-[0.15em] transition-all hover:scale-[1.05] active:scale-[0.95] shadow-[0_10px_30px_rgba(225,6,0,0.3)]"
+            className="group relative flex items-center gap-3 px-10 py-4 overflow-hidden rounded-lg bg-[#f5c400] text-[#111111] font-black uppercase tracking-[0.15em] transition-all hover:scale-[1.05] active:scale-[0.95] shadow-[0_10px_30px_rgba(245,196,0,0.3)]"
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
           >
             <Download className="h-5 w-5" />
@@ -195,7 +195,7 @@ export function PhotoLightbox({ photos, currentIndex, onClose, onNavigate, event
             title="Compartir"
           >
             {isSharing ? (
-              <Loader2 className="h-6 w-6 animate-spin text-[#e10600]" />
+              <Loader2 className="h-6 w-6 animate-spin text-[#f5c400]" />
             ) : (
               <Share2 className="h-6 w-6" />
             )}

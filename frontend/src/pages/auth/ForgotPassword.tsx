@@ -26,7 +26,7 @@ export function ForgotPassword() {
     <div className="min-h-screen bg-[#15151e] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-12 w-12 bg-[#e10600] mb-4">
+          <div className="inline-flex items-center justify-center h-12 w-12 bg-[#f5c400] mb-4">
             <span className="text-white font-black text-xl" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>ER</span>
           </div>
           <h1 className="text-2xl font-black text-white uppercase tracking-wide" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
@@ -39,12 +39,12 @@ export function ForgotPassword() {
             <p className="text-sm text-white/60">
               Si el correo existe en el sistema, recibirás un enlace para restablecer tu contraseña.
             </p>
-            <Link to="/login" className="text-xs font-bold uppercase tracking-widest text-[#e10600] hover:text-white transition-colors">
+            <Link to="/login" className="text-xs font-bold uppercase tracking-widest text-[#f5c400] hover:text-white transition-colors">
               ← Volver al login
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="border-t-[3px] border-[#f5c400] bg-[#1f1f27] p-6 space-y-4">
             {error && (
               <div className="border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
             )}
@@ -59,13 +59,13 @@ export function ForgotPassword() {
                 required
                 autoFocus
                 placeholder="admin@edelracing.mx"
-                className="w-full border border-white/10 bg-[#15151e] px-3 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none"
+                className="w-full border border-white/10 bg-[#15151e] px-3 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#f5c400] focus:outline-none"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#e10600] hover:bg-[#b30500] py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50"
+              className="w-full bg-[#f5c400] hover:bg-[#d99a00] py-3 text-sm font-bold uppercase tracking-widest text-[#111111] transition-colors disabled:opacity-50"
             >
               {loading ? 'Enviando...' : 'Enviar enlace'}
             </button>

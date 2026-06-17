@@ -122,7 +122,7 @@ export function EventGallery() {
         <div className="mb-12 relative">
           <Link 
             to={`/eventos/${slug}`}
-            className="inline-flex items-center gap-2 text-white/30 hover:text-[#e10600] transition-colors mb-8 group uppercase text-[10px] font-black tracking-[0.2em]"
+            className="inline-flex items-center gap-2 text-white/30 hover:text-[#f5c400] transition-colors mb-8 group uppercase text-[10px] font-black tracking-[0.2em]"
           >
             <ChevronLeft className="h-3 w-3 transition-transform group-hover:-translate-x-1" />
             Volver al evento
@@ -130,9 +130,9 @@ export function EventGallery() {
           
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="relative">
-              <div className="absolute -left-4 top-0 w-1.5 h-full bg-[#e10600] skew-x-[-15deg] hidden md:block" />
+              <div className="absolute -left-4 top-0 w-1.5 h-full bg-[#f5c400] skew-x-[-15deg] hidden md:block" />
               <h1 className="text-5xl md:text-7xl font-black text-white uppercase italic tracking-tighter leading-[0.9]">
-                Galería <span className="text-[#e10600]">Pro</span>
+                Galería <span className="text-[#f5c400]">Pro</span>
               </h1>
               <p className="text-white/50 text-base md:text-xl mt-4 font-bold uppercase tracking-widest italic">
                 {event.name} <span className="mx-2 text-white/20">|</span> {formatDate(event.date)}
@@ -145,7 +145,7 @@ export function EventGallery() {
                     onClick={toggleSelectionMode}
                     className={`inline-flex items-center gap-2 rounded-lg border px-4 py-3 text-[11px] font-black uppercase tracking-[0.18em] transition-all ${
                       isSelecting
-                        ? 'border-[#e10600] bg-[#e10600] text-white'
+                        ? 'border-[#f5c400] bg-[#f5c400] text-[#111111]'
                         : 'border-white/10 bg-white/[0.03] text-white/70 hover:border-white/20 hover:text-white'
                     }`}
                   >
@@ -157,7 +157,7 @@ export function EventGallery() {
                       type="button"
                       onClick={handleBulkDownload}
                       disabled={selectedPhotoIds.length === 0 || isBulkDownloading}
-                      className="inline-flex items-center gap-2 rounded-lg bg-[#e10600] px-4 py-3 text-[11px] font-black uppercase tracking-[0.18em] text-white transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-lg bg-[#f5c400] px-4 py-3 text-[11px] font-black uppercase tracking-[0.18em] text-[#111111] transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Download className="h-4 w-4" />
                       {isBulkDownloading ? 'Preparando ZIP...' : `Descargar (${selectedPhotoIds.length})`}
@@ -208,10 +208,10 @@ export function EventGallery() {
               />
               {isSelecting && (
                 <>
-                  <div className={`absolute inset-0 transition-colors ${selectedPhotoIds.includes(photo.id) ? 'bg-[#e10600]/35' : 'bg-black/20'}`} />
+                  <div className={`absolute inset-0 transition-colors ${selectedPhotoIds.includes(photo.id) ? 'bg-[#f5c400]/35' : 'bg-black/20'}`} />
                   <div className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border text-white transition-all ${
                     selectedPhotoIds.includes(photo.id)
-                      ? 'border-[#e10600] bg-[#e10600]'
+                      ? 'border-[#f5c400] bg-[#f5c400]'
                       : 'border-white/30 bg-black/40'
                   }`}>
                     <Check className="h-4 w-4" />
@@ -220,7 +220,7 @@ export function EventGallery() {
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-4">
                  <div className="flex items-center justify-between translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                    <div className="h-8 w-8 rounded-full bg-[#e10600] text-white flex items-center justify-center shadow-lg">
+                    <div className="h-8 w-8 rounded-full bg-[#f5c400] text-[#111111] flex items-center justify-center shadow-lg">
                        <Camera className="h-4 w-4" />
                     </div>
                     <span className="text-[10px] font-black text-white uppercase tracking-widest">

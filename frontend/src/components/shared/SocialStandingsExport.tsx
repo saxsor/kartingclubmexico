@@ -115,7 +115,7 @@ function SocialCardPage({
         fontFamily: 'Inter, system-ui, sans-serif',
       }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_right_top,rgba(225,6,0,0.18),transparent_24%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_right_top,rgba(245,196,0,0.18),transparent_24%)]" />
       <div className={`relative ${shellClasses}`}>
         <div className={`${isCarouselSafe ? 'mb-6' : 'mb-4'} flex items-start justify-between gap-8`}>
           <div className="flex items-start gap-5">
@@ -148,7 +148,7 @@ function SocialCardPage({
           <div className={`${isCarouselSafe ? 'min-w-[230px]' : 'min-w-[220px]'} rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-right backdrop-blur-sm`}>
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/35">Página</p>
             <p
-              className={`mt-2 whitespace-nowrap ${isCarouselSafe ? 'text-[27px]' : 'text-[34px]'} font-black italic leading-none text-[#e10600]`}
+              className={`mt-2 whitespace-nowrap ${isCarouselSafe ? 'text-[27px]' : 'text-[34px]'} font-black italic leading-none text-[#f5c400]`}
               style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
             >
               {String(page).padStart(2, '0')}
@@ -221,7 +221,7 @@ function SocialCardPage({
                     </p>
                   </div>
                   <div
-                    className={`${isCarouselSafe ? 'text-[34px]' : 'text-[38px]'} text-center font-black italic leading-none text-[#e10600]`}
+                    className={`${isCarouselSafe ? 'text-[34px]' : 'text-[38px]'} text-center font-black italic leading-none text-[#f5c400]`}
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
                     {row.points}
@@ -242,7 +242,7 @@ function SocialCardPage({
           >
             {isCarouselSafe ? `${footerLabel} | carrusel` : footerLabel}
           </p>
-          <div className="h-[6px] w-44 skew-x-[-24deg] bg-[#e10600]" />
+          <div className="h-[6px] w-44 skew-x-[-24deg] bg-[#f5c400]" />
         </div>
       </div>
     </div>

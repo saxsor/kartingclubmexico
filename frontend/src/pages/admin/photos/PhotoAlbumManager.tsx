@@ -85,7 +85,7 @@ function SortablePhotoCard({ photo, isCover, onDelete, onSetCover }: SortablePho
       <div 
         {...attributes} 
         {...listeners}
-        className="absolute top-2 left-2 h-8 w-8 flex items-center justify-center rounded-lg bg-black/60 text-white/60 cursor-grab active:cursor-grabbing hover:bg-racing-red hover:text-white transition-colors"
+        className="absolute top-2 left-2 h-8 w-8 flex items-center justify-center rounded-lg bg-black/60 text-[#111111]/60 cursor-grab active:cursor-grabbing hover:bg-racing-red hover:text-[#111111] transition-colors"
       >
         <GripVertical className="h-4 w-4" />
       </div>
@@ -106,7 +106,7 @@ function SortablePhotoCard({ photo, isCover, onDelete, onSetCover }: SortablePho
           onClick={() => onSetCover(photo.fileUrl)}
           className={cn(
             "flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors",
-            isCover ? "bg-racing-red text-white" : "bg-black/60 text-white/70 hover:bg-white/20"
+            isCover ? "bg-racing-red text-[#111111]" : "bg-black/60 text-[#111111]/70 hover:bg-white/20"
           )}
         >
           <Star className={cn("h-3 w-3", isCover && "fill-current")} />
@@ -282,7 +282,7 @@ export function PhotoAlbumManager() {
           )}
 
           <label className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-racing-red hover:bg-red-700 transition-colors cursor-pointer",
+            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-[#111111] bg-racing-red hover:bg-[#d99a00] transition-colors cursor-pointer",
             isUploading && "opacity-50 cursor-not-allowed"
           )}>
             {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}

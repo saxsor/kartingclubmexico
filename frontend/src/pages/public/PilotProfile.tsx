@@ -49,7 +49,7 @@ export function PilotProfile() {
       </Link>
 
       {/* Pilot header card */}
-      <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-6 mb-6">
+      <div className="border-t-[3px] border-[#f5c400] bg-[#1f1f27] p-6 mb-6">
         <div className="flex items-center gap-4">
           {pilot.photoUrl ? (
             <img src={resolveMediaUrl(pilot.photoUrl) ?? ''} alt={pilot.name} className="h-16 w-16 object-cover flex-shrink-0" />
@@ -68,13 +68,13 @@ export function PilotProfile() {
             {pilot.alias && <p className="text-white/40 text-sm italic">"{pilot.alias}"</p>}
             {pilot.kartNumber && (
               <p className="text-sm text-white/50 flex items-center gap-1.5 mt-1 uppercase tracking-wider">
-                <Hash className="h-3.5 w-3.5 text-[#e10600]" />
+                <Hash className="h-3.5 w-3.5 text-[#f5c400]" />
                 Kart #{pilot.kartNumber}
               </p>
             )}
             {pilot.team && (
               <p className="text-sm text-white/50 flex items-center gap-1.5 mt-1">
-                <Users className="h-3.5 w-3.5 text-[#e10600]" />
+                <Users className="h-3.5 w-3.5 text-[#f5c400]" />
                 <span className="font-medium text-white/70">{pilot.team.name}</span>
               </p>
             )}
@@ -85,7 +85,7 @@ export function PilotProfile() {
       {standings.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-1 h-5 bg-[#e10600]" />
+            <div className="w-1 h-5 bg-[#f5c400]" />
             <span className="text-xs font-bold uppercase tracking-widest text-white/50">Campeonato</span>
           </div>
           <div className="grid gap-px sm:grid-cols-2 bg-[#38383f]">
@@ -111,7 +111,7 @@ export function PilotProfile() {
       {inscriptions.length > 0 && (
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-1 h-5 bg-[#e10600]" />
+            <div className="w-1 h-5 bg-[#f5c400]" />
             <span className="text-xs font-bold uppercase tracking-widest text-white/50">Historial de eventos</span>
           </div>
           <div className="flex flex-col gap-px bg-[#38383f]">
@@ -121,7 +121,7 @@ export function PilotProfile() {
                   <div>
                     <Link
                       to={`/eventos/${insc.event.slug}`}
-                      className="font-black text-white hover:text-[#e10600] transition-colors uppercase text-sm"
+                      className="font-black text-white hover:text-[#f5c400] transition-colors uppercase text-sm"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
                     >
                       {insc.event.name}

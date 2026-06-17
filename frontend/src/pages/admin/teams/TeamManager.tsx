@@ -75,7 +75,7 @@ export function TeamManager() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Constructor <span className="text-[#e10600]">Teams</span>
+            Constructor <span className="text-[#f5c400]">Teams</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">
             {allTeams.length} equipo{allTeams.length !== 1 ? 's' : ''} registrado{allTeams.length !== 1 ? 's' : ''}
@@ -93,7 +93,7 @@ export function TeamManager() {
           </button>
           <button
             onClick={() => setCreating(true)}
-            className="flex items-center gap-2 rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(225,6,0,0.2)]"
+            className="flex items-center gap-2 rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-[#111111] transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(245,196,0,0.2)]"
           >
             <Plus className="h-3.5 w-3.5" />
             Nuevo equipo
@@ -109,7 +109,7 @@ export function TeamManager() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar equipo..."
-          className="w-full rounded-lg border border-white/10 bg-white/5 pl-9 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
+          className="w-full rounded-lg border border-white/10 bg-white/5 pl-9 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#f5c400] focus:outline-none"
         />
       </div>
 
@@ -122,10 +122,10 @@ export function TeamManager() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Nombre del equipo"
-            className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none"
+            className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 focus:border-[#f5c400] focus:outline-none"
           />
           <button type="submit" disabled={createMutation.isPending}
-            className="rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition-all disabled:opacity-60">
+            className="rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] px-4 py-2 text-xs font-black uppercase tracking-widest text-[#111111] transition-all disabled:opacity-60">
             {createMutation.isPending ? 'Creando...' : 'Crear'}
           </button>
           <button type="button" onClick={() => { setCreating(false); setNewName(''); }}
@@ -179,7 +179,7 @@ export function TeamManager() {
                     <button
                       type="button"
                       onClick={() => { setUploadingLogoId(team.id); logoInputRef.current?.click(); }}
-                      className="p-1 text-white hover:text-[#e10600] transition-colors"
+                      className="p-1 text-white hover:text-[#f5c400] transition-colors"
                       title="Subir logo"
                     >
                       <ImagePlus className="h-3.5 w-3.5" />
@@ -209,12 +209,12 @@ export function TeamManager() {
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleSave(team.id); if (e.key === 'Escape') setEditingId(null); }}
-                    className="flex-1 rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-sm text-white focus:border-[#e10600] focus:outline-none"
+                    className="flex-1 rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-sm text-white focus:border-[#f5c400] focus:outline-none"
                   />
                 ) : (
                   <button
                     onClick={() => setExpandedId(expandedId === team.id ? null : team.id)}
-                    className="flex-1 text-left text-sm font-bold text-white hover:text-[#e10600] transition-colors"
+                    className="flex-1 text-left text-sm font-bold text-white hover:text-[#f5c400] transition-colors"
                   >
                     {team.name}
                   </button>
@@ -290,7 +290,7 @@ function TeamPilotsList({ teamId }: { teamId: string }) {
             }
           </div>
           <span className="text-[11px] font-medium text-white/70">{pilot.name}</span>
-          {pilot.kartNumber && <span className="text-[9px] font-black text-[#e10600]">#{pilot.kartNumber}</span>}
+          {pilot.kartNumber && <span className="text-[9px] font-black text-[#f5c400]">#{pilot.kartNumber}</span>}
         </div>
       ))}
     </div>

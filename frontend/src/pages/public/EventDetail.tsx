@@ -74,7 +74,7 @@ export function EventDetail() {
         {/* Content Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-2 h-6 bg-[#e10600] skew-x-[-15deg]" />
+            <div className="w-2 h-6 bg-[#f5c400] skew-x-[-15deg]" />
             <StatusBadge status={event.status} />
           </div>
           <h1 
@@ -86,12 +86,12 @@ export function EventDetail() {
           
           <div className="mt-4 flex flex-wrap gap-5 text-white/60">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-[#e10600]" />
+              <Calendar className="h-4 w-4 text-[#f5c400]" />
               <span className="text-xs font-black uppercase tracking-widest">{formatDate(event.date)}</span>
             </div>
             {event.track && (
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-[#e10600]" />
+                <MapPin className="h-4 w-4 text-[#f5c400]" />
                 <span className="text-xs font-black uppercase tracking-widest">{event.track}</span>
               </div>
             )}
@@ -121,7 +121,7 @@ export function EventDetail() {
             {/* Costs */}
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-[#e10600]" />
+                <DollarSign className="h-4 w-4 text-[#f5c400]" />
                 <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Costos</h2>
               </div>
               <div className="p-4 space-y-2">
@@ -140,7 +140,7 @@ export function EventDetail() {
                 {Number(event.serviceFee) > 0 && Number(event.foodFee) > 0 && (
                   <div className="flex justify-between items-center border-t border-[#38383f] pt-2 mt-2">
                     <span className="text-xs text-white/50 uppercase tracking-wider">Total</span>
-                    <span className="font-black text-[#e10600] text-lg">${(Number(event.serviceFee) + Number(event.foodFee)).toLocaleString('es-MX')}</span>
+                    <span className="font-black text-[#f5c400] text-lg">${(Number(event.serviceFee) + Number(event.foodFee)).toLocaleString('es-MX')}</span>
                   </div>
                 )}
                 {Number(event.serviceFee) === 0 && Number(event.foodFee) === 0 && (
@@ -152,7 +152,7 @@ export function EventDetail() {
             {/* Categories + counts */}
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
-                <Users className="h-4 w-4 text-[#e10600]" />
+                <Users className="h-4 w-4 text-[#f5c400]" />
                 <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Categorías</h2>
               </div>
               <div className="p-4 space-y-2">
@@ -161,7 +161,7 @@ export function EventDetail() {
                   return (
                     <div key={c.id} className="flex justify-between items-center">
                       <span className="text-xs text-white/70 font-bold uppercase tracking-wider">{CATEGORY_LABELS[c.category] ?? c.category}</span>
-                      {count > 0 && <span className="text-xs font-black text-[#e10600]">{count} piloto{count !== 1 ? 's' : ''}</span>}
+                      {count > 0 && <span className="text-xs font-black text-[#f5c400]">{count} piloto{count !== 1 ? 's' : ''}</span>}
                     </div>
                   );
                 })}
@@ -173,13 +173,13 @@ export function EventDetail() {
           {event.conditions && (
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-[#e10600]" />
+                <CheckCircle className="h-4 w-4 text-[#f5c400]" />
                 <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Condiciones del Evento</h2>
               </div>
               <div className="p-4 flex flex-wrap gap-2">
                 {event.conditions.split('•').map((c: string) => c.trim()).filter(Boolean).map((cond: string, i: number) => (
                   <span key={i} className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white/70">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#e10600] flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f5c400] flex-shrink-0" />
                     {cond}
                   </span>
                 ))}
@@ -191,7 +191,7 @@ export function EventDetail() {
           {event.description && (
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-5 py-3 flex items-center gap-2">
-                <Info className="h-4 w-4 text-[#e10600]" />
+                <Info className="h-4 w-4 text-[#f5c400]" />
                 <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Información del Evento</h2>
               </div>
               <div className="p-5">
@@ -213,16 +213,16 @@ export function EventDetail() {
                 className={cn(
                   "group flex items-center justify-between p-5 transition-all rounded-lg border shadow-lg",
                   action.highlight
-                    ? "bg-[#e10600] border-[#e10600] text-white hover:shadow-[0_0_20px_rgba(225,6,0,0.3)]"
-                    : "bg-[#1a1a21] border-[#38383f] text-white hover:border-[#e10600] hover:bg-[#1f1f27]"
+                    ? "bg-[#f5c400] border-[#f5c400] text-[#111111] hover:shadow-[0_0_20px_rgba(245,196,0,0.3)]"
+                    : "bg-[#1a1a21] border-[#38383f] text-white hover:border-[#f5c400] hover:bg-[#1f1f27]"
                 )}
               >
                 <div className="flex items-center gap-4">
                   <div className={cn(
                     "h-10 w-10 flex items-center justify-center rounded flex-shrink-0 transition-colors",
-                    action.highlight ? "bg-white/20" : "bg-[#2a2a35] group-hover:bg-[#e10600]/10"
+                    action.highlight ? "bg-white/20" : "bg-[#2a2a35] group-hover:bg-[#f5c400]/10"
                   )}>
-                    <action.icon className={cn("h-5 w-5", action.highlight ? "text-white" : "text-[#e10600]")} />
+                    <action.icon className={cn("h-5 w-5", action.highlight ? "text-white" : "text-[#f5c400]")} />
                   </div>
                   <span className="font-black uppercase text-sm italic tracking-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                     {action.label}
@@ -237,7 +237,7 @@ export function EventDetail() {
           {event.schedule && (
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-4 py-3 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#e10600]" />
+                <Clock className="h-4 w-4 text-[#f5c400]" />
                 <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Horarios</h2>
               </div>
               <div className="divide-y divide-[#38383f]/50">
@@ -247,7 +247,7 @@ export function EventDetail() {
                   const desc = match ? match[2].trim() : line.trim();
                   return (
                     <div key={i} className="flex items-center gap-3 px-4 py-2.5">
-                      <span className="text-[#e10600] font-black text-xs font-mono w-12 flex-shrink-0">{time || '—'}</span>
+                      <span className="text-[#f5c400] font-black text-xs font-mono w-12 flex-shrink-0">{time || '—'}</span>
                       <span className="text-white/70 text-xs leading-snug">{desc || line.trim()}</span>
                     </div>
                   );
@@ -260,13 +260,13 @@ export function EventDetail() {
           {event.address && (
             <div className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50">
               <div className="border-b border-[#38383f] bg-[#1a1a21] px-4 py-3 flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-[#e10600]" />
+                <MapPin className="h-4 w-4 text-[#f5c400]" />
                 <h2 className="text-sm font-black uppercase tracking-wider text-white" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>Ubicación</h2>
               </div>
               <div className="p-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-[#e10600]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <MapPin className="h-4 w-4 text-[#e10600]" />
+                  <div className="h-8 w-8 rounded-lg bg-[#f5c400]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="h-4 w-4 text-[#f5c400]" />
                   </div>
                   <p className="text-sm text-white/70 leading-relaxed">{event.address}</p>
                 </div>
@@ -274,7 +274,7 @@ export function EventDetail() {
                   href={`https://maps.google.com/?q=${encodeURIComponent(event.address)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-[#e10600]/30 bg-[#e10600]/10 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-[#e10600] hover:bg-[#e10600] hover:text-white transition-all"
+                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-[#f5c400]/30 bg-[#f5c400]/10 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-[#f5c400] hover:bg-[#f5c400] hover:text-[#111111] transition-all"
                 >
                   <MapPin className="h-3.5 w-3.5" />
                   Ver en Google Maps
@@ -291,7 +291,7 @@ export function EventDetail() {
         <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-[#15151e] via-[#15151e]/95 to-transparent md:hidden">
           <Link
             to={`/eventos/${event.slug}/inscribirse`}
-            className="flex items-center justify-center gap-3 w-full bg-[#e10600] py-4 text-sm font-black uppercase tracking-widest text-white shadow-[0_0_30px_rgba(225,6,0,0.4)] rounded-md"
+            className="flex items-center justify-center gap-3 w-full bg-[#f5c400] py-4 text-sm font-black uppercase tracking-widest text-[#111111] shadow-[0_0_30px_rgba(245,196,0,0.4)] rounded-md"
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
           >
             <ClipboardList className="h-5 w-5" /> Inscribirme Ahora

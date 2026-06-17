@@ -17,13 +17,13 @@ export function NotFound() {
               <rect width="80" height="80" fill="url(#checker-404)"/>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-1 h-full bg-[#e10600] absolute left-1/2 -translate-x-1/2" />
+              <div className="w-1 h-full bg-[#f5c400] absolute left-1/2 -translate-x-1/2" />
             </div>
           </div>
         </div>
 
         <div className="mb-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#e10600]">Error</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-[#f5c400]">Error</span>
         </div>
         <h1
           className="text-8xl font-black text-white uppercase leading-none mb-4"
@@ -38,7 +38,7 @@ export function NotFound() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             to="/"
-            className="bg-[#e10600] hover:bg-[#b30500] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-colors"
+            className="bg-[#f5c400] hover:bg-[#d99a00] px-6 py-3 text-xs font-bold uppercase tracking-widest text-[#111111] transition-colors"
           >
             Ir al inicio
           </Link>

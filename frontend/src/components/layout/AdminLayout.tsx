@@ -80,7 +80,7 @@ export function AdminLayout() {
                 cn(
                   'flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors',
                   isActive
-                    ? 'bg-[#e10600] text-white'
+                    ? 'bg-[#f5c400] text-[#111111]'
                     : 'text-white/50 hover:text-white hover:bg-[#2a2a35]',
                 )
               }
@@ -94,7 +94,7 @@ export function AdminLayout() {
 
         <div className="border-t border-[#38383f] p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-8 w-8 bg-[#e10600] flex items-center justify-center text-sm font-bold flex-shrink-0">
+            <div className="h-8 w-8 bg-[#f5c400] flex items-center justify-center text-sm font-bold flex-shrink-0">
               {user?.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
@@ -105,7 +105,7 @@ export function AdminLayout() {
           <button
             onClick={handleLogout}
             type="button"
-            className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-[#e10600] hover:bg-[#2a2a35] transition-colors"
+            className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-[#f5c400] hover:bg-[#2a2a35] transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Cerrar sesión
@@ -158,7 +158,7 @@ export function AdminLayout() {
                 cn(
                   'flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors',
                   isActive
-                    ? 'bg-[#e10600] text-white'
+                    ? 'bg-[#f5c400] text-[#111111]'
                     : 'text-white/45 hover:bg-[#2a2a35] hover:text-white',
                 )
               }
@@ -174,7 +174,7 @@ export function AdminLayout() {
               className={cn(
                 'flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors',
                 overflowActive
-                  ? 'bg-[#e10600] text-white'
+                  ? 'bg-[#f5c400] text-[#111111]'
                   : 'text-white/45 hover:bg-[#2a2a35] hover:text-white',
               )}
             >

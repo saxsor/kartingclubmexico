@@ -68,7 +68,7 @@ export function EventList() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Race <span className="text-[#e10600]">Events</span>
+            Race <span className="text-[#f5c400]">Events</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">
             {pagination.total} evento{pagination.total !== 1 ? 's' : ''} registrado{pagination.total !== 1 ? 's' : ''}
@@ -76,7 +76,7 @@ export function EventList() {
         </div>
         <Link
           to="/app/eventos/nuevo"
-          className="flex items-center gap-2 rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(225,6,0,0.2)]"
+          className="flex items-center gap-2 rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] px-5 py-3 text-xs font-black uppercase tracking-widest text-[#111111] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(245,196,0,0.2)]"
         >
           <Plus className="h-4 w-4" />
           Nuevo evento
@@ -92,13 +92,13 @@ export function EventList() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Buscar por nombre..."
-            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none transition-colors"
+            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 focus:border-[#f5c400] focus:outline-none transition-colors"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
+          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#f5c400] focus:outline-none"
         >
           <option value="">Todos los estados</option>
           <option value="DRAFT">Borrador</option>
@@ -109,7 +109,7 @@ export function EventList() {
         <select
           value={yearFilter}
           onChange={(e) => { setYearFilter(e.target.value); setPage(1); }}
-          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#e10600] focus:outline-none"
+          className="rounded-lg border border-white/10 bg-[#15151e] px-3 py-2 text-sm text-white focus:border-[#f5c400] focus:outline-none"
         >
           <option value="">Todos los años</option>
           {yearOptions.map((y) => <option key={y} value={String(y)}>{y}</option>)}
@@ -160,7 +160,7 @@ export function EventList() {
                 <div className="flex gap-2 flex-shrink-0">
                   <Link
                     to={`/app/eventos/${event.slug}`}
-                    className="rounded-lg bg-[#e10600] hover:bg-[#ff0700] px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition-all"
+                    className="rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] px-4 py-2 text-xs font-black uppercase tracking-widest text-[#111111] transition-all"
                   >
                     Gestionar
                   </Link>

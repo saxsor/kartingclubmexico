@@ -47,7 +47,7 @@ export function Classification() {
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Event <span className="text-[#e10600]">Results</span>
+            Event <span className="text-[#f5c400]">Results</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">{event?.name}</p>
         </div>
@@ -114,7 +114,7 @@ export function Classification() {
             onClick={() => setSelectedCat(c.category)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               selectedCat === c.category
-                ? 'bg-racing-red text-white'
+                ? 'bg-racing-red text-[#111111]'
                 : 'bg-white/10 text-white/60 hover:bg-white/20'
             }`}
           >

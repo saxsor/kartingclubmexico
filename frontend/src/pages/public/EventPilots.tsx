@@ -15,6 +15,11 @@ interface PilotEntry {
   alias: string | null;
   photoUrl: string | null;
   kartNumber: number | null;
+  team: {
+    id: string;
+    name: string;
+    logoUrl: string | null;
+  } | null;
 }
 
 interface PublicPilotsResponse {
@@ -68,7 +73,7 @@ export function EventPilots() {
       {/* Page header */}
       <div className="mb-8 relative">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <div className="w-2 h-8 bg-[#f5c400] skew-x-[-15deg]" />
           <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
             {data.eventName}
           </span>
@@ -77,13 +82,13 @@ export function EventPilots() {
           className="text-5xl font-black text-white uppercase italic tracking-tighter"
           style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          Entry <span className="text-[#e10600]">List</span>
+          Entry <span className="text-[#f5c400]">List</span>
         </h1>
         <div className="absolute top-0 right-0 hidden md:block opacity-10">
           <Users className="w-24 h-24 text-white" />
         </div>
         <div className="mt-2 flex items-center gap-2 text-white/40 text-[10px] font-bold uppercase tracking-widest">
-          <span className="bg-[#e10600] text-white px-1.5 py-0.5 rounded-sm">{totalPilots}</span> Pilotos confirmados
+          <span className="bg-[#f5c400] text-[#111111] px-1.5 py-0.5 rounded-sm">{totalPilots}</span> Pilotos confirmados
         </div>
       </div>
 
@@ -96,7 +101,7 @@ export function EventPilots() {
               onClick={() => setSelectedCat(c)}
               className={`flex-1 min-w-[120px] px-6 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-md ${
                 selectedCat === c
-                  ? 'bg-[#e10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.3)]'
+                  ? 'bg-[#f5c400] text-[#111111] shadow-[0_0_15px_rgba(245,196,0,0.3)]'
                   : 'text-white/40 hover:text-white hover:bg-white/5'
               }`}
               style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
@@ -114,7 +119,7 @@ export function EventPilots() {
           {data.status === 'OPEN' && (
             <Link
               to={`/eventos/${slug}/inscribirse`}
-              className="mt-6 inline-flex items-center gap-2 bg-[#e10600] hover:bg-[#b30500] px-8 py-3 text-xs font-black uppercase tracking-widest text-white transition-all shadow-lg hover:shadow-[0_0_20px_rgba(225,6,0,0.4)]"
+              className="mt-6 inline-flex items-center gap-2 bg-[#f5c400] hover:bg-[#d99a00] px-8 py-3 text-xs font-black uppercase tracking-widest text-[#111111] transition-all shadow-lg hover:shadow-[0_0_20px_rgba(245,196,0,0.4)]"
             >
               <ClipboardList className="h-4 w-4" /> Inscribirme ahora
             </Link>
@@ -129,15 +134,16 @@ export function EventPilots() {
                   <tr className="border-b border-[#38383f] bg-[#1a1a21]">
                     <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-16">No.</th>
                     <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Piloto</th>
+                    <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] text-white/30 min-w-[180px]">Equipo</th>
                     <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-24">Kart</th>
                     <th className="px-4 py-4 text-right text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-32">Perfil</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#38383f]/30">
                   {currentPilots.map((pilot, idx) => (
-                    <tr key={pilot.pilotId} className="group transition-all duration-200 hover:bg-white/[0.03] border-l-4 border-l-transparent hover:border-l-[#e10600]">
+                    <tr key={pilot.pilotId} className="group transition-all duration-200 hover:bg-white/[0.03] border-l-4 border-l-transparent hover:border-l-[#f5c400]">
                       <td className="px-4 py-3.5">
-                        <span className="font-black text-2xl italic text-white/20 group-hover:text-[#e10600]/40 transition-colors" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                        <span className="font-black text-2xl italic text-white/20 group-hover:text-[#f5c400]/40 transition-colors" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                           {(idx + 1).toString().padStart(2, '0')}
                         </span>
                       </td>
@@ -153,12 +159,34 @@ export function EventPilots() {
                             )}
                           </div>
                           <div>
-                            <p className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#e10600] transition-colors" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+                            <p className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#f5c400] transition-colors" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
                               {pilot.name}
                             </p>
                             {pilot.alias && <p className="text-[10px] text-white/30 italic mt-0.5 tracking-wider font-medium font-sans">"{pilot.alias}"</p>}
                           </div>
                         </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {pilot.team ? (
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {pilot.team.logoUrl ? (
+                              <img
+                                src={resolveMediaUrl(pilot.team.logoUrl) ?? ''}
+                                alt={pilot.team.name}
+                                className="h-7 w-7 rounded bg-black object-contain p-0.5 flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="h-7 w-7 rounded bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                                <Users className="h-3.5 w-3.5 text-white/25" />
+                              </div>
+                            )}
+                            <span className="truncate text-xs font-black uppercase tracking-wider text-white/70 group-hover:text-white transition-colors">
+                              {pilot.team.name}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-white/10">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3.5 text-center">
                         {pilot.kartNumber ? (
@@ -172,7 +200,7 @@ export function EventPilots() {
                       <td className="px-4 py-3.5 text-right">
                         <Link
                           to={`/pilotos/${pilot.pilotId}`}
-                          className="inline-flex items-center justify-center p-2 text-white/20 hover:text-[#e10600] transition-colors"
+                          className="inline-flex items-center justify-center p-2 text-white/20 hover:text-[#f5c400] transition-colors"
                         >
                           <Search className="h-5 w-5" />
                         </Link>
@@ -186,11 +214,11 @@ export function EventPilots() {
 
           {/* CTA inscribirse at bottom if space is available */}
           {data.status === 'OPEN' && (
-            <div className="mt-12 text-center p-8 bg-gradient-to-b from-transparent to-[#e10600]/5 border-b border-[#e10600]/20">
+            <div className="mt-12 text-center p-8 bg-gradient-to-b from-transparent to-[#f5c400]/5 border-b border-[#f5c400]/20">
               <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40 mb-4">¿Quieres correr con nosotros?</p>
               <Link
                 to={`/eventos/${slug}/inscribirse`}
-                className="inline-flex items-center gap-2 bg-white text-black hover:bg-[#e10600] hover:text-white px-8 py-4 text-xs font-black uppercase tracking-widest transition-all shadow-xl"
+                className="inline-flex items-center gap-2 bg-white text-black hover:bg-[#f5c400] hover:text-[#111111] px-8 py-4 text-xs font-black uppercase tracking-widest transition-all shadow-xl"
               >
                 <ClipboardList className="h-4 w-4" /> Registrarme en este evento
               </Link>

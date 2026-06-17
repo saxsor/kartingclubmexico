@@ -376,12 +376,29 @@ export async function getPublicPilots(req: Request, res: Response): Promise<void
 
   const inscriptions = await prisma.inscription.findMany({
     where: { eventId: event.id },
-    include: { pilot: { select: { id: true, name: true, alias: true, photoUrl: true } } },
+    include: {
+      pilot: {
+        select: {
+          id: true,
+          name: true,
+          alias: true,
+          photoUrl: true,
+          team: { select: { id: true, name: true, logoUrl: true } },
+        },
+      },
+    },
     orderBy: [{ category: 'asc' }, { createdAt: 'asc' }],
   });
 
   // Group by category
-  const grouped: Record<string, { pilotId: string; name: string; alias: string | null; photoUrl: string | null; kartNumber: number | null }[]> = {};
+  const grouped: Record<string, {
+    pilotId: string;
+    name: string;
+    alias: string | null;
+    photoUrl: string | null;
+    kartNumber: number | null;
+    team: { id: string; name: string; logoUrl: string | null } | null;
+  }[]> = {};
   for (const insc of inscriptions) {
     if (!grouped[insc.category]) grouped[insc.category] = [];
     grouped[insc.category].push({
@@ -390,6 +407,7 @@ export async function getPublicPilots(req: Request, res: Response): Promise<void
       alias: insc.pilot.alias,
       photoUrl: insc.pilot.photoUrl,
       kartNumber: insc.kartNumber,
+      team: insc.pilot.team,
     });
   }
 

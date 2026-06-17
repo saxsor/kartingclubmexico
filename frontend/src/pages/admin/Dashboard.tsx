@@ -13,7 +13,7 @@ import { StatusBadge } from '../../components/shared/StatusBadge';
 import { queryKeys } from '../../lib/react-query';
 
 const CATEGORY_COLORS: Record<string, string> = {
-  SHIFTER: '#e10600',
+  SHIFTER: '#f5c400',
   DOS_TIEMPOS: '#f59e0b',
   FORMULA_MUNDIAL: '#3b82f6',
   NUEVE_HP: '#10b981',
@@ -96,7 +96,7 @@ function ParticipationTooltip({ active, payload, label }: { active?: boolean; pa
 }
 
 function ConstructorsTable({ entries, category }: { entries: ConstructorEntry[]; category: string }) {
-  const color = CATEGORY_COLORS[category] ?? '#e10600';
+  const color = CATEGORY_COLORS[category] ?? '#f5c400';
   return (
     <div className="border border-white/10 bg-white/5 p-4 space-y-3">
       <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color }}>
@@ -117,7 +117,7 @@ function ConstructorsTable({ entries, category }: { entries: ConstructorEntry[];
 }
 
 function StandingsTable({ entries, category }: { entries: StandingEntry[]; category: string }) {
-  const color = CATEGORY_COLORS[category] ?? '#e10600';
+  const color = CATEGORY_COLORS[category] ?? '#f5c400';
   return (
     <div className="border border-white/10 bg-white/5 p-4 space-y-3">
       <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color }}>
@@ -205,7 +205,7 @@ export function Dashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-          Command <span className="text-[#e10600]">Center</span>
+          Command <span className="text-[#f5c400]">Center</span>
         </h1>
         <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">Status Report — {new Date().toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}</p>
       </div>
@@ -217,11 +217,11 @@ export function Dashboard() {
         <div className="grid gap-4">
           <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] relative shadow-2xl">
             {/* Background Accent */}
-            <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(225,6,0,0.15),transparent_70%)] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(245,196,0,0.15),transparent_70%)] pointer-events-none" />
             
             <div className="border-b border-white/5 bg-white/[0.02] px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#e10600] animate-pulse" />
+                <div className="w-2 h-2 rounded-full bg-[#f5c400] animate-pulse" />
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">
                   {activeEvent ? 'Live Session: Operación en curso' : nextEvent ? 'Próximo Evento Programado' : 'Monitor de Sistema'}
                 </p>
@@ -242,12 +242,12 @@ export function Dashboard() {
                       </h2>
                       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                         <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                          <Calendar className="h-3.5 w-3.5 text-[#e10600]" />
+                          <Calendar className="h-3.5 w-3.5 text-[#f5c400]" />
                           <span className="text-xs font-bold text-white/70 uppercase tracking-wider">{formatDate(nextEvent.date)}</span>
                         </div>
                         {nextEvent.track && (
                           <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                            <Flag className="h-3.5 w-3.5 text-[#e10600]" />
+                            <Flag className="h-3.5 w-3.5 text-[#f5c400]" />
                             <span className="text-xs font-bold text-white/70 uppercase tracking-wider">{nextEvent.track}</span>
                           </div>
                         )}
@@ -256,7 +256,7 @@ export function Dashboard() {
                     <div className="flex flex-col sm:flex-row gap-3 lg:min-w-[320px]">
                       <Link
                         to={`/app/eventos/${nextEvent.slug}`}
-                        className="flex-1 flex items-center justify-center rounded-lg bg-[#e10600] px-6 py-4 text-sm font-black uppercase tracking-widest text-white transition-all hover:bg-[#ff0700] hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(225,6,0,0.3)]"
+                        className="flex-1 flex items-center justify-center rounded-lg bg-[#f5c400] px-6 py-4 text-sm font-black uppercase tracking-widest text-[#111111] transition-all hover:bg-[#ffd84d] hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(245,196,0,0.3)]"
                       >
                         Gestionar Hub
                       </Link>
@@ -279,12 +279,12 @@ export function Dashboard() {
                       <Link
                         key={item.to}
                         to={`/app/eventos/${nextEvent.slug}/${item.to}`}
-                        className="group relative overflow-hidden rounded-xl border border-white/5 bg-white/[0.03] p-5 transition-all hover:border-[#e10600]/50 hover:bg-white/[0.06]"
+                        className="group relative overflow-hidden rounded-xl border border-white/5 bg-white/[0.03] p-5 transition-all hover:border-[#f5c400]/50 hover:bg-white/[0.06]"
                       >
                         <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                           <item.icon className="w-20 h-20 text-white" />
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:text-[#e10600] transition-colors">{item.label}</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:text-[#f5c400] transition-colors">{item.label}</p>
                         <p className="mt-1 text-lg font-black uppercase text-white leading-tight italic tracking-tight">{item.desc}</p>
                       </Link>
                     ))}
@@ -325,17 +325,17 @@ export function Dashboard() {
 
       {/* Food / comensales section */}
       {foodByEvent.length > 0 && (
-        <div className="rounded-xl border border-[#e10600]/20 bg-[#e10600]/5 p-6 relative overflow-hidden">
+        <div className="rounded-xl border border-[#f5c400]/20 bg-[#f5c400]/5 p-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <UtensilsCrossed className="w-16 h-16 text-white" />
           </div>
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-1.5 h-5 bg-[#e10600]" />
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#e10600]">Logística de Alimentos</h2>
+            <div className="w-1.5 h-5 bg-[#f5c400]" />
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#f5c400]">Logística de Alimentos</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {foodByEvent.map((ev) => (
-              <Link key={ev.slug} to={`/app/eventos/${ev.slug}/caja`} className="group rounded-lg border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] hover:border-[#e10600]/30 transition-all p-5">
+              <Link key={ev.slug} to={`/app/eventos/${ev.slug}/caja`} className="group rounded-lg border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] hover:border-[#f5c400]/30 transition-all p-5">
                 <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 truncate group-hover:text-white/60">{ev.name}</p>
                 <div className="flex items-end justify-between gap-4">
                   <div className="space-y-1.5">
@@ -350,7 +350,7 @@ export function Dashboard() {
                   </div>
                   <div className="text-right">
                     <p className="text-4xl font-black text-white italic tabular-nums" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{ev.total}</p>
-                    <p className="text-[9px] font-black text-[#e10600] uppercase tracking-tighter">comensales</p>
+                    <p className="text-[9px] font-black text-[#f5c400] uppercase tracking-tighter">comensales</p>
                   </div>
                 </div>
               </Link>
@@ -397,7 +397,7 @@ export function Dashboard() {
                   iconType="circle"
                   wrapperStyle={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', paddingBottom: 20 }}
                 />
-                <Bar dataKey="Inscripción" stackId="a" fill="#e10600" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="Inscripción" stackId="a" fill="#f5c400" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="Alimentos" stackId="a" fill="#f59e0b" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="Otro" stackId="a" fill="#3b82f6" radius={[2, 2, 0, 0]} />
               </BarChart>
@@ -542,7 +542,7 @@ export function Dashboard() {
                   </div>
                   <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Nuevos pilotos</h2>
                 </div>
-                <Link to="/app/pilotos" className="text-xs text-[#e10600] hover:underline font-bold uppercase tracking-wider">Ver todos</Link>
+                <Link to="/app/pilotos" className="text-xs text-[#f5c400] hover:underline font-bold uppercase tracking-wider">Ver todos</Link>
               </div>
               <div className="rounded-xl border border-white/10 overflow-hidden">
                 {analytics!.recentPilots.map((pilot: RecentPilot, i: number) => (
@@ -558,7 +558,7 @@ export function Dashboard() {
                       }
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-white text-sm truncate group-hover:text-[#e10600] transition-colors">
+                      <p className="font-bold text-white text-sm truncate group-hover:text-[#f5c400] transition-colors">
                         {pilot.name}
                         {pilot.alias && <span className="text-white/40 font-normal ml-1.5 text-xs">"{pilot.alias}"</span>}
                       </p>
@@ -584,7 +584,7 @@ export function Dashboard() {
                   </div>
                   <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Nuevos equipos</h2>
                 </div>
-                <Link to="/app/equipos" className="text-xs text-[#e10600] hover:underline font-bold uppercase tracking-wider">Ver todos</Link>
+                <Link to="/app/equipos" className="text-xs text-[#f5c400] hover:underline font-bold uppercase tracking-wider">Ver todos</Link>
               </div>
               <div className="rounded-xl border border-white/10 overflow-hidden">
                 {analytics!.recentTeams.map((team: RecentTeam, i: number) => (
@@ -597,7 +597,7 @@ export function Dashboard() {
                       <ShieldCheck className="h-4 w-4 text-purple-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-white text-sm truncate group-hover:text-[#e10600] transition-colors">
+                      <p className="font-bold text-white text-sm truncate group-hover:text-[#f5c400] transition-colors">
                         {team.name}
                       </p>
                       <p className="text-xs text-white/30">

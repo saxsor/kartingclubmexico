@@ -98,7 +98,7 @@ export function EventResults() {
 
       <div className="mb-8 relative">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <div className="w-2 h-8 bg-[#f5c400] skew-x-[-15deg]" />
           <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
             {event?.name}
           </span>
@@ -107,7 +107,7 @@ export function EventResults() {
           className="text-5xl font-black text-white uppercase italic tracking-tighter"
           style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          Resultados <span className="text-[#e10600]">Finales</span>
+          Resultados <span className="text-[#f5c400]">Finales</span>
         </h1>
         <div className="absolute top-0 right-0 hidden md:block opacity-10">
           <BarChart2 className="w-24 h-24 text-white" />
@@ -142,7 +142,7 @@ export function EventResults() {
             onClick={() => setSelectedCat(c.category)}
             className={`flex-1 min-w-[120px] px-6 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-md ${
               selectedCat === c.category
-                ? 'bg-[#e10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.3)]'
+                ? 'bg-[#f5c400] text-[#111111] shadow-[0_0_15px_rgba(245,196,0,0.3)]'
                 : 'text-white/40 hover:text-white hover:bg-white/5'
             }`}
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}

@@ -92,7 +92,7 @@ export function RacePanel() {
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Race <span className="text-[#e10600]">Control</span>
+            Race <span className="text-[#f5c400]">Control</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">{event?.name}</p>
         </div>
@@ -110,7 +110,7 @@ export function RacePanel() {
           </button>
           <button
             onClick={() => setCreating(!creating)}
-            className="flex items-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+            className="flex items-center gap-2 rounded-lg bg-racing-red text-[#111111] px-4 py-2 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] transition-colors"
           >
             <Plus className="h-4 w-4" />
             Nueva carrera
@@ -154,7 +154,7 @@ export function RacePanel() {
               className="w-16 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-racing-red focus:outline-none"
             />
           </div>
-          <button type="submit" className="rounded-lg bg-racing-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+          <button type="submit" className="rounded-lg bg-racing-red text-[#111111] px-4 py-2 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] transition-colors">
             Crear
           </button>
         </form>

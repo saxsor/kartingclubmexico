@@ -185,7 +185,7 @@ export function ChampionshipDetail() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-5 bg-[#e10600]" />
+            <div className="w-1 h-5 bg-[#f5c400]" />
             <h2 className="text-xs font-bold uppercase tracking-widest text-white/50">Eventos del campeonato</h2>
           </div>
           <button
@@ -263,7 +263,7 @@ export function ChampionshipDetail() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-5 bg-[#e10600]" />
+            <div className="w-1 h-5 bg-[#f5c400]" />
             <h2 className="text-xs font-bold uppercase tracking-widest text-white/50">Clasificación del campeonato</h2>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -348,7 +348,7 @@ export function ChampionshipDetail() {
                 onClick={() => setViewMode('pilotos')}
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors',
-                  viewMode === 'pilotos' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+                  viewMode === 'pilotos' ? 'bg-[#f5c400] text-[#111111]' : 'bg-[#1f1f27] text-[#111111]/50 hover:text-[#111111] hover:bg-[#2a2a35]',
                 )}
               >
                 <User className="h-3 w-3" />
@@ -358,7 +358,7 @@ export function ChampionshipDetail() {
                 onClick={() => setViewMode('constructores')}
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors',
-                  viewMode === 'constructores' ? 'bg-[#e10600] text-white' : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
+                  viewMode === 'constructores' ? 'bg-[#f5c400] text-[#111111]' : 'bg-[#1f1f27] text-[#111111]/50 hover:text-[#111111] hover:bg-[#2a2a35]',
                 )}
               >
                 <ShieldCheck className="h-3 w-3" />
@@ -377,7 +377,7 @@ export function ChampionshipDetail() {
               className={cn(
                 'px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors',
                 selectedCat === cat
-                  ? 'bg-[#e10600] text-white'
+                  ? 'bg-[#f5c400] text-[#111111]'
                   : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]',
               )}
             >

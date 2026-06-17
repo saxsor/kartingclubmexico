@@ -2,7 +2,7 @@ import { CATEGORY_LABELS } from '../../lib/utils';
 import { cn } from '../../lib/utils';
 
 const CATEGORY_COLORS: Record<string, string> = {
-  SHIFTER: 'bg-[#e10600] text-white',
+  SHIFTER: 'bg-[#f5c400] text-[#111111]',
   DOS_TIEMPOS: 'bg-blue-600 text-white',
   FORMULA_MUNDIAL: 'bg-purple-600 text-white',
   NUEVE_HP: 'bg-emerald-600 text-white',

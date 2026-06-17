@@ -50,7 +50,7 @@ export function EventHub() {
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Event <span className="text-[#e10600]">Hub</span>
+            Event <span className="text-[#f5c400]">Hub</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">{event.name} · {formatDate(event.date)}</p>
         </div>
@@ -78,7 +78,7 @@ export function EventHub() {
               disabled={event.status === s || patchStatusMutation.isPending}
               className={`rounded-lg px-4 py-1.5 text-xs font-black uppercase tracking-widest transition-all ${
                 event.status === s
-                  ? 'bg-[#e10600] text-white cursor-default shadow-[0_0_12px_rgba(225,6,0,0.3)]'
+                  ? 'bg-[#f5c400] text-[#111111] cursor-default shadow-[0_0_12px_rgba(245,196,0,0.3)]'
                   : 'border border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
               }`}
             >
@@ -93,17 +93,17 @@ export function EventHub() {
           <Link
             key={action.to}
             to={`/app/eventos/${slug}/${action.to}`}
-            className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-5 transition-all hover:border-[#e10600]/50 hover:bg-white/[0.08]"
+            className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-5 transition-all hover:border-[#f5c400]/50 hover:bg-white/[0.08]"
           >
             <div className="absolute -right-3 -bottom-3 opacity-5 group-hover:opacity-10 transition-opacity">
               <action.icon className="w-16 h-16 text-white" />
             </div>
             <div className="relative flex items-center gap-4">
-              <div className="h-11 w-11 rounded-lg bg-[#e10600]/10 flex items-center justify-center group-hover:bg-[#e10600]/20 transition-colors flex-shrink-0">
-                <action.icon className="h-5 w-5 text-[#e10600]" />
+              <div className="h-11 w-11 rounded-lg bg-[#f5c400]/10 flex items-center justify-center group-hover:bg-[#f5c400]/20 transition-colors flex-shrink-0">
+                <action.icon className="h-5 w-5 text-[#f5c400]" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:text-[#e10600] transition-colors">{action.label}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:text-[#f5c400] transition-colors">{action.label}</p>
                 <p className="text-base font-black uppercase text-white italic tracking-tight leading-tight" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>{action.description}</p>
               </div>
             </div>

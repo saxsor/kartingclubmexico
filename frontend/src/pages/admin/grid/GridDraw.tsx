@@ -68,7 +68,7 @@ export function GridDraw() {
       <EventBreadcrumbs eventSlug={slug!} eventName={event?.name} currentLabel="Parrilla" />
       <div>
         <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-          Starting <span className="text-[#e10600]">Grid</span>
+          Starting <span className="text-[#f5c400]">Grid</span>
         </h1>
         <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">{event?.name}</p>
       </div>
@@ -93,7 +93,7 @@ export function GridDraw() {
                   <button
                     onClick={() => handleDraw(ec.category)}
                     disabled={drawing === ec.category}
-                    className="flex items-center gap-1.5 rounded-lg bg-racing-red px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+                    className="flex items-center gap-1.5 rounded-lg bg-racing-red text-[#111111] px-3 py-1.5 text-xs font-semibold text-[#111111] hover:bg-[#d99a00] transition-colors disabled:opacity-60"
                   >
                     <Shuffle className="h-3.5 w-3.5" />
                     {grid ? 'Re-sortear' : 'Sortear'}

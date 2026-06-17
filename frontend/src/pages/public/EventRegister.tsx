@@ -28,7 +28,7 @@ const STEP_LABELS: Record<Step, string> = {
 };
 const STEPS: Step[] = ['search', 'form', 'payment', 'done'];
 
-const inputClass = 'w-full border border-white/10 bg-[#1f1f27] px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#e10600] focus:outline-none';
+const inputClass = 'w-full border border-white/10 bg-[#1f1f27] px-3 py-2.5 text-sm text-white placeholder-white/30 focus:border-[#f5c400] focus:outline-none';
 const labelClass = 'block text-xs font-bold uppercase tracking-widest text-white/50 mb-1.5';
 
 export function EventRegister() {
@@ -169,7 +169,7 @@ export function EventRegister() {
         <Link to={`/eventos/${slug}`} className="text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white flex items-center gap-1.5 mb-6">
           <ArrowLeft className="h-3.5 w-3.5" /> Volver al evento
         </Link>
-        <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-8 text-center">
+        <div className="border-t-[3px] border-[#f5c400] bg-[#1f1f27] p-8 text-center">
           <p className="text-white/50 text-sm uppercase tracking-wide">Este evento no está abierto para inscripciones.</p>
         </div>
       </div>
@@ -192,7 +192,7 @@ export function EventRegister() {
 
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-1 h-5 bg-[#e10600]" />
+          <div className="w-1 h-5 bg-[#f5c400]" />
           <span className="text-xs font-bold uppercase tracking-widest text-white/50">{event.name}</span>
         </div>
         <h1
@@ -209,7 +209,7 @@ export function EventRegister() {
           <div key={s} className="flex items-center">
             <div className="flex items-center gap-2">
               <div className={`h-7 w-7 flex items-center justify-center text-xs font-black ${
-                step === s ? 'bg-[#e10600] text-white' :
+                step === s ? 'bg-[#f5c400] text-[#111111]' :
                 i < currentStepIdx ? 'bg-green-500 text-white' :
                 'bg-[#2a2a35] text-white/30'
               }`} style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
@@ -278,7 +278,7 @@ export function EventRegister() {
                     <p className="text-sm font-bold text-white">{pilot.name}</p>
                     {pilot.alias && <p className="text-xs text-white/40">"{pilot.alias}"</p>}
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#e10600] flex items-center gap-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#f5c400] flex items-center gap-1">
                     <UserCheck className="h-3.5 w-3.5" /> Soy yo
                   </span>
                 </button>
@@ -468,7 +468,7 @@ export function EventRegister() {
                   onClick={() => setForm({ ...form, category: cat })}
                   className={`px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
                     form.category === cat
-                      ? 'bg-[#e10600] text-white'
+                      ? 'bg-[#f5c400] text-[#111111]'
                       : 'bg-[#1f1f27] text-white/50 hover:text-white hover:bg-[#2a2a35]'
                   }`}
                 >
@@ -521,7 +521,7 @@ export function EventRegister() {
             <button
               type="submit"
               disabled={submitDisabled}
-              className="flex-1 bg-[#e10600] hover:bg-[#b30500] py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 bg-[#f5c400] hover:bg-[#d99a00] py-3 text-sm font-bold uppercase tracking-widest text-[#111111] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? 'Registrando...' : 'Inscribirme'}
             </button>
@@ -539,9 +539,9 @@ export function EventRegister() {
             Inscripción registrada. Realiza el pago y sube tu comprobante.
           </div>
 
-          <div className="border-t-[3px] border-[#e10600] bg-[#1f1f27] p-5 space-y-3">
+          <div className="border-t-[3px] border-[#f5c400] bg-[#1f1f27] p-5 space-y-3">
             <div className="flex items-center gap-3 mb-1">
-              <div className="w-1 h-4 bg-[#e10600]" />
+              <div className="w-1 h-4 bg-[#f5c400]" />
               <span className="text-xs font-bold uppercase tracking-widest text-white/50">Monto a pagar</span>
             </div>
             <div className="flex justify-between text-sm">
@@ -560,7 +560,7 @@ export function EventRegister() {
             )}
             <div className="border-t border-[#38383f] pt-3 flex justify-between">
               <span className="text-sm font-bold text-white uppercase tracking-wide">Total</span>
-              <span className="text-xl font-black text-[#e10600]"
+              <span className="text-xl font-black text-[#f5c400]"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 {formatCurrency(Number(registerResult.serviceFee) + Number(registerResult.foodFee) * registerResult.companions)}
               </span>
@@ -570,7 +570,7 @@ export function EventRegister() {
           {registerResult.transferInfo ? (
             <div className="border border-[#38383f] bg-[#1f1f27] p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-1 h-4 bg-[#e10600]" />
+                <div className="w-1 h-4 bg-[#f5c400]" />
                 <span className="text-xs font-bold uppercase tracking-widest text-white/50">Datos de transferencia</span>
               </div>
               <pre className="text-sm text-white/70 whitespace-pre-wrap font-sans leading-relaxed">
@@ -585,13 +585,13 @@ export function EventRegister() {
 
           <div className="border border-[#38383f] bg-[#1f1f27] p-5 space-y-3">
             <div className="flex items-center gap-3 mb-1">
-              <div className="w-1 h-4 bg-[#e10600]" />
+              <div className="w-1 h-4 bg-[#f5c400]" />
               <span className="text-xs font-bold uppercase tracking-widest text-white/50">Comprobante de pago</span>
             </div>
             <p className="text-xs text-white/40 uppercase tracking-wide">JPG, PNG, PDF, WebP · máx. 10 MB</p>
 
             <label className="flex items-center gap-3 cursor-pointer">
-              <div className="flex-1 border border-dashed border-white/20 px-4 py-3 text-sm text-white/40 hover:border-[#e10600]/50 hover:text-white/60 transition-colors truncate">
+              <div className="flex-1 border border-dashed border-white/20 px-4 py-3 text-sm text-white/40 hover:border-[#f5c400]/50 hover:text-white/60 transition-colors truncate">
                 {receiptFile ? receiptFile.name : 'Seleccionar archivo...'}
               </div>
               <input type="file" accept=".jpg,.jpeg,.png,.pdf,.webp" className="hidden"
@@ -615,7 +615,7 @@ export function EventRegister() {
             <button
               onClick={handleUploadReceipt}
               disabled={!receiptFile || receiptUpload.uploading}
-              className="w-full bg-[#e10600] hover:bg-[#b30500] py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors disabled:opacity-50"
+              className="w-full bg-[#f5c400] hover:bg-[#d99a00] py-3 text-sm font-bold uppercase tracking-widest text-[#111111] transition-colors disabled:opacity-50"
             >
               {receiptUpload.uploading ? `Subiendo ${receiptUpload.progress}%...` : 'Enviar comprobante'}
             </button>
@@ -651,7 +651,7 @@ export function EventRegister() {
           {registerResult && !receiptUploaded && (
             <button
               onClick={() => setStep('payment')}
-              className="bg-[#e10600] hover:bg-[#b30500] px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-white transition-colors"
+              className="bg-[#f5c400] hover:bg-[#d99a00] px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-[#111111] transition-colors"
             >
               Subir comprobante
             </button>

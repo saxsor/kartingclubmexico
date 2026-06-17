@@ -40,7 +40,7 @@ export function Championship() {
       <SEO title="Campeonatos" description="Clasificación del campeonato de karting en México. Puntos, posiciones y estadísticas por categoría." url="/campeonato" />
       <div className="mb-8 relative">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <div className="w-2 h-8 bg-[#f5c400] skew-x-[-15deg]" />
           <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
             Temporada {new Date().getFullYear()}
           </span>
@@ -49,7 +49,7 @@ export function Championship() {
           className="text-5xl font-black text-white uppercase italic tracking-tighter"
           style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          Todos los <span className="text-[#e10600]">Campeonatos</span>
+          Todos los <span className="text-[#f5c400]">Campeonatos</span>
         </h1>
         <div className="absolute top-0 right-0 hidden md:block opacity-10">
           <Trophy className="w-24 h-24 text-white" />
@@ -77,7 +77,7 @@ export function Championship() {
               onClick={() => navigate(`/campeonato/${c.id}`)}
               className="w-full flex items-center gap-4 bg-[#1f1f27] border border-[#38383f] px-6 py-5 hover:bg-[#2a2a35] transition-colors group text-left"
             >
-              <div className="w-1 h-10 bg-[#e10600] flex-shrink-0" />
+              <div className="w-1 h-10 bg-[#f5c400] flex-shrink-0" />
               <div className="flex-1">
                 <p
                   className="text-xl font-black text-white uppercase"
@@ -173,7 +173,7 @@ export function ChampionshipDetailPublic() {
       {/* Page header */}
       <div className="mb-8 relative">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <div className="w-2 h-8 bg-[#f5c400] skew-x-[-15deg]" />
           <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
             {championship.name} {championship.year}
           </span>
@@ -182,7 +182,7 @@ export function ChampionshipDetailPublic() {
           className="text-5xl font-black text-white uppercase italic tracking-tighter"
           style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          Clasificación <span className="text-[#e10600]">General</span>
+          Clasificación <span className="text-[#f5c400]">General</span>
         </h1>
         <div className="absolute top-0 right-0 hidden md:block opacity-10">
           <Trophy className="w-24 h-24 text-white" />
@@ -268,7 +268,7 @@ export function ChampionshipDetailPublic() {
             className={cn(
               'flex-1 min-w-[120px] px-6 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-md',
               selectedCat === cat
-                ? 'bg-[#e10600] text-white shadow-[0_0_15px_rgba(225,6,0,0.3)]'
+                ? 'bg-[#f5c400] text-[#111111] shadow-[0_0_15px_rgba(245,196,0,0.3)]'
                 : 'text-white/40 hover:text-white hover:bg-white/5',
             )}
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
@@ -348,7 +348,7 @@ function ConstructorPublicTable({ standings }: { standings: ConstructorStandings
                   </span>
                 </th>
               ))}
-              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#e10600] w-24">PTS</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#f5c400] w-24">PTS</th>
               <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-20">Gap</th>
             </tr>
           </thead>
@@ -384,7 +384,7 @@ function ConstructorPublicTable({ standings }: { standings: ConstructorStandings
                     </div>
                     <div>
                       <p
-                        className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#e10600] transition-colors"
+                        className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#f5c400] transition-colors"
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
                       >
                         {s.teamName}
@@ -454,7 +454,7 @@ function ChampionshipPublicTable({ standings }: { standings: ChampionshipStandin
                   </span>
                 </th>
               ))}
-              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#e10600] w-24">PTS</th>
+              <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#f5c400] w-24">PTS</th>
               <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-white/30 w-20">Gap</th>
             </tr>
           </thead>
@@ -494,7 +494,7 @@ function ChampionshipPublicTable({ standings }: { standings: ChampionshipStandin
                     </div>
                     <div>
                       <p
-                        className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#e10600] transition-colors"
+                        className="font-bold text-white uppercase text-base tracking-tight leading-none group-hover:text-[#f5c400] transition-colors"
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
                       >
                         {s.pilotName}

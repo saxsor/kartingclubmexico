@@ -21,7 +21,7 @@ function PageShell({
     <div className="pb-20">
       <div className="mb-8 relative">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-2 h-8 bg-[#e10600] skew-x-[-15deg]" />
+          <div className="w-2 h-8 bg-[#f5c400] skew-x-[-15deg]" />
           <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">
             {eyebrow}
           </span>
@@ -30,7 +30,7 @@ function PageShell({
           className="text-5xl font-black text-white uppercase italic tracking-tighter"
           style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
         >
-          {title.split(' ')[0]} <span className="text-[#e10600]">{title.split(' ').slice(1).join(' ')}</span>
+          {title.split(' ')[0]} <span className="text-[#f5c400]">{title.split(' ').slice(1).join(' ')}</span>
         </h1>
         <div className="absolute top-0 right-0 hidden md:block opacity-10">
           <Icon className="w-24 h-24 text-white" />
@@ -56,7 +56,7 @@ function Card({
   return (
     <section className={cn("overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 shadow-xl", className)}>
       <div className="border-b border-[#38383f] bg-[#1a1a21] px-6 py-4 flex items-center gap-3">
-        <Icon className="h-4 w-4 text-[#e10600]" />
+        <Icon className="h-4 w-4 text-[#f5c400]" />
         <h2
           className="text-lg font-black uppercase tracking-wider text-white"
           style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
@@ -73,7 +73,7 @@ function Card({
 
 function InlineLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link to={to} className="font-bold text-white hover:text-[#e10600] transition-colors border-b border-white/20 hover:border-[#e10600]">
+    <Link to={to} className="font-bold text-white hover:text-[#f5c400] transition-colors border-b border-white/20 hover:border-[#f5c400]">
       {children}
     </Link>
   );
@@ -126,14 +126,14 @@ export function ContactPage() {
         </p>
         <div className="grid gap-4 sm:grid-cols-2 mt-2">
           <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
-            <ShieldCheck className="h-5 w-5 text-[#e10600] mt-0.5" />
+            <ShieldCheck className="h-5 w-5 text-[#f5c400] mt-0.5" />
             <div>
               <p className="font-bold text-white text-xs uppercase tracking-wider">Inscripciones</p>
               <p className="text-xs text-white/40 mt-1">Estado de pagos y validación de recibos.</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
-            <Trophy className="h-5 w-5 text-[#e10600] mt-0.5" />
+            <Trophy className="h-5 w-5 text-[#f5c400] mt-0.5" />
             <div>
               <p className="font-bold text-white text-xs uppercase tracking-wider">Resultados</p>
               <p className="text-xs text-white/40 mt-1">Aclaraciones sobre puntos o posiciones.</p>
@@ -143,14 +143,14 @@ export function ContactPage() {
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Link to="/eventos" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#e10600] hover:bg-[#e10600]/5">
-          Ver eventos <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#e10600]" />
+        <Link to="/eventos" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#f5c400] hover:bg-[#f5c400]/5">
+          Ver eventos <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#f5c400]" />
         </Link>
-        <Link to="/campeonato" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#e10600] hover:bg-[#e10600]/5">
-          Ver campeonato <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#e10600]" />
+        <Link to="/campeonato" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#f5c400] hover:bg-[#f5c400]/5">
+          Ver campeonato <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#f5c400]" />
         </Link>
-        <Link to="/piloto" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#e10600] hover:bg-[#e10600]/5">
-          Portal piloto <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#e10600]" />
+        <Link to="/piloto" className="group flex items-center justify-between border border-[#38383f] bg-[#1a1a21] px-5 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:border-[#f5c400] hover:bg-[#f5c400]/5">
+          Portal piloto <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[#f5c400]" />
         </Link>
       </div>
     </PageShell>
@@ -201,7 +201,7 @@ export function FAQPage() {
         {faqs.map((item, idx) => (
           <section key={item.q} className="overflow-hidden rounded-lg border border-[#38383f] bg-[#1f1f27]/50 transition-all hover:border-white/20 group">
             <div className="px-6 py-5 flex items-start gap-4">
-              <span className="font-black text-2xl italic text-[#e10600]/20 group-hover:text-[#e10600]/40 transition-colors" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+              <span className="font-black text-2xl italic text-[#f5c400]/20 group-hover:text-[#f5c400]/40 transition-colors" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 {(idx + 1).toString().padStart(2, '0')}
               </span>
               <div>

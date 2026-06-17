@@ -271,7 +271,7 @@ export function RaceCapture() {
           onClick={handleSave}
           disabled={saving}
           className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-            saved ? 'bg-green-600 text-white' : 'bg-racing-red text-white hover:bg-red-700'
+            saved ? 'bg-green-600 text-[#111111]' : 'bg-racing-red text-[#111111] hover:bg-[#d99a00]'
           } disabled:opacity-60`}
         >
           <Save className="h-4 w-4" />
@@ -340,7 +340,7 @@ export function RaceCapture() {
               <button
                 onClick={handleSavePenalty}
                 disabled={!penaltyForm.reason}
-                className="flex-1 rounded-lg bg-racing-red py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                className="flex-1 rounded-lg bg-racing-red py-2 text-sm font-semibold text-[#111111] hover:bg-[#d99a00] disabled:opacity-60"
               >
                 Aplicar
               </button>

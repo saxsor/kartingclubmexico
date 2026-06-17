@@ -39,14 +39,14 @@ export function Login() {
             <img
               src="/karting_club_logo.png"
               alt="Karting Club México"
-              className="h-20 w-auto object-contain mx-auto drop-shadow-[0_8px_24px_rgba(225,6,0,0.4)]"
+              className="h-20 w-auto object-contain mx-auto drop-shadow-[0_8px_24px_rgba(245,196,0,0.4)]"
             />
           </a>
           <h1
             className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none mt-5"
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
           >
-            Admin <span className="text-[#e10600]">Panel</span>
+            Admin <span className="text-[#f5c400]">Panel</span>
           </h1>
           <p className="text-white/30 text-xs font-bold uppercase tracking-[0.25em] mt-2">
             Acceso para organizadores
@@ -56,9 +56,9 @@ export function Login() {
         {/* Form card */}
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f14] shadow-2xl">
           {/* Top gradient line */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#e10600] to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#f5c400] to-transparent" />
           {/* Corner glow */}
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(225,6,0,0.08),transparent_70%)] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(245,196,0,0.08),transparent_70%)] pointer-events-none" />
 
           <form onSubmit={handleSubmit} className="relative p-7 space-y-5">
             {error && (
@@ -78,7 +78,7 @@ export function Login() {
                 required
                 autoFocus
                 placeholder="admin@kartingclubmexico.mx"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none focus:bg-white/[0.07] transition-all"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/20 focus:border-[#f5c400] focus:outline-none focus:bg-white/[0.07] transition-all"
               />
             </div>
 
@@ -93,7 +93,7 @@ export function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 pr-11 text-sm text-white placeholder-white/20 focus:border-[#e10600] focus:outline-none focus:bg-white/[0.07] transition-all"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 pr-11 text-sm text-white placeholder-white/20 focus:border-[#f5c400] focus:outline-none focus:bg-white/[0.07] transition-all"
                 />
                 <button
                   type="button"
@@ -109,7 +109,7 @@ export function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3.5 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_24px_rgba(225,6,0,0.25)]"
+              className="w-full rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] py-3.5 text-xs font-black uppercase tracking-widest text-[#111111] transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-[0_0_24px_rgba(245,196,0,0.25)]"
             >
               {loading ? 'Ingresando...' : 'Ingresar al panel'}
             </button>

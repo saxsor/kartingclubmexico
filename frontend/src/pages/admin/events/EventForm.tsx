@@ -277,7 +277,7 @@ export function EventForm() {
 
       <div className="mb-8">
         <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-          {isEdit ? <>Edit <span className="text-[#e10600]">Event</span></> : <>New <span className="text-[#e10600]">Event</span></>}
+          {isEdit ? <>Edit <span className="text-[#f5c400]">Event</span></> : <>New <span className="text-[#f5c400]">Event</span></>}
         </h1>
         {isEdit && currentEvent && (
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-2">{currentEvent.name}</p>
@@ -798,7 +798,7 @@ export function EventForm() {
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 rounded-lg bg-[#e10600] hover:bg-[#ff0700] py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(225,6,0,0.2)]"
+            className="flex-1 rounded-lg bg-[#f5c400] hover:bg-[#ffd84d] py-3 text-xs font-black uppercase tracking-widest text-[#111111] transition-all hover:scale-[1.01] disabled:opacity-60 shadow-[0_0_20px_rgba(245,196,0,0.2)]"
           >
             {loading ? 'Guardando...' : (isEdit ? 'Actualizar evento' : 'Crear evento')}
           </button>

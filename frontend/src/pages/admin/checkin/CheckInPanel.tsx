@@ -109,7 +109,7 @@ export function CheckInPanel() {
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-            Pilot <span className="text-[#e10600]">Check-In</span>
+            Pilot <span className="text-[#f5c400]">Check-In</span>
           </h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">{event?.name}</p>
         </div>

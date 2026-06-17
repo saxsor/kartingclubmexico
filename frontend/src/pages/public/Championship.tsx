@@ -503,6 +503,24 @@ function ChampionshipPublicTable({ standings }: { standings: ChampionshipStandin
                         {s.pilotName}
                       </p>
                       {s.alias && <p className="text-[10px] text-white/30 italic mt-0.5 tracking-wider font-medium">"{s.alias}"</p>}
+                      {s.team && (
+                        <div className="mt-1.5 flex max-w-[180px] items-center gap-1.5">
+                          {s.team.logoUrl ? (
+                            <img
+                              src={resolveMediaUrl(s.team.logoUrl) ?? ''}
+                              alt={s.team.name}
+                              className="h-5 w-5 flex-shrink-0 rounded bg-black object-contain p-0.5"
+                            />
+                          ) : (
+                            <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border border-white/10 bg-white/5">
+                              <Users className="h-2.5 w-2.5 text-white/25" />
+                            </div>
+                          )}
+                          <span className="truncate text-[10px] font-black uppercase tracking-wider text-white/45 group-hover:text-white/65">
+                            {s.team.name}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </td>

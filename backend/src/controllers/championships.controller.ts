@@ -107,7 +107,14 @@ export async function getChampionshipStandings(req: Request, res: Response): Pro
             select: {
               pilotId: true,
               pilot: {
-                select: { id: true, name: true, alias: true, kartNumber: true, photoUrl: true },
+                select: {
+                  id: true,
+                  name: true,
+                  alias: true,
+                  kartNumber: true,
+                  photoUrl: true,
+                  team: { select: { id: true, name: true, logoUrl: true } },
+                },
               },
             },
           },
@@ -118,7 +125,14 @@ export async function getChampionshipStandings(req: Request, res: Response): Pro
 
   // Aggregate points per pilot per event
   const pilotMap = new Map<string, {
-    pilot: { id: string; name: string; alias: string | null; kartNumber: number | null; photoUrl: string | null };
+    pilot: {
+      id: string;
+      name: string;
+      alias: string | null;
+      kartNumber: number | null;
+      photoUrl: string | null;
+      team: { id: string; name: string; logoUrl: string | null } | null;
+    };
     eventPoints: Map<string, number>;
     totalPoints: number;
   }>();
@@ -146,6 +160,7 @@ export async function getChampionshipStandings(req: Request, res: Response): Pro
     alias: data.pilot.alias,
     kartNumber: data.pilot.kartNumber,
     photoUrl: data.pilot.photoUrl,
+    team: data.pilot.team,
     eventPoints: Object.fromEntries(data.eventPoints),
     totalPoints: data.totalPoints,
     gap: leaderPoints - data.totalPoints,

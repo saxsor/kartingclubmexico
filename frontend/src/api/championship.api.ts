@@ -31,6 +31,11 @@ export interface ChampionshipStandingRow {
   alias: string | null;
   kartNumber: number | null;
   photoUrl: string | null;
+  team: {
+    id: string;
+    name: string;
+    logoUrl: string | null;
+  } | null;
   eventPoints: Record<string, number>;
   totalPoints: number;
   gap: number;

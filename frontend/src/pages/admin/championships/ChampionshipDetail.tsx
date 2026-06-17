@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Trophy, Edit2, Check, X, Plus, Trash2, User, ShieldCheck } from 'lucide-react';
+import { Trophy, Edit2, Check, X, Plus, Trash2, User, ShieldCheck, Users } from 'lucide-react';
 import { championshipApi, ChampionshipEvent, ChampionshipStandingsData, ConstructorStandingsData } from '../../../api/championship.api';
 import { eventsApi } from '../../../api/events.api';
 import { CATEGORY_LABELS, cn, getPositionClass, resolveMediaUrl } from '../../../lib/utils';
@@ -539,6 +539,24 @@ function ChampionshipStandingsTable({ standings }: { standings: ChampionshipStan
                         {row.pilotName}
                       </p>
                       {row.alias && <p className="text-[10px] text-white/40 italic">"{row.alias}"</p>}
+                      {row.team && (
+                        <div className="mt-1 flex max-w-[170px] items-center gap-1.5">
+                          {row.team.logoUrl ? (
+                            <img
+                              src={resolveMediaUrl(row.team.logoUrl) ?? ''}
+                              alt={row.team.name}
+                              className="h-[18px] w-[18px] flex-shrink-0 rounded bg-black object-contain p-0.5"
+                            />
+                          ) : (
+                            <div className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded border border-white/10 bg-white/5">
+                              <Users className="h-2.5 w-2.5 text-white/25" />
+                            </div>
+                          )}
+                          <span className="truncate text-[9px] font-black uppercase tracking-wider text-white/35">
+                            {row.team.name}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </td>

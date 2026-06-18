@@ -34,13 +34,6 @@ const partnerLogos: Partner[] = [
     href: 'https://eileendinoracer.com/',
   },
   {
-    name: 'Velora Labs',
-    label: 'Platform by Velora Race Hub',
-    logo: '/partners/velora_logo_grande.png',
-    tone: 'light',
-    href: '',
-  },
-  {
     name: 'De 0 a mi Primer Carrera',
     label: 'Racing Partner',
     logo: '/partners/de0_carrera_logo_blanco.webp',
@@ -115,13 +108,18 @@ export function PartnerBelt({ variant = 'marquee', className }: PartnerBeltProps
   if (variant === 'compact') {
     return (
       <section className={cn('overflow-hidden rounded-lg border border-[#38383f] bg-[#101016]/90', className)}>
-        <div className="flex flex-col gap-1 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#f5c400]">Aliados</p>
             <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">{brandConfig.poweredByLabel}</p>
           </div>
+          <img
+            src="/partners/velora_logo_grande.png"
+            alt={brandConfig.providerName}
+            className="h-6 w-auto max-w-[120px] object-contain opacity-70"
+          />
         </div>
-        <div className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-4">
+        <div className="grid grid-cols-3 gap-px bg-white/10">
           {partnerLogos.filter((partner) => partner.logo).map((partner, index) => (
             <PartnerTile key={`${partner.name}-${partner.label}`} partner={partner} index={index} compact />
           ))}
@@ -137,6 +135,11 @@ export function PartnerBelt({ variant = 'marquee', className }: PartnerBeltProps
         <div className="shrink-0 border-b border-white/10 pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5">
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#f5c400]">Aliados</p>
           <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">{brandConfig.poweredByLabel}</p>
+          <img
+            src="/partners/velora_logo_grande.png"
+            alt={brandConfig.providerName}
+            className="mt-3 h-6 w-auto max-w-[120px] object-contain opacity-70"
+          />
         </div>
 
         <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">

@@ -1,4 +1,5 @@
 import { cn } from '../../lib/utils';
+import { brandConfig } from '../../config/brand';
 
 type PartnerTone = 'gold' | 'light' | 'muted';
 
@@ -34,7 +35,7 @@ const partnerLogos: Partner[] = [
   },
   {
     name: 'Velora Labs',
-    label: 'Technology Partner',
+    label: 'Platform by Velora Race Hub',
     logo: '/partners/velora_logo_grande.png',
     tone: 'light',
     href: '',
@@ -117,7 +118,7 @@ export function PartnerBelt({ variant = 'marquee', className }: PartnerBeltProps
         <div className="flex flex-col gap-1 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#f5c400]">Aliados</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Powered by racing</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">{brandConfig.poweredByLabel}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-4">
@@ -135,7 +136,7 @@ export function PartnerBelt({ variant = 'marquee', className }: PartnerBeltProps
       <div className="relative mx-auto flex max-w-7xl flex-col gap-3 px-4 sm:flex-row sm:items-center sm:gap-5 sm:px-6 lg:px-8">
         <div className="shrink-0 border-b border-white/10 pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5">
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#f5c400]">Aliados</p>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Powered by racing</p>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">{brandConfig.poweredByLabel}</p>
         </div>
 
         <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { brandConfig } from '../../config/brand';
 
 export function Login() {
   const { isAuthenticated, user, signIn } = useAuth();
@@ -37,8 +38,8 @@ export function Login() {
         <div className="text-center mb-8">
           <a href="/" className="inline-block opacity-90 hover:opacity-100 transition-opacity">
             <img
-              src="/karting_club_logo.png"
-              alt="Karting Club México"
+              src={brandConfig.instanceLogo}
+              alt={brandConfig.instanceName}
               className="h-20 w-auto object-contain mx-auto drop-shadow-[0_8px_24px_rgba(245,196,0,0.4)]"
             />
           </a>
@@ -50,6 +51,9 @@ export function Login() {
           </h1>
           <p className="text-white/30 text-xs font-bold uppercase tracking-[0.25em] mt-2">
             Acceso para organizadores
+          </p>
+          <p className="mt-3 text-[10px] font-black uppercase tracking-[0.26em] text-[#f5c400]/75">
+            {brandConfig.platformByProviderLabel}
           </p>
         </div>
 

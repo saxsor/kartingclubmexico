@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { useRouteScrollTop } from '../../hooks/useRouteScrollTop';
+import { brandConfig } from '../../config/brand';
 
 export function PublicLayout() {
   const location = useLocation();
@@ -18,13 +19,16 @@ export function PublicLayout() {
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] lg:px-8">
           <div>
             <img
-              src="/karting_club_logo.png"
-              alt="Karting Club México"
+              src={brandConfig.instanceLogo}
+              alt={brandConfig.instanceName}
               className="h-8 w-auto object-contain"
             />
             <p className="mt-4 max-w-sm text-sm leading-7 text-white/55">
-              Plataforma oficial para consultar eventos, seguir resultados, revisar campeonato y operar el portal de pilotos de Karting Club México.
+              Plataforma oficial de {brandConfig.instanceName} para consultar eventos, seguir resultados, revisar campeonato y operar el portal de pilotos.
             </p>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-sm border border-[#f5c400]/20 bg-[#f5c400]/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#f5c400]">
+              {brandConfig.poweredByLabel}
+            </div>
           </div>
 
           <div>
@@ -54,8 +58,8 @@ export function PublicLayout() {
         </div>
         <div className="border-t border-white/5">
           <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 text-xs text-white/30 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-            <p>© {new Date().getFullYear()} Karting Club México — Todos los derechos reservados.</p>
-            <p>Resultados, parrillas y seguimiento de temporada en una sola plataforma.</p>
+            <p>© {new Date().getFullYear()} {brandConfig.instanceName}. Todos los derechos reservados.</p>
+            <p>{brandConfig.platformByProviderLabel}, tecnología para resultados, parrillas y seguimiento de temporada.</p>
           </div>
         </div>
       </footer>

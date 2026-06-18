@@ -7,6 +7,7 @@ import { StatusBadge } from '../../components/shared/StatusBadge';
 import { SEO } from '../../components/shared/SEO';
 import { PageLoadingState } from '../../components/shared/LoadingSkeleton';
 import { PartnerBelt } from '../../components/shared/PartnerBelt';
+import { brandConfig } from '../../config/brand';
 
 const pillars = [
   {
@@ -57,7 +58,7 @@ export function Home() {
   return (
     <div className="space-y-20 pb-20">
       <SEO
-        description="Resultados en tiempo real, parrillas, campeonato y operación de pilotos para Karting Club México. Consulta próximos eventos e información pública de la temporada."
+        description={`${brandConfig.instanceName} opera inscripciones, resultados, parrillas y campeonato con ${brandConfig.platformName}. Consulta próximos eventos e información pública de la temporada.`}
         url="/"
       />
 
@@ -71,13 +72,13 @@ export function Home() {
             <div className="mb-6 flex items-center gap-3">
               <div className="w-2 h-8 bg-[#f5c400] skew-x-[-15deg]" />
               <span className="text-[11px] font-black uppercase tracking-[0.4em] text-white/40">
-                Oficial Racing Hub
+                Plataforma oficial KCM
               </span>
             </div>
             
             <img
-              src="/karting_club_logo.png"
-              alt="Karting Club México"
+              src={brandConfig.instanceLogo}
+              alt={brandConfig.instanceName}
               className="h-20 w-auto max-w-full object-contain drop-shadow-[0_0_30px_rgba(245,196,0,0.2)] mb-8 sm:h-28 sm:mb-10"
             />
             
@@ -90,8 +91,12 @@ export function Home() {
             </h1>
             
             <p className="mt-6 max-w-full text-base leading-relaxed text-white/50 font-sans sm:mt-8 sm:max-w-xl sm:text-lg">
-              La plataforma definitiva para el seguimiento de la temporada. Resultados en vivo, gestión de pilotos y el calendario oficial en un solo lugar.
+              Inscripciones, resultados, parrillas y campeonato oficial de Karting Club México, operados con {brandConfig.platformName}.
             </p>
+
+            <div className="mt-4 inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/45">
+              {brandConfig.poweredByLabel}
+            </div>
 
             {registrationEvent && (
               <Link

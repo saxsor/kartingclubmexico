@@ -6,6 +6,7 @@ import { useRef, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../lib/utils';
 import { useRouteScrollTop } from '../../hooks/useRouteScrollTop';
+import { brandConfig } from '../../config/brand';
 
 const navItems = [
   { label: 'Dashboard', to: '/app/dashboard', icon: BarChart2, minRole: 'ORGANIZER' },
@@ -54,13 +55,16 @@ export function AdminLayout() {
         )}
       >
         {/* Sidebar header / logo */}
-        <div className="flex h-16 items-center px-5 border-b border-[#38383f]">
+        <div className="flex h-20 items-center px-5 border-b border-[#38383f]">
           <a href="/" title="Ir al sitio público" className="opacity-80 hover:opacity-100 transition-opacity">
             <img
-              src="/karting_club_logo.png"
-              alt="Karting Club México"
+              src={brandConfig.instanceLogo}
+              alt={brandConfig.instanceName}
               className="h-8 w-auto object-contain"
             />
+            <p className="mt-1 text-[8px] font-black uppercase tracking-[0.2em] text-[#f5c400]/70">
+              {brandConfig.poweredByLabel}
+            </p>
           </a>
           <button
             className="ml-auto lg:hidden text-white/40 hover:text-white"
@@ -132,10 +136,13 @@ export function AdminLayout() {
             <Menu className="h-6 w-6" />
           </button>
           <img
-            src="/karting_club_logo.png"
-            alt="Karting Club México"
+            src={brandConfig.instanceLogo}
+            alt={brandConfig.instanceName}
             className="h-7 w-auto object-contain"
           />
+          <span className="hidden text-[9px] font-black uppercase tracking-[0.2em] text-[#f5c400]/70 min-[420px]:inline">
+            {brandConfig.platformName}
+          </span>
         </header>
 
         <main ref={mainRef} className="flex-1 overflow-y-auto p-6 pb-28 lg:pb-6">

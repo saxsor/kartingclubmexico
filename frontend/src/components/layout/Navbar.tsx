@@ -3,6 +3,7 @@ import { Menu, X, LogOut, Settings, User } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../lib/utils';
+import { brandConfig } from '../../config/brand';
 
 interface NavLink {
   label: string;
@@ -32,12 +33,15 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center gap-3">
             <img
-              src="/karting_club_logo.png"
-              alt="Karting Club México"
+              src={brandConfig.instanceLogo}
+              alt={brandConfig.instanceName}
               className="h-9 w-auto object-contain"
             />
+            <span className="hidden border-l border-white/10 pl-3 text-[9px] font-black uppercase tracking-[0.22em] text-white/35 min-[420px]:block">
+              {brandConfig.poweredByLabel}
+            </span>
           </Link>
 
           {/* Desktop nav */}

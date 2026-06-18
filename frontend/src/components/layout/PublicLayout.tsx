@@ -26,8 +26,15 @@ export function PublicLayout() {
             <p className="mt-4 max-w-sm text-sm leading-7 text-white/55">
               Plataforma oficial de {brandConfig.instanceName} para consultar eventos, seguir resultados, revisar campeonato y operar el portal de pilotos.
             </p>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-sm border border-[#f5c400]/20 bg-[#f5c400]/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#f5c400]">
-              {brandConfig.poweredByLabel}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2 rounded-sm border border-[#f5c400]/20 bg-[#f5c400]/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#f5c400]">
+                {brandConfig.poweredByLabel}
+              </div>
+              <img
+                src="/partners/velora_logo_grande.png"
+                alt={brandConfig.providerName}
+                className="h-6 w-auto max-w-[120px] object-contain opacity-70"
+              />
             </div>
           </div>
 

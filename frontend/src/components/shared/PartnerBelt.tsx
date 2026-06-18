@@ -22,7 +22,7 @@ const partnerLogos: Partner[] = [
     label: 'Development Partner',
     logo: '/partners/edel-logo.png',
     tone: 'gold',
-    href: '',
+    href: 'https://www.instagram.com/edelracingteam/',
   },
   {
     name: 'Eileen',
@@ -30,7 +30,7 @@ const partnerLogos: Partner[] = [
     logo: '/partners/logo_eileen.webp',
     tone: 'light',
     logoClassName: 'max-h-16 max-w-[205px]',
-    href: '',
+    href: 'https://eileendinoracer.com/',
   },
   {
     name: 'Velora Labs',
@@ -45,7 +45,7 @@ const partnerLogos: Partner[] = [
     logo: '/partners/de0_carrera_logo_blanco.webp',
     tone: 'light',
     logoClassName: 'max-h-16 max-w-[210px]',
-    href: '',
+    href: 'https://eileendinoracer.com/academia/',
   },
   {
     name: 'Próximamente',

@@ -3,8 +3,8 @@ export const brandConfig = {
   instanceShortName: 'KCM',
   instanceLogo: '/karting_club_logo.png',
   platformName: 'Velora Race Hub',
-  providerName: 'Velora Labs',
+  providerName: 'Velora',
   providerUrl: '',
-  poweredByLabel: 'Powered by Velora Race Hub',
-  platformByProviderLabel: 'Velora Race Hub by Velora Labs',
+  poweredByLabel: 'Powered by Velora',
+  platformByProviderLabel: 'Velora Race Hub by Velora',
 };
